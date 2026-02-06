@@ -27,7 +27,7 @@ npm --prefix web install
 npm run build:electron
 ```
 
-The installer will be generated at `desktop/dist/Easylab Suite Setup 0.1.1.exe`.
+The installer will be generated at `desktop/dist/Easylab Suite Setup 0.1.2.exe`.
 
 ### Fully Offline Python Runtime (Recommended)
 Run the PowerShell helper on the Windows build machine:
