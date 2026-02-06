@@ -42,6 +42,10 @@
         "to": "apps"
       },
       {
+        "from": "desktop/runtime",
+        "to": "runtime"
+      },
+      {
         "from": "LICENSE",
         "to": "LICENSE"
       }

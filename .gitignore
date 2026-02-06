@@ -12,6 +12,10 @@ web/dist/
 playwright-report/
 web/test-results/
 
+# Local runtime (generated for offline Windows builds)
+desktop/runtime/python/**
+!desktop/runtime/python/.gitkeep
+
 # OS/tooling noise
 .DS_Store
 npm-debug.log*

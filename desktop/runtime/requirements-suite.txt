@@ -1,0 +1,19 @@
+# Combined Python runtime requirements for Easylab Suite modules.
+#
+# Goal: bundle a local Python runtime inside the Windows installer so end users
+# don't need a separate Python installation or an internet connection.
+#
+# Notes:
+# - FastAPI modules (cDNA, qPCR Planner, Animal Pairing, Breeding, Y-Maze)
+# - Streamlit module (qPCR Analysis)
+
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+openpyxl==3.1.5
+pandas==2.2.3
+python-multipart==0.0.17
+
+streamlit>=1.33
+numpy>=1.22
+matplotlib>=3.7
+

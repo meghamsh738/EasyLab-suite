@@ -108,6 +108,19 @@ const isPortOpen = (port) => new Promise((resolve) => {
 const resolvePythonCandidates = () => {
   const candidates = []
   if (process.env.APP_PYTHON_PATH) candidates.push(process.env.APP_PYTHON_PATH)
+
+  const bundledCandidates = [
+    // Dev: runtime lives under the repo
+    path.join(rootDir, 'desktop', 'runtime', 'python', 'python.exe'),
+    path.join(rootDir, 'desktop', 'runtime', 'python', 'bin', 'python3'),
+    path.join(rootDir, 'desktop', 'runtime', 'python', 'bin', 'python'),
+    // Packaged: runtime is shipped as an extraResource
+    path.join(process.resourcesPath, 'runtime', 'python', 'python.exe'),
+    path.join(process.resourcesPath, 'runtime', 'python', 'bin', 'python3'),
+    path.join(process.resourcesPath, 'runtime', 'python', 'bin', 'python'),
+  ].filter((candidate) => candidate && fs.existsSync(candidate))
+
+  candidates.push(...bundledCandidates)
   candidates.push('python', 'python3', 'py')
   return Array.from(new Set(candidates))
 }
@@ -162,7 +175,7 @@ const spawnFastApi = async (moduleId, port) => {
   dialog.showMessageBox({
     type: 'warning',
     title: 'Backend not started',
-    message: `The ${MODULES[moduleId]?.label ?? 'module'} backend could not start. Install Python 3.10+ or set APP_PYTHON_PATH, then restart.`,
+    message: `The ${MODULES[moduleId]?.label ?? 'module'} backend could not start. Ensure a bundled Python runtime is present, or install Python 3.10+ / set APP_PYTHON_PATH, then restart.`,
   })
 }
 
@@ -223,7 +236,7 @@ const spawnStreamlit = async (moduleId, port) => {
   dialog.showMessageBox({
     type: 'warning',
     title: 'Server not started',
-    message: 'The qPCR analysis server could not start. Install Python 3.10+ or set APP_PYTHON_PATH, then restart.',
+    message: 'The qPCR analysis server could not start. Ensure a bundled Python runtime is present, or install Python 3.10+ / set APP_PYTHON_PATH, then restart.',
   })
 }
 
