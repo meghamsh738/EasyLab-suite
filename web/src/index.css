@@ -1,0 +1,79 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+:root {
+  --font-sans: 'Space Grotesk', 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+  --font-mono: 'Space Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+  --tracking-display: 0.08em;
+  --tracking-label: 0.12em;
+
+  --bg: #F6F2EA;
+  --surface: #FFFFFF;
+  --surface-2: #FFF7EC;
+  --surface-3: #F2EADF;
+  --panel: #FFFFFF;
+
+  --text: #111113;
+  --text-muted: #575762;
+  --text-subtle: #2F2F36;
+
+  --border: #15151A;
+  --border-2: #0F0F14;
+
+  --accent: #1f5bff;
+  --accent-weak: rgba(31, 91, 255, 0.18);
+  --focus: rgba(31, 91, 255, 0.35);
+
+  --radius-md: 12px;
+  --radius-lg: 12px;
+  --radius-xl: 18px;
+
+  --shadow-md: 10px 10px 0 rgba(17, 17, 20, 0.9);
+  --shadow-lg: 14px 14px 0 rgba(17, 17, 20, 0.9);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 80px;
+  --space-10: 96px;
+
+  --text-xs: 0.7rem;
+  --text-sm: 0.85rem;
+  --text-md: 1rem;
+
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --t-fast: 120ms;
+  --t: 160ms;
+  --t-slow: 220ms;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--text);
+  background: radial-gradient(1200px 600px at 8% -10%, rgba(31, 91, 255, 0.12), transparent 60%),
+    radial-gradient(900px 500px at 95% 10%, rgba(0, 0, 0, 0.08), transparent 70%),
+    var(--bg);
+  min-height: 100vh;
+  color-scheme: light;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+button {
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background: var(--accent-weak);
+}

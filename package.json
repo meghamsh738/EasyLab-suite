@@ -1,0 +1,62 @@
+{
+  "name": "easylab-suite",
+  "version": "0.1.0",
+  "description": "Easylab Suite launcher for lab notebook, cDNA, qPCR planning, and analysis",
+  "author": "Meghamsh Teja",
+  "private": true,
+  "main": "desktop/electron/main.cjs",
+  "scripts": {
+    "dev": "npm --prefix web run dev",
+    "build": "npm --prefix web run build",
+    "lint": "npm --prefix web run lint",
+    "test:e2e": "npm --prefix web run test:e2e",
+    "screenshots": "npm --prefix web run test:e2e",
+    "icons": "node desktop/scripts/generate-icons.mjs",
+    "sync:apps": "node scripts/sync-apps.mjs",
+    "dev:electron": "concurrently -k \"npm --prefix web run dev -- --host\" \"wait-on http://127.0.0.1:5178 && electron .\"",
+    "build:electron": "node scripts/sync-apps.mjs --build && npm --prefix web run build && npm run icons && electron-builder --win --x64"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.0",
+    "electron": "^30.0.0",
+    "electron-builder": "^25.1.8",
+    "png-to-ico": "^2.1.0",
+    "sharp": "^0.33.5",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.meghamshteja.easylab.suite",
+    "productName": "Easylab Suite",
+    "copyright": "Copyright © 2026 Meghamsh Teja. All Rights Reserved.",
+    "directories": {
+      "buildResources": "desktop/build",
+      "output": "desktop/dist"
+    },
+    "files": [
+      "desktop/electron/**/*",
+      ".suite-dist/web/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "apps",
+        "to": "apps"
+      },
+      {
+        "from": "LICENSE",
+        "to": "LICENSE"
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "desktop/build/icon.ico",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "license": "LICENSE"
+    }
+  }
+}
