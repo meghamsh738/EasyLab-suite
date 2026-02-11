@@ -31,6 +31,11 @@ const sourceCandidates = {
     path.join(appsRoot, 'qPCR-analysis-app'),
     path.join(appsRoot, 'qpcr-analysis-app'),
   ],
+  'elisa-analysis': [
+    process.env.EASYLAB_ELISA_ANALYSIS_PATH,
+    path.join(appsRoot, 'ELISA-analysis-app'),
+    path.join(appsRoot, 'elisa-analysis-app'),
+  ],
   'animal-pairing': [
     process.env.EASYLAB_ANIMAL_PAIRING_PATH,
     path.join(appsRoot, 'Experiment-pairing-app'),
@@ -50,6 +55,7 @@ const targets = {
   cdna: path.join(suiteRoot, 'apps', 'cdna'),
   'qpcr-planner': path.join(suiteRoot, 'apps', 'qpcr-planner'),
   'qpcr-analysis': path.join(suiteRoot, 'apps', 'qpcr-analysis'),
+  'elisa-analysis': path.join(suiteRoot, 'apps', 'elisa-analysis'),
   'animal-pairing': path.join(suiteRoot, 'apps', 'animal-pairing'),
   breeding: path.join(suiteRoot, 'apps', 'breeding'),
   ymaze: path.join(suiteRoot, 'apps', 'ymaze'),
@@ -277,11 +283,28 @@ const syncQpcrAnalysis = async () => {
   }
 }
 
+const syncElisaAnalysis = async () => {
+  const sourceRoot = pickSource('ELISA analysis source', sourceCandidates['elisa-analysis'])
+
+  if (shouldBuild) {
+    // Ensure file:// safe assets in Electron
+    run('npm run build -- --base ./', sourceRoot)
+  }
+
+  const buildDir = path.join(sourceRoot, 'dist')
+  await ensureExists(buildDir, 'ELISA analysis build')
+
+  const targetRoot = targets['elisa-analysis']
+  await resetDir(targetRoot)
+  await copyDir(buildDir, path.join(targetRoot, 'web'))
+}
+
 const main = async () => {
   await syncLabNotebook()
   await syncCdna()
   await syncQpcrPlanner()
   await syncQpcrAnalysis()
+  await syncElisaAnalysis()
   await syncFastApiModernApp({
     id: 'animal-pairing',
     label: 'Animal Pairing',

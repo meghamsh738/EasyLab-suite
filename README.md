@@ -39,7 +39,7 @@ This generates `desktop/runtime/python/` which is packaged into the installer.
 ### App Sources
 The suite expects the source apps to live next to this repo:
 ```
-/mnt/d/coding projects/
+/mnt/e/coding projects/
   lab note taking app
   cDNA-calculations-app
   qpcr-calculations-app-git

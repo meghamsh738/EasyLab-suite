@@ -18,7 +18,7 @@ Screenshots
 - Outputs: interactive table, CSV export, Excel export, clipboard TSV.
 - Example data: `example_data/samples.csv`.
 
-## Setup (D:)
+## Setup (E:)
 ```bash
 cd "<PROJECTS_DIR>/cDNA-calculations-app/modern-app"
 # If node_modules is missing

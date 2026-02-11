@@ -8,6 +8,7 @@ type ModuleId =
   | 'cdna'
   | 'qpcr-planner'
   | 'qpcr-analysis'
+  | 'elisa-analysis'
   | 'animal-pairing'
   | 'breeding'
   | 'ymaze'
@@ -69,6 +70,14 @@ const MODULES: Array<{
     description: 'Load sample sheets, map genes, and generate ready-to-share reports.',
     accent: '#E18A3D',
     tags: ['Normalization', 'Plots', 'Reports']
+  },
+  {
+    id: 'elisa-analysis',
+    name: 'ELISA Analysis',
+    summary: 'Analyze plate-reader absorbance with Auto-QC standard fitting.',
+    description: 'Assign standards and blanks, fit curves, and quantify samples with export-ready results.',
+    accent: '#C87DFF',
+    tags: ['Standard curves', 'Auto-QC', 'Quantification']
   },
   {
     id: 'animal-pairing',

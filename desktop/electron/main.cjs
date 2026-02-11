@@ -36,6 +36,12 @@ const MODULES = {
     type: 'streamlit',
     port: 8501,
   },
+  'elisa-analysis': {
+    id: 'elisa-analysis',
+    label: 'ELISA Analysis',
+    storage: 'ELISA Analysis',
+    type: 'static',
+  },
   'animal-pairing': {
     id: 'animal-pairing',
     label: 'Animal Pairing',

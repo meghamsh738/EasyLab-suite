@@ -9,6 +9,7 @@ test('suite home loads with modules', async ({ page }) => {
   await expect(page.getByTestId('module-card-cdna')).toBeVisible()
   await expect(page.getByTestId('module-card-qpcr-planner')).toBeVisible()
   await expect(page.getByTestId('module-card-qpcr-analysis')).toBeVisible()
+  await expect(page.getByTestId('module-card-elisa-analysis')).toBeVisible()
   await expect(page.getByTestId('module-card-animal-pairing')).toBeVisible()
   await expect(page.getByTestId('module-card-breeding')).toBeVisible()
   await expect(page.getByTestId('module-card-ymaze')).toBeVisible()
