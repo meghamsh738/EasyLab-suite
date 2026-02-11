@@ -1,5 +1,5 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron')
-const { spawn } = require('child_process')
+const { spawn, spawnSync } = require('child_process')
 const fs = require('fs')
 const net = require('net')
 const path = require('path')
@@ -111,6 +111,135 @@ const isPortOpen = (port) => new Promise((resolve) => {
   })
 })
 
+const isPyLauncher = (candidate) => path.basename(candidate).toLowerCase() === 'py'
+
+const withPythonLauncherArgs = (candidate, args) => {
+  if (!isPyLauncher(candidate)) return { command: candidate, args }
+  const hasMajorHint = args.includes('-3') || args.includes('-2')
+  return { command: candidate, args: hasMajorHint ? args : ['-3', ...args] }
+}
+
+const runPythonSync = (candidate, args, { cwd, env, timeoutMs = 120000 } = {}) => {
+  const launch = withPythonLauncherArgs(candidate, args)
+  return spawnSync(launch.command, launch.args, {
+    cwd,
+    env,
+    stdio: 'pipe',
+    encoding: 'utf8',
+    windowsHide: true,
+    timeout: timeoutMs,
+  })
+}
+
+const canRunPython = (candidate) => {
+  const probe = runPythonSync(candidate, ['-c', 'import sys; print(sys.executable)'])
+  return probe.status === 0
+}
+
+const hasRequiredImports = (candidate, imports) => {
+  if (!imports.length) return canRunPython(candidate)
+  const script = imports.map((name) => `import ${name}`).join(';')
+  const check = runPythonSync(candidate, ['-c', script])
+  return check.status === 0
+}
+
+const getModuleRequirementsPath = (moduleRoot, moduleType) => {
+  if (moduleType === 'streamlit') return path.join(moduleRoot, 'requirements.txt')
+  return path.join(moduleRoot, 'backend', 'requirements.txt')
+}
+
+const getBootstrapVenvRoot = (moduleId) => path.join(app.getPath('userData'), 'python-envs', moduleId)
+
+const getBootstrapVenvPython = (moduleId) => {
+  const venvRoot = getBootstrapVenvRoot(moduleId)
+  if (process.platform === 'win32') return path.join(venvRoot, 'Scripts', 'python.exe')
+  return path.join(venvRoot, 'bin', 'python3')
+}
+
+const buildWindowsPythonCandidates = () => {
+  const candidates = []
+  const localAppData = process.env.LOCALAPPDATA
+  const userProfile = process.env.USERPROFILE
+  const programFiles = process.env.ProgramFiles
+  const programFilesX86 = process.env['ProgramFiles(x86)']
+  const commonRoots = [programFiles, programFilesX86, userProfile].filter(Boolean)
+  const versions = ['312', '311', '310']
+
+  if (localAppData) {
+    versions.forEach((ver) => {
+      candidates.push(path.join(localAppData, 'Programs', 'Python', `Python${ver}`, 'python.exe'))
+    })
+    candidates.push(path.join(localAppData, 'Microsoft', 'WindowsApps', 'python.exe'))
+    candidates.push(path.join(localAppData, 'Microsoft', 'WindowsApps', 'py.exe'))
+  }
+
+  commonRoots.forEach((root) => {
+    versions.forEach((ver) => {
+      candidates.push(path.join(root, `Python${ver}`, 'python.exe'))
+      candidates.push(path.join(root, 'Python', `Python${ver}`, 'python.exe'))
+    })
+  })
+
+  return candidates.filter((candidate) => candidate && fs.existsSync(candidate))
+}
+
+const ensureModulePython = (moduleId, moduleType, moduleRoot) => {
+  const requiredImports = moduleType === 'streamlit'
+    ? ['streamlit', 'pandas', 'numpy', 'matplotlib', 'openpyxl']
+    : ['fastapi', 'uvicorn']
+  const requirementsPath = getModuleRequirementsPath(moduleRoot, moduleType)
+  const venvPython = getBootstrapVenvPython(moduleId)
+
+  if (fs.existsSync(venvPython) && hasRequiredImports(venvPython, requiredImports)) {
+    return { python: venvPython, usedBootstrap: false, reason: '' }
+  }
+
+  const candidates = resolvePythonCandidates()
+  for (const candidate of candidates) {
+    if (!canRunPython(candidate)) continue
+    if (hasRequiredImports(candidate, requiredImports)) {
+      return { python: candidate, usedBootstrap: false, reason: '' }
+    }
+  }
+
+  if (!fs.existsSync(requirementsPath)) {
+    return { python: null, usedBootstrap: false, reason: `Requirements file missing: ${requirementsPath}` }
+  }
+
+  for (const candidate of candidates) {
+    if (!canRunPython(candidate)) continue
+    try {
+      const venvRoot = getBootstrapVenvRoot(moduleId)
+      fs.mkdirSync(venvRoot, { recursive: true })
+      const createVenv = runPythonSync(candidate, ['-m', 'venv', venvRoot], { cwd: moduleRoot, timeoutMs: 300000 })
+      if (createVenv.status !== 0 || !fs.existsSync(venvPython)) continue
+
+      runPythonSync(venvPython, ['-m', 'pip', 'install', '--upgrade', 'pip', 'setuptools', 'wheel'], {
+        cwd: moduleRoot,
+        timeoutMs: 600000,
+        env: { ...process.env, PIP_DISABLE_PIP_VERSION_CHECK: '1' },
+      })
+      const installReq = runPythonSync(venvPython, ['-m', 'pip', 'install', '-r', requirementsPath], {
+        cwd: moduleRoot,
+        timeoutMs: 900000,
+        env: { ...process.env, PIP_DISABLE_PIP_VERSION_CHECK: '1' },
+      })
+      if (installReq.status !== 0) continue
+      if (hasRequiredImports(venvPython, requiredImports)) {
+        return { python: venvPython, usedBootstrap: true, reason: '' }
+      }
+    } catch (err) {
+      continue
+    }
+  }
+
+  return {
+    python: null,
+    usedBootstrap: false,
+    reason: `No usable Python + dependencies found for ${MODULES[moduleId]?.label ?? moduleId}.`,
+  }
+}
+
 const resolvePythonCandidates = () => {
   const candidates = []
   if (process.env.APP_PYTHON_PATH) candidates.push(process.env.APP_PYTHON_PATH)
@@ -127,6 +256,7 @@ const resolvePythonCandidates = () => {
   ].filter((candidate) => candidate && fs.existsSync(candidate))
 
   candidates.push(...bundledCandidates)
+  if (process.platform === 'win32') candidates.push(...buildWindowsPythonCandidates())
   candidates.push('python', 'python3', 'py')
   return Array.from(new Set(candidates))
 }
@@ -137,10 +267,21 @@ const getModuleRoot = (moduleId) => {
 }
 
 const spawnFastApi = async (moduleId, port) => {
-  if (backendProcesses.has(moduleId)) return
-  if (await isPortOpen(port)) return
+  if (backendProcesses.has(moduleId)) return true
+  if (await isPortOpen(port)) return true
 
   const moduleRoot = getModuleRoot(moduleId)
+  const pythonResolution = ensureModulePython(moduleId, 'fastapi', moduleRoot)
+  if (!pythonResolution.python) {
+    dialog.showMessageBox({
+      type: 'warning',
+      title: 'Backend not started',
+      message: `The ${MODULES[moduleId]?.label ?? 'module'} backend could not start.`,
+      detail: `${pythonResolution.reason}\n\nInstall Python 3.10+ or set APP_PYTHON_PATH, then restart.\nIf Python is installed, ensure pip can install:\n${getModuleRequirementsPath(moduleRoot, 'fastapi')}`,
+    })
+    return false
+  }
+
   const defaultPaths = getDefaultPaths(moduleId)
   ensureDirectories(defaultPaths)
   const env = {
@@ -153,43 +294,54 @@ const spawnFastApi = async (moduleId, port) => {
     EASYLAB_SYNC_PATH: defaultPaths.syncPath,
   }
 
-  const candidates = resolvePythonCandidates()
-  for (const candidate of candidates) {
-    try {
-      const proc = spawn(candidate, ['-m', 'uvicorn', 'backend.main:app', '--port', String(port)], {
-        cwd: moduleRoot,
-        env,
-        stdio: 'ignore',
-        windowsHide: true,
-      })
+  try {
+    const launch = withPythonLauncherArgs(pythonResolution.python, ['-m', 'uvicorn', 'backend.main:app', '--port', String(port)])
+    const proc = spawn(launch.command, launch.args, {
+      cwd: moduleRoot,
+      env,
+      stdio: 'ignore',
+      windowsHide: true,
+    })
 
-      const ready = await Promise.race([
-        waitForPort(port, 6000),
-        new Promise((_, reject) => proc.once('error', reject)),
-      ])
+    const ready = await Promise.race([
+      waitForPort(port, 8000),
+      new Promise((_, reject) => proc.once('error', reject)),
+    ])
 
-      if (ready) {
-        backendProcesses.set(moduleId, proc)
-        proc.on('exit', () => backendProcesses.delete(moduleId))
-        return
-      }
-    } catch (err) {
-      continue
+    if (ready) {
+      backendProcesses.set(moduleId, proc)
+      proc.on('exit', () => backendProcesses.delete(moduleId))
+      return true
     }
+  } catch (err) {
+    // fall through to dialog below
   }
 
   dialog.showMessageBox({
     type: 'warning',
     title: 'Backend not started',
-    message: `The ${MODULES[moduleId]?.label ?? 'module'} backend could not start. Ensure a bundled Python runtime is present, or install Python 3.10+ / set APP_PYTHON_PATH, then restart.`,
+    message: `The ${MODULES[moduleId]?.label ?? 'module'} backend could not start.`,
+    detail: `Python used: ${pythonResolution.python}\n\nIf this is the first launch, wait for dependency install to complete and retry.\nOtherwise reinstall dependencies from:\n${getModuleRequirementsPath(moduleRoot, 'fastapi')}`,
   })
+  return false
 }
 
 const spawnStreamlit = async (moduleId, port) => {
-  if (backendProcesses.has(moduleId)) return
-  if (await isPortOpen(port)) return
+  if (backendProcesses.has(moduleId)) return true
+  if (await isPortOpen(port)) return true
 
   const moduleRoot = getModuleRoot(moduleId)
+  const pythonResolution = ensureModulePython(moduleId, 'streamlit', moduleRoot)
+  if (!pythonResolution.python) {
+    dialog.showMessageBox({
+      type: 'warning',
+      title: 'Server not started',
+      message: `The ${MODULES[moduleId]?.label ?? 'module'} server could not start.`,
+      detail: `${pythonResolution.reason}\n\nInstall Python 3.10+ or set APP_PYTHON_PATH, then restart.\nIf Python is installed, ensure pip can install:\n${getModuleRequirementsPath(moduleRoot, 'streamlit')}`,
+    })
+    return false
+  }
+
   const appPath = path.join(moduleRoot, 'app.py')
   const defaultPaths = getDefaultPaths(moduleId)
   ensureDirectories(defaultPaths)
@@ -203,47 +355,47 @@ const spawnStreamlit = async (moduleId, port) => {
     EASYLAB_SYNC_PATH: defaultPaths.syncPath,
   }
 
-  const candidates = resolvePythonCandidates()
-  for (const candidate of candidates) {
-    try {
-      const proc = spawn(candidate, [
-        '-m',
-        'streamlit',
-        'run',
-        appPath,
-        '--server.headless',
-        'true',
-        '--server.port',
-        String(port),
-        '--server.address',
-        '127.0.0.1',
-      ], {
-        cwd: moduleRoot,
-        env,
-        stdio: 'ignore',
-        windowsHide: true,
-      })
+  try {
+    const launch = withPythonLauncherArgs(pythonResolution.python, [
+      '-m',
+      'streamlit',
+      'run',
+      appPath,
+      '--server.headless',
+      'true',
+      '--server.port',
+      String(port),
+      '--server.address',
+      '127.0.0.1',
+    ])
+    const proc = spawn(launch.command, launch.args, {
+      cwd: moduleRoot,
+      env,
+      stdio: 'ignore',
+      windowsHide: true,
+    })
 
-      const ready = await Promise.race([
-        waitForPort(port, 8000),
-        new Promise((_, reject) => proc.once('error', reject)),
-      ])
+    const ready = await Promise.race([
+      waitForPort(port, 12000),
+      new Promise((_, reject) => proc.once('error', reject)),
+    ])
 
-      if (ready) {
-        backendProcesses.set(moduleId, proc)
-        proc.on('exit', () => backendProcesses.delete(moduleId))
-        return
-      }
-    } catch (err) {
-      continue
+    if (ready) {
+      backendProcesses.set(moduleId, proc)
+      proc.on('exit', () => backendProcesses.delete(moduleId))
+      return true
     }
+  } catch (err) {
+    // fall through to dialog below
   }
 
   dialog.showMessageBox({
     type: 'warning',
     title: 'Server not started',
-    message: 'The qPCR analysis server could not start. Ensure a bundled Python runtime is present, or install Python 3.10+ / set APP_PYTHON_PATH, then restart.',
+    message: `The ${MODULES[moduleId]?.label ?? 'module'} server could not start.`,
+    detail: `Python used: ${pythonResolution.python}\n\nIf this is the first launch, wait for dependency install to complete and retry.\nOtherwise reinstall dependencies from:\n${getModuleRequirementsPath(moduleRoot, 'streamlit')}`,
   })
+  return false
 }
 
 const stopBackend = (moduleId) => {
@@ -293,11 +445,13 @@ const createModuleWindow = async (moduleId) => {
   }
 
   if (config.type === 'fastapi') {
-    await spawnFastApi(moduleId, config.port)
+    const started = await spawnFastApi(moduleId, config.port)
+    if (!started) return
   }
 
   if (config.type === 'streamlit') {
-    await spawnStreamlit(moduleId, config.port)
+    const started = await spawnStreamlit(moduleId, config.port)
+    if (!started) return
   }
 
   const win = new BrowserWindow({
