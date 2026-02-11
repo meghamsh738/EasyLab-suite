@@ -175,7 +175,8 @@ function App() {
             <h1>Easylab Suite</h1>
             <p>
               Launch every lab tool you need from a single, focused workspace. Each module opens in its own
-              window with consistent storage paths and desktop-ready performance.
+              window with consistent storage paths and desktop-ready performance. Every module now includes an
+              in-app guided tutorial with Next, Back, and Skip controls.
             </p>
           </div>
           <div className="hero-status" data-testid="suite-status">
