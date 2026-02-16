@@ -64,6 +64,19 @@ npm --prefix web install
 npm run dev
 ```
 
+## Lab Notebook Mobile Access (Tailscale)
+
+Lab Notebook now supports one-time pairing for mobile access when served over your tailnet.
+
+Recommended flow:
+1. In the Lab Notebook source repo, run:
+   ```bash
+   npm run dev -- --host 0.0.0.0 --port 4173 --strictPort
+   ```
+2. Open Lab Notebook on desktop, then in `Details -> Mobile sync check`, click `Generate one-time pair code`.
+3. On mobile (connected to the same Tailscale tailnet), open the shown server URL and enter the one-time code.
+4. After pairing, mobile has the same notebook feature set, including camera image capture + shared upload.
+
 ## Screenshots
 ![Suite Home](screenshots/suite_home.png)
 ![Desktop Modal](screenshots/desktop_modal.png)
