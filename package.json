@@ -12,6 +12,7 @@
     "test:e2e": "npm --prefix web run test:e2e",
     "screenshots": "npm --prefix web run test:e2e",
     "icons": "node desktop/scripts/generate-icons.mjs",
+    "preflight:modules": "node scripts/preflight-modules.mjs --strict",
     "sync:apps": "node scripts/sync-apps.mjs",
     "dev:electron": "concurrently -k \"npm --prefix web run dev -- --host\" \"wait-on http://127.0.0.1:5178 && electron .\"",
     "build:electron": "node scripts/sync-apps.mjs --build && npm --prefix web run build && npm run icons && electron-builder --win --x64"

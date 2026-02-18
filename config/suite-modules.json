@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "generatedOn": "2026-02-18",
+  "modules": [
+    {
+      "id": "labnotebook",
+      "name": "Lab Notebook",
+      "runtimeType": "static",
+      "sourceEnv": "EASYLAB_LABNOTE_PATH",
+      "sourceHints": ["lab note taking app", "lab-note-taking-app"],
+      "targetDir": "apps/labnotebook"
+    },
+    {
+      "id": "cdna",
+      "name": "cDNA Calculator",
+      "runtimeType": "fastapi",
+      "sourceEnv": "EASYLAB_CDNA_PATH",
+      "sourceHints": ["cDNA-calculations-app", "cdna-calculations-app"],
+      "targetDir": "apps/cdna"
+    },
+    {
+      "id": "qpcr-planner",
+      "name": "qPCR Planner",
+      "runtimeType": "fastapi",
+      "sourceEnv": "EASYLAB_QPCR_PLANNER_PATH",
+      "sourceHints": ["qpcr-calculations-app-git"],
+      "targetDir": "apps/qpcr-planner"
+    },
+    {
+      "id": "qpcr-analysis",
+      "name": "qPCR Analysis",
+      "runtimeType": "streamlit",
+      "sourceEnv": "EASYLAB_QPCR_ANALYSIS_PATH",
+      "sourceHints": ["qPCR-analysis-app", "qpcr-analysis-app"],
+      "targetDir": "apps/qpcr-analysis"
+    },
+    {
+      "id": "elisa-analysis",
+      "name": "ELISA Analysis",
+      "runtimeType": "static",
+      "sourceEnv": "EASYLAB_ELISA_ANALYSIS_PATH",
+      "sourceHints": ["elisa-analysis-app", "ELISA-analysis-app"],
+      "targetDir": "apps/elisa-analysis"
+    },
+    {
+      "id": "animal-pairing",
+      "name": "Animal Pairing",
+      "runtimeType": "fastapi",
+      "sourceEnv": "EASYLAB_ANIMAL_PAIRING_PATH",
+      "sourceHints": ["Experiment-pairing-app"],
+      "targetDir": "apps/animal-pairing"
+    },
+    {
+      "id": "breeding",
+      "name": "Breeding Pair Selector",
+      "runtimeType": "fastapi",
+      "sourceEnv": "EASYLAB_BREEDING_PATH",
+      "sourceHints": ["Mice-breeding-pair-selector"],
+      "targetDir": "apps/breeding"
+    },
+    {
+      "id": "ymaze",
+      "name": "Y-Maze Randomizer",
+      "runtimeType": "fastapi",
+      "sourceEnv": "EASYLAB_YMAZE_PATH",
+      "sourceHints": ["Y-maze-randomizer"],
+      "targetDir": "apps/ymaze"
+    }
+  ]
+}
