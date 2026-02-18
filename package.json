@@ -13,9 +13,10 @@
     "screenshots": "npm --prefix web run test:e2e",
     "icons": "node desktop/scripts/generate-icons.mjs",
     "preflight:modules": "node scripts/preflight-modules.mjs --strict",
-    "sync:apps": "node scripts/sync-apps.mjs",
+    "preflight:modules:artifacts": "node scripts/preflight-modules.mjs --strict --require-artifacts",
+    "sync:apps": "node scripts/sync-apps.mjs && npm run preflight:modules:artifacts",
     "dev:electron": "concurrently -k \"npm --prefix web run dev -- --host\" \"wait-on http://127.0.0.1:5178 && electron .\"",
-    "build:electron": "node scripts/sync-apps.mjs --build && npm --prefix web run build && npm run icons && electron-builder --win --x64"
+    "build:electron": "npm run preflight:modules && node scripts/sync-apps.mjs --build && npm run preflight:modules:artifacts && npm --prefix web run build && npm run icons && electron-builder --win --x64"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",

@@ -25,6 +25,7 @@ const sourceCandidates = {
   'qpcr-planner': [
     process.env.EASYLAB_QPCR_PLANNER_PATH,
     path.join(appsRoot, 'qpcr-calculations-app-git'),
+    path.join(appsRoot, 'qPCR-calculations-app-git'),
   ],
   'qpcr-analysis': [
     process.env.EASYLAB_QPCR_ANALYSIS_PATH,
@@ -39,14 +40,19 @@ const sourceCandidates = {
   'animal-pairing': [
     process.env.EASYLAB_ANIMAL_PAIRING_PATH,
     path.join(appsRoot, 'Experiment-pairing-app'),
+    path.join(appsRoot, 'experiment-pairing-app'),
   ],
   breeding: [
     process.env.EASYLAB_BREEDING_PATH,
     path.join(appsRoot, 'Mice-breeding-pair-selector'),
+    path.join(appsRoot, 'mice-breeding-pair-selector'),
+    path.join(appsRoot, 'Breeding-pair-selector'),
+    path.join(appsRoot, 'breeding-pair-selector'),
   ],
   ymaze: [
     process.env.EASYLAB_YMAZE_PATH,
     path.join(appsRoot, 'Y-maze-randomizer'),
+    path.join(appsRoot, 'y-maze-randomizer'),
   ],
 }
 

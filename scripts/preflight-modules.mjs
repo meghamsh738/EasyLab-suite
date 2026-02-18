@@ -6,6 +6,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const suiteRoot = path.resolve(__dirname, '..')
 const appsRoot = process.env.EASYLAB_APPS_ROOT || path.resolve(suiteRoot, '..')
 const strict = process.argv.includes('--strict')
+const requireArtifacts = process.argv.includes('--require-artifacts')
 
 const read = (relPath) => readFileSync(path.join(suiteRoot, relPath), 'utf8')
 const toSet = (arr) => new Set(arr)
@@ -56,6 +57,17 @@ const extractMainModuleIds = (mainSource) => {
   return keys
 }
 
+const extractViteEnvModuleIds = (viteEnvSource) => {
+  const signatureMatch = viteEnvSource.match(/launchModule:\s*\([\s\S]*?=>\s*Promise<void>/m)
+  if (!signatureMatch) return []
+  const signature = signatureMatch[0]
+  const ids = []
+  for (const match of signature.matchAll(/'(?<id>[a-z0-9-]+)'/g)) {
+    ids.push(match.groups.id)
+  }
+  return ids
+}
+
 const checkRuntimeArtifacts = (moduleRoot, runtimeType) => {
   const required = runtimeType === 'streamlit'
     ? ['app.py']
@@ -81,17 +93,20 @@ const manifest = JSON.parse(read('config/suite-modules.json'))
 const appSource = read('web/src/App.tsx')
 const mainSource = read('desktop/electron/main.cjs')
 const syncSource = read('scripts/sync-apps.mjs')
+const viteEnvSource = read('web/src/vite-env.d.ts')
 
 const manifestIds = manifest.modules.map((m) => m.id)
 const manifestSet = toSet(manifestIds)
 
 const appSet = toSet(extractAppModuleIds(appSource))
 const mainSet = toSet(extractMainModuleIds(mainSource))
+const viteEnvSet = toSet(extractViteEnvModuleIds(viteEnvSource))
 const syncSourceSet = toSet(extractSyncKeys(syncSource, 'sourceCandidates'))
 const syncTargetSet = toSet(extractSyncKeys(syncSource, 'targets'))
 
 const surfaceChecks = [
   { name: 'web launcher modules', set: appSet },
+  { name: 'web module typings (vite-env)', set: viteEnvSet },
   { name: 'desktop MODULES', set: mainSet },
   { name: 'sync sourceCandidates', set: syncSourceSet },
   { name: 'sync targets', set: syncTargetSet },
@@ -147,13 +162,13 @@ const iconChecks = [
   exists: existsSync(path.join(suiteRoot, relPath)),
 }))
 
-const artifactIssues = moduleArtifactChecks.filter((m) => !m.ok)
+const artifactIssues = requireArtifacts ? moduleArtifactChecks.filter((m) => !m.ok) : []
 const sourceIssues = defaultSourceChecks.filter((m) => !m.ok)
 const iconIssues = iconChecks.filter((c) => !c.exists)
 
 const errors = []
 if (mismatches.length) errors.push('manifest/surface mismatch')
-if (artifactIssues.length) errors.push('packaged apps missing artifacts')
+if (requireArtifacts && artifactIssues.length) errors.push('packaged apps missing artifacts')
 if (sourceIssues.length) errors.push('default source path resolution failed')
 if (iconIssues.length) errors.push('suite icon assets missing')
 
@@ -175,16 +190,20 @@ if (mismatches.length === 0) {
 }
 
 console.log('')
-console.log('Packaged apps check:')
-for (const check of moduleArtifactChecks) {
-  if (check.ok) {
-    console.log(`- ${check.id}: OK`)
-  } else {
-    const missingBits = []
-    if (!check.rootExists) missingBits.push('module folder missing')
-    if (check.missingArtifacts.length) missingBits.push(`missing artifacts: ${check.missingArtifacts.join(', ')}`)
-    console.log(`- ${check.id}: FAIL (${missingBits.join('; ')})`)
+if (requireArtifacts) {
+  console.log('Packaged apps check:')
+  for (const check of moduleArtifactChecks) {
+    if (check.ok) {
+      console.log(`- ${check.id}: OK`)
+    } else {
+      const missingBits = []
+      if (!check.rootExists) missingBits.push('module folder missing')
+      if (check.missingArtifacts.length) missingBits.push(`missing artifacts: ${check.missingArtifacts.join(', ')}`)
+      console.log(`- ${check.id}: FAIL (${missingBits.join('; ')})`)
+    }
   }
+} else {
+  console.log('Packaged apps check: skipped (run with --require-artifacts)')
 }
 
 console.log('')
