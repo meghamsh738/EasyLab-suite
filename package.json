@@ -1,6 +1,6 @@
 {
   "name": "easylab-suite",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Easylab Suite launcher for lab notebook, cDNA, qPCR planning, and analysis",
   "author": "Meghamsh Teja",
   "private": true,
@@ -13,6 +13,7 @@
     "screenshots": "npm --prefix web run test:e2e",
     "icons": "node desktop/scripts/generate-icons.mjs",
     "sync:apps": "node scripts/sync-apps.mjs",
+    "patch:apps": "node scripts/sync-apps.mjs --patch-only",
     "dev:electron": "concurrently -k \"npm --prefix web run dev -- --host\" \"wait-on http://127.0.0.1:5178 && electron .\"",
     "build:electron": "node scripts/sync-apps.mjs --build && npm --prefix web run build && npm run icons && electron-builder --win --x64"
   },

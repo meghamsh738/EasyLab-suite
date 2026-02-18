@@ -326,19 +326,19 @@ const injectTutorialButton = async (win, config) => {
       style.textContent = \`
         #__easylab_tutorial_button{
           position:fixed;
-          top:14px;
-          right:16px;
+          top:12px;
+          right:12px;
           z-index:2147483640;
-          border:1px solid rgba(20,24,28,0.35);
+          border:2px solid #111827;
           border-radius:999px;
-          padding:8px 14px;
-          font:600 12px/1.2 "Segoe UI", Inter, sans-serif;
-          letter-spacing:0.05em;
+          padding:10px 16px;
+          font:700 13px/1.2 "Segoe UI", Inter, sans-serif;
+          letter-spacing:0.06em;
           text-transform:uppercase;
-          background:#ffffff;
-          color:#0f172a;
+          background:#facc15;
+          color:#111827;
           cursor:pointer;
-          box-shadow:0 8px 22px rgba(0,0,0,0.16);
+          box-shadow:0 10px 24px rgba(0,0,0,0.26);
         }
         #__easylab_tutorial_button:hover{
           transform:translateY(-1px);
