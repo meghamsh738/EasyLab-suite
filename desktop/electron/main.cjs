@@ -307,153 +307,240 @@ const ensureStaticServer = async (moduleId) => {
 }
 
 const injectTutorialButton = async (win, config) => {
-  if (!win || win.isDestroyed() || !config?.tutorial) return
+  if (!win || win.isDestroyed()) return
   const payload = JSON.stringify({
-    label: config.label,
-    title: config.tutorial.title,
-    intro: config.tutorial.intro,
-    steps: config.tutorial.steps,
+    label: config?.label || 'Module',
+    tutorial: config?.tutorial || null,
   })
 
   const script = `
     (() => {
-      const data = ${payload};
-      if (!data || !Array.isArray(data.steps) || !document || !document.body) return;
-      if (document.getElementById('__easylab_tutorial_button')) return;
+      const payload = ${payload};
+      if (!document || !document.body) return;
 
-      const style = document.createElement('style');
-      style.id = '__easylab_tutorial_style';
-      style.textContent = \`
-        #__easylab_tutorial_button{
-          position:fixed;
-          top:12px;
-          right:12px;
-          z-index:2147483640;
-          border:2px solid #111827;
-          border-radius:999px;
-          padding:10px 16px;
-          font:700 13px/1.2 "Segoe UI", Inter, sans-serif;
-          letter-spacing:0.06em;
-          text-transform:uppercase;
-          background:#facc15;
-          color:#111827;
-          cursor:pointer;
-          box-shadow:0 10px 24px rgba(0,0,0,0.26);
+      const STYLE_ID = '__easylab_tutorial_style';
+      const FALLBACK_BUTTON_ID = '__easylab_tutorial_fallback_button';
+      const FALLBACK_OVERLAY_ID = '__easylab_tutorial_fallback_overlay';
+      const FALLBACK_MODAL_ID = '__easylab_tutorial_fallback_modal';
+
+      const ensureStyle = () => {
+        if (document.getElementById(STYLE_ID)) return;
+        const style = document.createElement('style');
+        style.id = STYLE_ID;
+        style.textContent = [
+          '.__easylab_tutorial_pinned,',
+          '#' + FALLBACK_BUTTON_ID + ' {',
+          '  position: fixed !important;',
+          '  top: 12px !important;',
+          '  right: 12px !important;',
+          '  left: auto !important;',
+          '  z-index: 2147483640 !important;',
+          '  border: 2px solid #111827 !important;',
+          '  border-radius: 999px !important;',
+          '  padding: 10px 16px !important;',
+          '  font: 700 13px/1.2 "Segoe UI", Inter, sans-serif !important;',
+          '  letter-spacing: 0.06em !important;',
+          '  text-transform: uppercase !important;',
+          '  background: #facc15 !important;',
+          '  color: #111827 !important;',
+          '  cursor: pointer !important;',
+          '  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.26) !important;',
+          '}',
+          '.__easylab_tutorial_pinned:hover,',
+          '#' + FALLBACK_BUTTON_ID + ':hover {',
+          '  transform: translateY(-1px);',
+          '}',
+          '.__easylab_tutorial_pinned:focus-visible,',
+          '#' + FALLBACK_BUTTON_ID + ':focus-visible {',
+          '  outline: 3px solid rgba(31, 91, 255, 0.55);',
+          '  outline-offset: 2px;',
+          '}',
+          '#' + FALLBACK_OVERLAY_ID + ' {',
+          '  position: fixed;',
+          '  inset: 0;',
+          '  z-index: 2147483641;',
+          '  background: rgba(7, 10, 16, 0.52);',
+          '  display: none;',
+          '  align-items: center;',
+          '  justify-content: center;',
+          '  padding: 18px;',
+          '}',
+          '#' + FALLBACK_OVERLAY_ID + '.open {',
+          '  display: flex;',
+          '}',
+          '#' + FALLBACK_MODAL_ID + ' {',
+          '  width: min(620px, 100%);',
+          '  background: #ffffff;',
+          '  color: #111827;',
+          '  border-radius: 14px;',
+          '  border: 1px solid rgba(20, 24, 28, 0.18);',
+          '  box-shadow: 0 24px 52px rgba(0, 0, 0, 0.28);',
+          '  padding: 18px;',
+          '  display: flex;',
+          '  flex-direction: column;',
+          '  gap: 10px;',
+          '  max-height: min(82vh, 760px);',
+          '  overflow: auto;',
+          '}',
+          '#' + FALLBACK_MODAL_ID + ' h2 {',
+          '  margin: 0;',
+          '  font: 700 18px/1.25 "Segoe UI", Inter, sans-serif;',
+          '}',
+          '#' + FALLBACK_MODAL_ID + ' p {',
+          '  margin: 0;',
+          '  font: 500 13px/1.5 "Segoe UI", Inter, sans-serif;',
+          '  color: #374151;',
+          '}',
+          '#' + FALLBACK_MODAL_ID + ' ol {',
+          '  margin: 0;',
+          '  padding-left: 20px;',
+          '  display: grid;',
+          '  gap: 8px;',
+          '  font: 500 13px/1.45 "Segoe UI", Inter, sans-serif;',
+          '}',
+          '#' + FALLBACK_MODAL_ID + ' button {',
+          '  align-self: flex-end;',
+          '  border: 1px solid rgba(20, 24, 28, 0.35);',
+          '  border-radius: 999px;',
+          '  padding: 7px 14px;',
+          '  background: #ffffff;',
+          '  color: #0f172a;',
+          '  font: 600 12px/1.2 "Segoe UI", Inter, sans-serif;',
+          '  text-transform: uppercase;',
+          '  letter-spacing: 0.05em;',
+          '  cursor: pointer;',
+          '}',
+        ].join('\\n');
+        document.head.appendChild(style);
+      };
+
+      const removeFallback = () => {
+        const fallbackButton = document.getElementById(FALLBACK_BUTTON_ID);
+        const overlay = document.getElementById(FALLBACK_OVERLAY_ID);
+        if (fallbackButton) fallbackButton.remove();
+        if (overlay) overlay.remove();
+      };
+
+      const candidateSelectors = [
+        '[data-testid="tutorial-start-btn"]',
+        'button[aria-label="Open tutorial"]',
+        'button[title="Tutorial"]',
+        'button[id*="tutorial" i]',
+        'button[class*="tutorial" i]'
+      ];
+
+      const findNativeTutorialButton = () => {
+        for (const selector of candidateSelectors) {
+          const node = document.querySelector(selector);
+          if (!(node instanceof HTMLButtonElement)) continue;
+          if (node.id === FALLBACK_BUTTON_ID) continue;
+          if (node.dataset.easylabTutorialPinned === 'fallback') continue;
+          return node;
         }
-        #__easylab_tutorial_button:hover{
-          transform:translateY(-1px);
+
+        const byText = Array.from(document.querySelectorAll('button')).find((button) => {
+          if (!(button instanceof HTMLButtonElement)) return false;
+          if (button.id === FALLBACK_BUTTON_ID) return false;
+          if (button.dataset.easylabTutorialPinned === 'fallback') return false;
+          return (button.textContent || '').trim().toLowerCase() === 'tutorial';
+        });
+        return byText || null;
+      };
+
+      const pinNativeButton = (button) => {
+        if (!button || button.id === FALLBACK_BUTTON_ID) return;
+        button.classList.add('__easylab_tutorial_pinned');
+        button.dataset.easylabTutorialPinned = 'native';
+      };
+
+      const ensureFallback = () => {
+        if (!payload || !payload.tutorial || !Array.isArray(payload.tutorial.steps) || payload.tutorial.steps.length === 0) return;
+        if (document.getElementById(FALLBACK_BUTTON_ID)) return;
+
+        const trigger = document.createElement('button');
+        trigger.id = FALLBACK_BUTTON_ID;
+        trigger.type = 'button';
+        trigger.textContent = 'Tutorial';
+        trigger.setAttribute('aria-label', 'Open tutorial');
+        trigger.dataset.easylabTutorialPinned = 'fallback';
+
+        const overlay = document.createElement('div');
+        overlay.id = FALLBACK_OVERLAY_ID;
+
+        const modal = document.createElement('div');
+        modal.id = FALLBACK_MODAL_ID;
+        modal.setAttribute('role', 'dialog');
+        modal.setAttribute('aria-modal', 'true');
+
+        const title = document.createElement('h2');
+        title.textContent = payload.tutorial.title || (payload.label + ' tutorial');
+
+        const intro = document.createElement('p');
+        intro.textContent = payload.tutorial.intro || '';
+
+        const list = document.createElement('ol');
+        payload.tutorial.steps.forEach((step) => {
+          const li = document.createElement('li');
+          li.textContent = step;
+          list.appendChild(li);
+        });
+
+        const close = document.createElement('button');
+        close.type = 'button';
+        close.textContent = 'Close';
+
+        const openModal = () => overlay.classList.add('open');
+        const closeModal = () => overlay.classList.remove('open');
+        trigger.addEventListener('click', openModal);
+        close.addEventListener('click', closeModal);
+        overlay.addEventListener('click', (event) => {
+          if (event.target === overlay) closeModal();
+        });
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape') closeModal();
+        });
+
+        modal.appendChild(title);
+        modal.appendChild(intro);
+        modal.appendChild(list);
+        modal.appendChild(close);
+        overlay.appendChild(modal);
+        document.body.appendChild(trigger);
+        document.body.appendChild(overlay);
+      };
+
+      const tryPinNativeButton = () => {
+        const nativeButton = findNativeTutorialButton();
+        if (!nativeButton) return false;
+        pinNativeButton(nativeButton);
+        removeFallback();
+        return true;
+      };
+
+      ensureStyle();
+      if (tryPinNativeButton()) return;
+
+      let attempts = 0;
+      const interval = window.setInterval(() => {
+        attempts += 1;
+        if (tryPinNativeButton()) {
+          window.clearInterval(interval);
+          return;
         }
-        #__easylab_tutorial_overlay{
-          position:fixed;
-          inset:0;
-          z-index:2147483641;
-          background:rgba(7,10,16,0.52);
-          display:none;
-          align-items:center;
-          justify-content:center;
-          padding:18px;
-        }
-        #__easylab_tutorial_overlay.open{
-          display:flex;
-        }
-        #__easylab_tutorial_modal{
-          width:min(620px,100%);
-          background:#ffffff;
-          color:#111827;
-          border-radius:14px;
-          border:1px solid rgba(20,24,28,0.18);
-          box-shadow:0 24px 52px rgba(0,0,0,0.28);
-          padding:18px;
-          display:flex;
-          flex-direction:column;
-          gap:10px;
-          max-height:min(82vh,760px);
-          overflow:auto;
-        }
-        #__easylab_tutorial_modal h2{
-          margin:0;
-          font:700 18px/1.25 "Segoe UI", Inter, sans-serif;
-        }
-        #__easylab_tutorial_modal p{
-          margin:0;
-          font:500 13px/1.5 "Segoe UI", Inter, sans-serif;
-          color:#374151;
-        }
-        #__easylab_tutorial_steps{
-          margin:0;
-          padding-left:20px;
-          display:grid;
-          gap:8px;
-          font:500 13px/1.45 "Segoe UI", Inter, sans-serif;
-        }
-        #__easylab_tutorial_close{
-          align-self:flex-end;
-          border:1px solid rgba(20,24,28,0.35);
-          border-radius:999px;
-          padding:7px 14px;
-          background:#ffffff;
-          color:#0f172a;
-          font:600 12px/1.2 "Segoe UI", Inter, sans-serif;
-          text-transform:uppercase;
-          letter-spacing:0.05em;
-          cursor:pointer;
-        }
-      \`;
-      document.head.appendChild(style);
+        if (attempts === 4) ensureFallback();
+        if (attempts >= 80) window.clearInterval(interval);
+      }, 250);
 
-      const trigger = document.createElement('button');
-      trigger.id = '__easylab_tutorial_button';
-      trigger.type = 'button';
-      trigger.textContent = 'Tutorial';
-      trigger.setAttribute('aria-label', 'Open tutorial');
-
-      const overlay = document.createElement('div');
-      overlay.id = '__easylab_tutorial_overlay';
-
-      const modal = document.createElement('div');
-      modal.id = '__easylab_tutorial_modal';
-      modal.setAttribute('role', 'dialog');
-      modal.setAttribute('aria-modal', 'true');
-
-      const title = document.createElement('h2');
-      title.textContent = data.title || (data.label + ' tutorial');
-
-      const intro = document.createElement('p');
-      intro.textContent = data.intro || '';
-
-      const steps = document.createElement('ol');
-      steps.id = '__easylab_tutorial_steps';
-      data.steps.forEach((step) => {
-        const li = document.createElement('li');
-        li.textContent = step;
-        steps.appendChild(li);
-      });
-
-      const close = document.createElement('button');
-      close.id = '__easylab_tutorial_close';
-      close.type = 'button';
-      close.textContent = 'Close';
-
-      modal.appendChild(title);
-      modal.appendChild(intro);
-      modal.appendChild(steps);
-      modal.appendChild(close);
-      overlay.appendChild(modal);
-
-      const openModal = () => overlay.classList.add('open');
-      const closeModal = () => overlay.classList.remove('open');
-
-      trigger.addEventListener('click', openModal);
-      close.addEventListener('click', closeModal);
-      overlay.addEventListener('click', (event) => {
-        if (event.target === overlay) closeModal();
-      });
-      document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') closeModal();
-      });
-
-      document.body.appendChild(trigger);
-      document.body.appendChild(overlay);
+      if (window.MutationObserver && document.documentElement) {
+        const observer = new MutationObserver(() => {
+          if (tryPinNativeButton()) {
+            observer.disconnect();
+            window.clearInterval(interval);
+          }
+        });
+        observer.observe(document.documentElement, { childList: true, subtree: true });
+        window.setTimeout(() => observer.disconnect(), 20000);
+      }
     })();
   `
 
