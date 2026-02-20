@@ -179,6 +179,16 @@
   background: color-mix(in srgb, var(--accent) 16%, var(--surface-2));
   border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--border));
   box-shadow: 0 12px 20px rgba(16, 24, 40, 0.1);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.module-icon img {
+  width: 28px;
+  height: 28px;
+  display: block;
+  filter: drop-shadow(0 2px 5px rgba(15, 23, 42, 0.3));
 }
 
 .module-card h2 {

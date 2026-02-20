@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import './App.css'
+import labNotebookIcon from './assets/module-icons/labnotebook.svg'
+import cdnaIcon from './assets/module-icons/cdna.svg'
+import qpcrPlannerIcon from './assets/module-icons/qpcr-planner.svg'
+import qpcrAnalysisIcon from './assets/module-icons/qpcr-analysis.svg'
+import elisaIcon from './assets/module-icons/elisa-analysis.svg'
+import animalPairingIcon from './assets/module-icons/animal-pairing.svg'
+import breedingIcon from './assets/module-icons/breeding.svg'
+import ymazeIcon from './assets/module-icons/ymaze.svg'
 
 /* eslint-disable react-hooks/set-state-in-effect */
 
@@ -37,6 +45,7 @@ const MODULES: Array<{
   summary: string
   description: string
   accent: string
+  icon: string
   tags: string[]
 }> = [
   {
@@ -45,6 +54,7 @@ const MODULES: Array<{
     summary: 'Offline-first experiment logs with signatures and attachments.',
     description: 'Capture protocols, observations, and approvals with a clean timeline view.',
     accent: '#A7B6FF',
+    icon: labNotebookIcon,
     tags: ['Experiments', 'Signatures', 'Attachments']
   },
   {
@@ -53,6 +63,7 @@ const MODULES: Array<{
     summary: 'Plan master mixes, dilutions, and reaction volumes in minutes.',
     description: 'Build cDNA runs with consistent volumes, templates, and export-ready tables.',
     accent: '#F7C97A',
+    icon: cdnaIcon,
     tags: ['Master mix', 'Dilutions', 'Exports']
   },
   {
@@ -61,6 +72,7 @@ const MODULES: Array<{
     summary: 'Design 384-well layouts and gene plate overrides without guesswork.',
     description: 'Paste sample lists, set controls, and get multi-plate layouts instantly.',
     accent: '#79D6C1',
+    icon: qpcrPlannerIcon,
     tags: ['Plate layout', 'Controls', 'Overrides']
   },
   {
@@ -69,6 +81,7 @@ const MODULES: Array<{
     summary: 'Analyze Ct tables, normalize runs, and export figures fast.',
     description: 'Load sample sheets, map genes, and generate ready-to-share reports.',
     accent: '#E18A3D',
+    icon: qpcrAnalysisIcon,
     tags: ['Normalization', 'Plots', 'Reports']
   },
   {
@@ -77,6 +90,7 @@ const MODULES: Array<{
     summary: 'Analyze plate-reader absorbance with Auto-QC standard fitting.',
     description: 'Assign standards and blanks, fit curves, and quantify samples with export-ready results.',
     accent: '#C87DFF',
+    icon: elisaIcon,
     tags: ['Standard curves', 'Auto-QC', 'Quantification']
   },
   {
@@ -85,6 +99,7 @@ const MODULES: Array<{
     summary: 'Balance cohorts or generate breeding pairs from colony sheets.',
     description: 'Upload CSV/XLSX, filter genotypes, and export grouped animals or male/female pairs.',
     accent: '#60A5FA',
+    icon: animalPairingIcon,
     tags: ['Cohorts', 'Genotypes', 'Excel export']
   },
   {
@@ -93,6 +108,7 @@ const MODULES: Array<{
     summary: 'Target a genotype and surface direct + indirect breeder matches.',
     description: 'Manage a gene catalog, apply probability thresholds, and export recommended breeder pairs.',
     accent: '#34D399',
+    icon: breedingIcon,
     tags: ['Breeding', 'Genes', 'Probabilities']
   },
   {
@@ -101,6 +117,7 @@ const MODULES: Array<{
     summary: 'Generate balanced learning/reversal schedules and exit-arm assignments.',
     description: 'Paste animal rows, tune day/trial counts, and export CSV/Excel schedules per day.',
     accent: '#F472B6',
+    icon: ymazeIcon,
     tags: ['Scheduling', 'Randomization', 'CSV/Excel']
   }
 ]
@@ -213,7 +230,9 @@ function App() {
           >
             <div className="card-header">
               <div className="card-title">
-                <div className="module-icon" aria-hidden="true" />
+                <div className="module-icon" aria-hidden="true">
+                  <img src={module.icon} alt="" />
+                </div>
                 <div>
                   <h2>{module.name}</h2>
                   <p className="summary">{module.summary}</p>

@@ -6,7 +6,8 @@ const path = require('path')
 
 const isDev = !app.isPackaged
 const rootDir = path.join(__dirname, '..', '..')
-const iconPath = path.join(__dirname, '..', 'build', 'icon.png')
+const fallbackIconPath = path.join(__dirname, '..', 'build', 'icon.png')
+const suiteIconPath = path.join(__dirname, 'icons', 'suite.png')
 
 const MODULES = {
   labnotebook: {
@@ -63,6 +64,17 @@ const MODULES = {
     type: 'fastapi',
     port: 8023,
   },
+}
+
+const moduleIconPaths = Object.fromEntries(
+  Object.keys(MODULES).map((moduleId) => [moduleId, path.join(__dirname, 'icons', `${moduleId}.png`)]),
+)
+
+const resolveWindowIcon = (moduleId) => {
+  const candidates = []
+  if (moduleId && moduleIconPaths[moduleId]) candidates.push(moduleIconPaths[moduleId])
+  candidates.push(suiteIconPath, fallbackIconPath)
+  return candidates.find((candidate) => candidate && fs.existsSync(candidate))
 }
 
 const windows = new Map()
@@ -415,7 +427,7 @@ const createSuiteWindow = () => {
     resizable: true,
     backgroundColor: '#F6F2EA',
     title: app.getName(),
-    icon: iconPath,
+    icon: resolveWindowIcon(),
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
@@ -462,7 +474,7 @@ const createModuleWindow = async (moduleId) => {
     resizable: true,
     backgroundColor: '#F6F2EA',
     title: `Easylab Suite · ${config.label}`,
-    icon: iconPath,
+    icon: resolveWindowIcon(moduleId),
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,

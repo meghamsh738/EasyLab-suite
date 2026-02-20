@@ -157,6 +157,8 @@ const iconChecks = [
   'desktop/build/icon.ico',
   'desktop/build/icon.png',
   'desktop/build/icon.svg',
+  'desktop/electron/icons/suite.png',
+  ...manifest.modules.map((module) => `desktop/electron/icons/${module.id}.png`),
 ].map((relPath) => ({
   relPath,
   exists: existsSync(path.join(suiteRoot, relPath)),
