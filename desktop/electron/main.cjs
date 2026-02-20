@@ -326,6 +326,199 @@ const STATIC_CONTENT_TYPES = {
   '.woff2': 'font/woff2',
 }
 
+const LABNOTE_API_PREFIX = '/labnote-api'
+const LABNOTE_UPLOADS_PREFIX = '/labnote-uploads/'
+const LABNOTE_STATE_FILE = 'labnote-shared-state.json'
+
+const sendJson = (res, statusCode, payload) => {
+  res.writeHead(statusCode, {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Cache-Control': 'no-store',
+  })
+  res.end(JSON.stringify(payload))
+}
+
+const readJsonBody = (req, maxBytes = 25 * 1024 * 1024) => new Promise((resolve, reject) => {
+  const chunks = []
+  let size = 0
+
+  req.on('data', (chunk) => {
+    size += chunk.length
+    if (size > maxBytes) {
+      reject(new Error('Payload too large'))
+      req.destroy()
+      return
+    }
+    chunks.push(chunk)
+  })
+  req.on('end', () => {
+    if (chunks.length === 0) {
+      resolve({})
+      return
+    }
+    try {
+      resolve(JSON.parse(Buffer.concat(chunks).toString('utf8')))
+    } catch (err) {
+      reject(err)
+    }
+  })
+  req.on('error', reject)
+})
+
+const extensionForMime = (mime) => {
+  const normalized = String(mime || '').toLowerCase()
+  if (normalized.includes('jpeg')) return '.jpg'
+  if (normalized.includes('png')) return '.png'
+  if (normalized.includes('gif')) return '.gif'
+  if (normalized.includes('webp')) return '.webp'
+  if (normalized.includes('svg')) return '.svg'
+  if (normalized.includes('pdf')) return '.pdf'
+  return ''
+}
+
+const parseDataUrl = (value) => {
+  const match = /^data:([^;]+);base64,(.+)$/i.exec(String(value || ''))
+  if (!match) return null
+  try {
+    return { mime: match[1], buffer: Buffer.from(match[2], 'base64') }
+  } catch {
+    return null
+  }
+}
+
+const safeUploadBaseName = (filename) => {
+  const base = path.basename(String(filename || 'upload'))
+  const cleaned = base.replace(/[^a-zA-Z0-9._-]+/g, '_').replace(/^_+|_+$/g, '')
+  return cleaned || 'upload'
+}
+
+const getLabnoteStorage = () => {
+  const defaults = getDefaultPaths('labnotebook')
+  const dataDir = defaults.dataPath
+  const uploadsDir = defaults.attachmentsPath
+  const stateFile = path.join(dataDir, LABNOTE_STATE_FILE)
+  return { dataDir, uploadsDir, stateFile }
+}
+
+const ensureLabnoteStorage = () => {
+  const { dataDir, uploadsDir } = getLabnoteStorage()
+  fs.mkdirSync(dataDir, { recursive: true })
+  fs.mkdirSync(uploadsDir, { recursive: true })
+}
+
+const readLabnoteState = () => {
+  const { stateFile } = getLabnoteStorage()
+  try {
+    if (!fs.existsSync(stateFile)) return null
+    const raw = fs.readFileSync(stateFile, 'utf-8')
+    return JSON.parse(raw)
+  } catch {
+    return null
+  }
+}
+
+const writeLabnoteState = (payload) => {
+  ensureLabnoteStorage()
+  const { stateFile } = getLabnoteStorage()
+  fs.writeFileSync(stateFile, `${JSON.stringify(payload, null, 2)}\n`, 'utf-8')
+}
+
+const toSafeUploadPath = (uploadsDir, requestUrl) => {
+  const [pathname] = String(requestUrl || '/').split('?')
+  let decoded = ''
+  try {
+    decoded = decodeURIComponent(pathname || '/')
+  } catch {
+    decoded = pathname || '/'
+  }
+  const relative = decoded.replace(new RegExp(`^${LABNOTE_UPLOADS_PREFIX}`), '').replace(/^\/+/, '')
+  if (!relative) return null
+  const resolved = path.resolve(uploadsDir, relative)
+  const root = path.resolve(uploadsDir)
+  if (resolved.startsWith(`${root}${path.sep}`) || resolved === root) return resolved
+  return null
+}
+
+const handleLabnoteApiRequest = async (req, res) => {
+  const [pathname] = String(req.url || '/').split('?')
+  const method = String(req.method || 'GET').toUpperCase()
+
+  if (pathname === `${LABNOTE_API_PREFIX}/info`) {
+    sendJson(res, 200, {
+      ok: true,
+      shared: true,
+      uploadsUrl: LABNOTE_UPLOADS_PREFIX,
+      stateVersion: 1,
+    })
+    return
+  }
+
+  if (pathname === `${LABNOTE_API_PREFIX}/state`) {
+    if (method === 'GET') {
+      sendJson(res, 200, { ok: true, state: readLabnoteState() })
+      return
+    }
+
+    if (method === 'PATCH' || method === 'PUT') {
+      try {
+        const body = await readJsonBody(req)
+        const payload = body && typeof body === 'object' && body.state && typeof body.state === 'object' ? body.state : body
+        if (!payload || typeof payload !== 'object') {
+          sendJson(res, 400, { ok: false, error: 'Invalid state payload' })
+          return
+        }
+        const nextState = {
+          version: Number(payload.version) || 1,
+          projects: Array.isArray(payload.projects) ? payload.projects : [],
+          experiments: Array.isArray(payload.experiments) ? payload.experiments : [],
+          entries: payload.entries && typeof payload.entries === 'object' ? payload.entries : {},
+          attachments: Array.isArray(payload.attachments) ? payload.attachments : [],
+        }
+        writeLabnoteState(nextState)
+        sendJson(res, 200, { ok: true })
+      } catch (err) {
+        sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) })
+      }
+      return
+    }
+
+    sendJson(res, 405, { ok: false, error: 'Method not allowed' })
+    return
+  }
+
+  if (pathname === `${LABNOTE_API_PREFIX}/upload`) {
+    if (method !== 'POST') {
+      sendJson(res, 405, { ok: false, error: 'Method not allowed' })
+      return
+    }
+    try {
+      const body = await readJsonBody(req)
+      const parsed = parseDataUrl(body?.dataUrl)
+      if (!parsed) {
+        sendJson(res, 400, { ok: false, error: 'Invalid dataUrl' })
+        return
+      }
+
+      ensureLabnoteStorage()
+      const { uploadsDir } = getLabnoteStorage()
+      const baseName = safeUploadBaseName(body?.filename)
+      const ext = path.extname(baseName) || extensionForMime(parsed.mime)
+      const stem = baseName.replace(new RegExp(`${ext.replace('.', '\\.')}$`), '') || 'upload'
+      const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+      const finalName = `${stem}-${suffix}${ext}`
+      const fullPath = path.join(uploadsDir, finalName)
+      fs.writeFileSync(fullPath, parsed.buffer)
+
+      sendJson(res, 200, { ok: true, url: `${LABNOTE_UPLOADS_PREFIX}${finalName}` })
+    } catch (err) {
+      sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) })
+    }
+    return
+  }
+
+  sendJson(res, 404, { ok: false, error: 'Not found' })
+}
+
 const toSafeStaticPath = (webRoot, requestPath) => {
   const [pathname] = String(requestPath || '/').split('?')
   let decodedPath = '/'
@@ -373,6 +566,33 @@ const spawnStaticServer = async (moduleId, port) => {
   }
 
   const server = http.createServer((req, res) => {
+    const requestUrl = String(req.url || '/')
+    if (moduleId === 'labnotebook') {
+      if (requestUrl === LABNOTE_API_PREFIX || requestUrl.startsWith(`${LABNOTE_API_PREFIX}/`)) {
+        void handleLabnoteApiRequest(req, res)
+        return
+      }
+
+      if (requestUrl.startsWith(LABNOTE_UPLOADS_PREFIX)) {
+        const { uploadsDir } = getLabnoteStorage()
+        const uploadPath = toSafeUploadPath(uploadsDir, requestUrl)
+        if (!uploadPath) {
+          res.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8' })
+          res.end('Invalid upload path')
+          return
+        }
+        fs.stat(uploadPath, (uploadErr, stat) => {
+          if (!uploadErr && stat.isFile()) {
+            sendStaticFile(res, uploadPath)
+            return
+          }
+          res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' })
+          res.end('Not found')
+        })
+        return
+      }
+    }
+
     const safePath = toSafeStaticPath(webRoot, req.url || '/')
     if (!safePath) {
       res.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8' })
@@ -479,9 +699,12 @@ const getPairingLink = (moduleId) => {
   }
 
   const uniqueCandidates = Array.from(new Set(candidates))
+  const mappedCandidates = moduleId === 'labnotebook'
+    ? uniqueCandidates.map((candidate) => `${candidate}${candidate.includes('?') ? '&' : '?'}sharedApi=1`)
+    : uniqueCandidates
   return {
-    url: uniqueCandidates[0] || '',
-    candidates: uniqueCandidates,
+    url: mappedCandidates[0] || '',
+    candidates: mappedCandidates,
     tailscaleConnected,
     source: uniqueCandidates.length === 0 ? 'none' : tailscaleConnected ? 'tailscale' : 'lan',
   }
