@@ -165,7 +165,8 @@ const syncLabNotebook = async () => {
   const sourceRoot = pickSource('Lab Notebook source', sourceCandidates.labnotebook)
 
   if (shouldBuild) {
-    run('npm --prefix web run build', sourceRoot)
+    // Ensure file:// safe assets in Electron packaged mode.
+    run('npm --prefix web run build -- --base ./', sourceRoot)
   }
 
   const buildDir = path.join(sourceRoot, '.labnote-dist', 'web')
