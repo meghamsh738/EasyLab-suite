@@ -10,4 +10,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   ensureDirectories: (paths) => ipcRenderer.invoke('ensure-directories', paths),
   getAppInfo: () => ipcRenderer.invoke('get-app-info'),
   getDefaultPaths: () => ipcRenderer.invoke('get-default-paths', moduleId),
+  getZoomFactor: () => ipcRenderer.invoke('get-zoom-factor'),
+  setZoomFactor: (value) => ipcRenderer.invoke('set-zoom-factor', value),
 })

@@ -1,6 +1,6 @@
 {
   "name": "easylab-suite",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Easylab Suite launcher for lab notebook, cDNA, qPCR planning, and analysis",
   "author": "Meghamsh Teja",
   "private": true,

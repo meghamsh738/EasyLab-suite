@@ -77,11 +77,17 @@ const resolveWindowIcon = (moduleId) => {
   return candidates.find((candidate) => candidate && fs.existsSync(candidate))
 }
 
+const clampZoomFactor = (value) => {
+  const numeric = Number(value)
+  if (!Number.isFinite(numeric)) return 1
+  return Math.min(2, Math.max(0.6, numeric))
+}
+
 const buildZoomOverlayScript = (scope) => {
   const config = {
     scope,
-    min: 0.7,
-    max: 1.8,
+    min: 0.6,
+    max: 2,
     step: 0.05,
     defaultZoom: 1,
   }
@@ -89,13 +95,14 @@ const buildZoomOverlayScript = (scope) => {
   return `
 (() => {
   const config = ${JSON.stringify(config)};
+  const api = window.electronAPI;
+  if (!api || typeof api.getZoomFactor !== 'function' || typeof api.setZoomFactor !== 'function') return;
   const clamp = (value) => Math.min(config.max, Math.max(config.min, Number(value) || config.defaultZoom));
   const key = 'easylab.zoom.' + config.scope;
   const widgetId = 'easylab-zoom-widget';
   const existing = document.getElementById(widgetId);
   if (existing) existing.remove();
 
-  const root = document.documentElement;
   let zoom = clamp(window.localStorage?.getItem(key) ?? config.defaultZoom);
 
   const widget = document.createElement('div');
@@ -177,40 +184,65 @@ const buildZoomOverlayScript = (scope) => {
   widget.appendChild(middle);
   widget.appendChild(plus);
 
-  const apply = (nextZoom, persist = true) => {
-    zoom = clamp(nextZoom);
-    root.style.zoom = String(zoom);
+  const syncLabel = () => {
     slider.value = String(zoom);
     value.textContent = Math.round(zoom * 100) + '%';
-    if (persist && window.localStorage) {
-      window.localStorage.setItem(key, String(zoom));
-    }
   };
 
-  minus.addEventListener('click', () => apply(zoom - config.step));
-  plus.addEventListener('click', () => apply(zoom + config.step));
-  slider.addEventListener('input', () => apply(Number(slider.value)));
+  const apply = async (nextZoom, persist = true) => {
+    const requested = clamp(nextZoom);
+    let applied = requested;
+    try {
+      const result = await api.setZoomFactor(requested);
+      applied = clamp(result);
+    } catch {
+      applied = requested;
+    }
+    zoom = applied;
+    syncLabel();
+    if (persist && window.localStorage) window.localStorage.setItem(key, String(zoom));
+  };
 
   const onWheel = (event) => {
     if (!event.ctrlKey) return;
     event.preventDefault();
     const delta = event.deltaY < 0 ? config.step : -config.step;
-    apply(zoom + delta);
+    void apply(zoom + delta);
   };
 
   const onKey = (event) => {
     if (!event.ctrlKey) return;
     if (event.key === '0') {
       event.preventDefault();
-      apply(config.defaultZoom);
+      void apply(config.defaultZoom);
     }
   };
 
+  minus.addEventListener('click', () => void apply(zoom - config.step));
+  plus.addEventListener('click', () => void apply(zoom + config.step));
+  slider.addEventListener('input', () => void apply(Number(slider.value)));
   window.addEventListener('wheel', onWheel, { passive: false, capture: true });
   window.addEventListener('keydown', onKey, true);
 
   if (document.body) document.body.appendChild(widget);
-  apply(zoom, false);
+  syncLabel();
+
+  const init = async () => {
+    try {
+      const current = clamp(await api.getZoomFactor());
+      const saved = window.localStorage?.getItem(key);
+      if (saved === null || saved === undefined || saved === '') {
+        zoom = current;
+        syncLabel();
+      } else {
+        await apply(zoom, false);
+      }
+    } catch {
+      await apply(zoom, false);
+    }
+  };
+
+  void init();
 })();
 `
 }
@@ -709,3 +741,11 @@ ipcMain.handle('get-suite-info', () => ({
 }))
 
 ipcMain.handle('get-default-paths', (_event, moduleId) => getDefaultPaths(moduleId))
+
+ipcMain.handle('get-zoom-factor', (event) => event.sender.getZoomFactor())
+
+ipcMain.handle('set-zoom-factor', (event, value) => {
+  const factor = clampZoomFactor(value)
+  event.sender.setZoomFactor(factor)
+  return event.sender.getZoomFactor()
+})
