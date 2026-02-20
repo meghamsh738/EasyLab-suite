@@ -77,6 +77,156 @@ const resolveWindowIcon = (moduleId) => {
   return candidates.find((candidate) => candidate && fs.existsSync(candidate))
 }
 
+const buildZoomOverlayScript = (scope) => {
+  const config = {
+    scope,
+    min: 0.7,
+    max: 1.8,
+    step: 0.05,
+    defaultZoom: 1,
+  }
+
+  return `
+(() => {
+  const config = ${JSON.stringify(config)};
+  const clamp = (value) => Math.min(config.max, Math.max(config.min, Number(value) || config.defaultZoom));
+  const key = 'easylab.zoom.' + config.scope;
+  const widgetId = 'easylab-zoom-widget';
+  const existing = document.getElementById(widgetId);
+  if (existing) existing.remove();
+
+  const root = document.documentElement;
+  let zoom = clamp(window.localStorage?.getItem(key) ?? config.defaultZoom);
+
+  const widget = document.createElement('div');
+  widget.id = widgetId;
+  widget.setAttribute('aria-label', 'Zoom controls');
+  widget.style.position = 'fixed';
+  widget.style.right = '14px';
+  widget.style.bottom = '14px';
+  widget.style.zIndex = '2147483500';
+  widget.style.display = 'grid';
+  widget.style.gridTemplateColumns = 'auto 1fr auto';
+  widget.style.gap = '8px';
+  widget.style.alignItems = 'center';
+  widget.style.padding = '8px 10px';
+  widget.style.border = '1px solid rgba(15, 23, 42, 0.22)';
+  widget.style.background = 'rgba(255, 255, 255, 0.94)';
+  widget.style.backdropFilter = 'blur(6px)';
+  widget.style.borderRadius = '12px';
+  widget.style.boxShadow = '0 10px 26px rgba(15, 23, 42, 0.18)';
+  widget.style.fontFamily = 'Segoe UI, Inter, system-ui, sans-serif';
+  widget.style.fontSize = '12px';
+  widget.style.color = '#0f172a';
+
+  const makeButton = (label, title) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = label;
+    btn.title = title;
+    btn.style.width = '26px';
+    btn.style.height = '26px';
+    btn.style.border = '1px solid rgba(15, 23, 42, 0.2)';
+    btn.style.borderRadius = '7px';
+    btn.style.background = '#ffffff';
+    btn.style.cursor = 'pointer';
+    btn.style.fontWeight = '700';
+    btn.style.color = '#0f172a';
+    return btn;
+  };
+
+  const minus = makeButton('-', 'Zoom out');
+  const plus = makeButton('+', 'Zoom in');
+
+  const middle = document.createElement('div');
+  middle.style.display = 'grid';
+  middle.style.gap = '4px';
+  middle.style.minWidth = '150px';
+
+  const label = document.createElement('div');
+  label.style.display = 'flex';
+  label.style.justifyContent = 'space-between';
+  label.style.alignItems = 'center';
+
+  const title = document.createElement('span');
+  title.textContent = 'Zoom';
+  title.style.fontWeight = '600';
+  const value = document.createElement('span');
+  value.style.fontFamily = 'ui-monospace, SFMono-Regular, Menlo, monospace';
+  label.appendChild(title);
+  label.appendChild(value);
+
+  const slider = document.createElement('input');
+  slider.type = 'range';
+  slider.min = String(config.min);
+  slider.max = String(config.max);
+  slider.step = String(config.step);
+  slider.value = String(zoom);
+  slider.style.width = '100%';
+  slider.style.cursor = 'pointer';
+
+  const helper = document.createElement('div');
+  helper.textContent = 'Ctrl + wheel to zoom';
+  helper.style.fontSize = '11px';
+  helper.style.opacity = '0.72';
+
+  middle.appendChild(label);
+  middle.appendChild(slider);
+  middle.appendChild(helper);
+  widget.appendChild(minus);
+  widget.appendChild(middle);
+  widget.appendChild(plus);
+
+  const apply = (nextZoom, persist = true) => {
+    zoom = clamp(nextZoom);
+    root.style.zoom = String(zoom);
+    slider.value = String(zoom);
+    value.textContent = Math.round(zoom * 100) + '%';
+    if (persist && window.localStorage) {
+      window.localStorage.setItem(key, String(zoom));
+    }
+  };
+
+  minus.addEventListener('click', () => apply(zoom - config.step));
+  plus.addEventListener('click', () => apply(zoom + config.step));
+  slider.addEventListener('input', () => apply(Number(slider.value)));
+
+  const onWheel = (event) => {
+    if (!event.ctrlKey) return;
+    event.preventDefault();
+    const delta = event.deltaY < 0 ? config.step : -config.step;
+    apply(zoom + delta);
+  };
+
+  const onKey = (event) => {
+    if (!event.ctrlKey) return;
+    if (event.key === '0') {
+      event.preventDefault();
+      apply(config.defaultZoom);
+    }
+  };
+
+  window.addEventListener('wheel', onWheel, { passive: false, capture: true });
+  window.addEventListener('keydown', onKey, true);
+
+  if (document.body) document.body.appendChild(widget);
+  apply(zoom, false);
+})();
+`
+}
+
+const attachZoomOverlay = (win, scope) => {
+  const applyOverlay = () => {
+    if (!win || win.isDestroyed()) return
+    const script = buildZoomOverlayScript(scope)
+    win.webContents.executeJavaScript(script).catch(() => {
+      // Some pages may block script execution during navigation; retry on next load.
+    })
+  }
+
+  win.webContents.on('did-finish-load', applyOverlay)
+}
+
 const windows = new Map()
 const backendProcesses = new Map()
 
@@ -434,6 +584,7 @@ const createSuiteWindow = () => {
       nodeIntegration: false,
     },
   })
+  attachZoomOverlay(win, 'suite-launcher')
 
   if (isDev) {
     const devUrl = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5178'
@@ -482,6 +633,7 @@ const createModuleWindow = async (moduleId) => {
       additionalArguments: [`--easylab-module=${moduleId}`],
     },
   })
+  attachZoomOverlay(win, `module-${moduleId}`)
 
   if (config.type === 'streamlit') {
     win.loadURL(`http://127.0.0.1:${config.port}`)
