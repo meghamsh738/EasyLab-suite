@@ -1,7 +1,9 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron')
 const { spawn, spawnSync } = require('child_process')
 const fs = require('fs')
+const http = require('http')
 const net = require('net')
+const os = require('os')
 const path = require('path')
 
 const isDev = !app.isPackaged
@@ -15,6 +17,7 @@ const MODULES = {
     label: 'Lab Notebook',
     storage: 'Lab Notebook',
     type: 'static',
+    webPort: 8030,
   },
   cdna: {
     id: 'cdna',
@@ -261,6 +264,7 @@ const attachZoomOverlay = (win, scope) => {
 
 const windows = new Map()
 const backendProcesses = new Map()
+const staticServers = new Map()
 
 const ensureDirectories = (paths) => {
   const targets = Object.values(paths || {}).filter((val) => typeof val === 'string' && val.trim())
@@ -304,6 +308,184 @@ const isPortOpen = (port) => new Promise((resolve) => {
     resolve(false)
   })
 })
+
+const STATIC_CONTENT_TYPES = {
+  '.css': 'text/css; charset=utf-8',
+  '.html': 'text/html; charset=utf-8',
+  '.ico': 'image/x-icon',
+  '.jpeg': 'image/jpeg',
+  '.jpg': 'image/jpeg',
+  '.js': 'text/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.map': 'application/json; charset=utf-8',
+  '.png': 'image/png',
+  '.svg': 'image/svg+xml; charset=utf-8',
+  '.txt': 'text/plain; charset=utf-8',
+  '.webp': 'image/webp',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+}
+
+const toSafeStaticPath = (webRoot, requestPath) => {
+  const [pathname] = String(requestPath || '/').split('?')
+  let decodedPath = '/'
+  try {
+    decodedPath = decodeURIComponent(pathname || '/')
+  } catch {
+    decodedPath = pathname || '/'
+  }
+  const relativePath = decodedPath === '/' ? 'index.html' : decodedPath.replace(/^\/+/, '')
+  const resolved = path.resolve(webRoot, relativePath)
+  const resolvedRoot = path.resolve(webRoot)
+  if (resolved === resolvedRoot || resolved.startsWith(`${resolvedRoot}${path.sep}`)) return resolved
+  return null
+}
+
+const sendStaticFile = (res, filePath) => {
+  fs.readFile(filePath, (err, content) => {
+    if (err) {
+      res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' })
+      res.end('Unable to read file')
+      return
+    }
+    const ext = path.extname(filePath).toLowerCase()
+    const contentType = STATIC_CONTENT_TYPES[ext] || 'application/octet-stream'
+    res.writeHead(200, { 'Content-Type': contentType, 'Cache-Control': 'no-store' })
+    res.end(content)
+  })
+}
+
+const spawnStaticServer = async (moduleId, port) => {
+  if (staticServers.has(moduleId)) return true
+  if (await isPortOpen(port)) return true
+
+  const moduleRoot = getModuleRoot(moduleId)
+  const webRoot = path.join(moduleRoot, 'web')
+  const indexPath = path.join(webRoot, 'index.html')
+  if (!fs.existsSync(indexPath)) {
+    dialog.showMessageBox({
+      type: 'warning',
+      title: 'Module not available',
+      message: `${MODULES[moduleId]?.label ?? moduleId} is missing web assets.`,
+      detail: `Expected file not found: ${indexPath}`,
+    })
+    return false
+  }
+
+  const server = http.createServer((req, res) => {
+    const safePath = toSafeStaticPath(webRoot, req.url || '/')
+    if (!safePath) {
+      res.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8' })
+      res.end('Invalid path')
+      return
+    }
+    fs.stat(safePath, (statErr, stat) => {
+      if (!statErr && stat.isFile()) {
+        sendStaticFile(res, safePath)
+        return
+      }
+      // SPA fallback so direct links still open the shell app.
+      sendStaticFile(res, indexPath)
+    })
+  })
+
+  try {
+    await new Promise((resolve, reject) => {
+      server.once('error', reject)
+      server.listen(port, '0.0.0.0', resolve)
+    })
+    staticServers.set(moduleId, server)
+    return true
+  } catch (err) {
+    dialog.showMessageBox({
+      type: 'warning',
+      title: 'Server not started',
+      message: `The ${MODULES[moduleId]?.label ?? moduleId} server could not start.`,
+      detail: err instanceof Error ? err.message : String(err),
+    })
+    return false
+  }
+}
+
+const stopStaticServer = (moduleId) => {
+  const server = staticServers.get(moduleId)
+  if (!server) return
+  server.close()
+  staticServers.delete(moduleId)
+}
+
+const parseTailscaleStatus = () => {
+  const commands = process.platform === 'win32' ? ['tailscale.exe', 'tailscale'] : ['tailscale']
+  for (const cmd of commands) {
+    const probe = spawnSync(cmd, ['status', '--json'], {
+      stdio: 'pipe',
+      encoding: 'utf8',
+      windowsHide: true,
+      timeout: 3000,
+    })
+    if (probe.status !== 0 || !probe.stdout) continue
+    try {
+      return JSON.parse(probe.stdout)
+    } catch {
+      // Try next candidate.
+    }
+  }
+  return null
+}
+
+const pickLanIpv4 = () => {
+  const interfaces = os.networkInterfaces()
+  for (const entries of Object.values(interfaces)) {
+    if (!entries) continue
+    for (const entry of entries) {
+      if (!entry || entry.internal) continue
+      if (entry.family !== 'IPv4') continue
+      if (entry.address.startsWith('169.254.')) continue
+      return entry.address
+    }
+  }
+  return null
+}
+
+const getPairingLink = (moduleId) => {
+  const config = MODULES[moduleId]
+  const port = config?.webPort
+  if (!config || !port) {
+    return {
+      url: '',
+      candidates: [],
+      tailscaleConnected: false,
+      source: 'none',
+    }
+  }
+
+  const candidates = []
+  let tailscaleConnected = false
+  const status = parseTailscaleStatus()
+  if (status && typeof status === 'object') {
+    const self = status.Self && typeof status.Self === 'object' ? status.Self : null
+    const backendState = typeof status.BackendState === 'string' ? status.BackendState : ''
+    const dnsName = typeof self?.DNSName === 'string' ? self.DNSName.trim().replace(/\.$/, '') : ''
+    const ips = Array.isArray(self?.TailscaleIPs) ? self.TailscaleIPs.filter((ip) => typeof ip === 'string') : []
+    if (dnsName) candidates.push(`http://${dnsName}:${port}`)
+    const tsIpv4 = ips.find((ip) => /^100\.(\d{1,3}\.){2}\d{1,3}$/.test(ip))
+    if (tsIpv4) candidates.push(`http://${tsIpv4}:${port}`)
+    tailscaleConnected = Boolean(self?.Online) || backendState === 'Running'
+  }
+
+  if (candidates.length === 0) {
+    const lanIp = pickLanIpv4()
+    if (lanIp) candidates.push(`http://${lanIp}:${port}`)
+  }
+
+  const uniqueCandidates = Array.from(new Set(candidates))
+  return {
+    url: uniqueCandidates[0] || '',
+    candidates: uniqueCandidates,
+    tailscaleConnected,
+    source: uniqueCandidates.length === 0 ? 'none' : tailscaleConnected ? 'tailscale' : 'lan',
+  }
+}
 
 const isPyLauncher = (candidate) => path.basename(candidate).toLowerCase() === 'py'
 
@@ -649,6 +831,11 @@ const createModuleWindow = async (moduleId) => {
     if (!started) return
   }
 
+  if (config.type === 'static' && config.webPort) {
+    const started = await spawnStaticServer(moduleId, config.webPort)
+    if (!started) return
+  }
+
   const win = new BrowserWindow({
     width: 1440,
     height: 900,
@@ -669,6 +856,8 @@ const createModuleWindow = async (moduleId) => {
 
   if (config.type === 'streamlit') {
     win.loadURL(`http://127.0.0.1:${config.port}`)
+  } else if (config.type === 'static' && config.webPort) {
+    win.loadURL(`http://127.0.0.1:${config.webPort}`)
   } else {
     const moduleRoot = getModuleRoot(moduleId)
     const indexPath = path.join(moduleRoot, 'web', 'index.html')
@@ -680,6 +869,9 @@ const createModuleWindow = async (moduleId) => {
     windows.delete(moduleId)
     if (config.type === 'fastapi' || config.type === 'streamlit') {
       stopBackend(moduleId)
+    }
+    if (config.type === 'static' && config.webPort) {
+      stopStaticServer(moduleId)
     }
   })
 
@@ -696,10 +888,12 @@ app.whenReady().then(() => {
 
 app.on('before-quit', () => {
   Array.from(backendProcesses.keys()).forEach((moduleId) => stopBackend(moduleId))
+  Array.from(staticServers.keys()).forEach((moduleId) => stopStaticServer(moduleId))
 })
 
 app.on('window-all-closed', () => {
   Array.from(backendProcesses.keys()).forEach((moduleId) => stopBackend(moduleId))
+  Array.from(staticServers.keys()).forEach((moduleId) => stopStaticServer(moduleId))
   if (process.platform !== 'darwin') app.quit()
 })
 
@@ -741,6 +935,8 @@ ipcMain.handle('get-suite-info', () => ({
 }))
 
 ipcMain.handle('get-default-paths', (_event, moduleId) => getDefaultPaths(moduleId))
+
+ipcMain.handle('get-pairing-link', (_event, moduleId) => getPairingLink(moduleId))
 
 ipcMain.handle('get-zoom-factor', (event) => event.sender.getZoomFactor())
 
