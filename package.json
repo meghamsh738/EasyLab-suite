@@ -48,6 +48,22 @@
         "to": "runtime"
       },
       {
+        "from": "desktop/scripts/install-whatsapp-intake-startup.ps1",
+        "to": "scripts/install-whatsapp-intake-startup.ps1"
+      },
+      {
+        "from": "desktop/scripts/whatsapp-intake-config.example.json",
+        "to": "scripts/whatsapp-intake-config.example.json"
+      },
+      {
+        "from": "desktop/scripts/install-telegram-intake-startup.ps1",
+        "to": "scripts/install-telegram-intake-startup.ps1"
+      },
+      {
+        "from": "desktop/scripts/telegram-intake-config.example.json",
+        "to": "scripts/telegram-intake-config.example.json"
+      },
+      {
         "from": "LICENSE",
         "to": "LICENSE"
       }

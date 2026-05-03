@@ -34,98 +34,137 @@ type ElectronAPI = {
   getAppInfo?: () => Promise<SuiteInfo>
 }
 
+type ModuleGroup = 'Notebook' | 'Planning' | 'Analysis' | 'Colony' | 'Behaviour'
+
+type ModuleDefinition = {
+  id: ModuleId
+  name: string
+  group: ModuleGroup
+  summary: string
+  workflow: string
+  inputs: string
+  outputs: string
+  accent: string
+  icon: string
+  tags: string[]
+}
+
 const getElectronAPI = (): ElectronAPI | null => {
   const api = (window as Window & { electronAPI?: ElectronAPI }).electronAPI
   return api ?? null
 }
 
-const MODULES: Array<{
-  id: ModuleId
-  name: string
-  summary: string
-  description: string
-  accent: string
-  icon: string
-  tags: string[]
-}> = [
+const MODULES: ModuleDefinition[] = [
   {
     id: 'labnotebook',
     name: 'Lab Notebook',
-    summary: 'Offline-first experiment logs with signatures and attachments.',
-    description: 'Capture protocols, observations, and approvals with a clean timeline view.',
-    accent: '#A7B6FF',
+    group: 'Notebook',
+    summary: 'Daily entries, attachments, signatures, WhatsApp and Telegram captures.',
+    workflow: 'Write, import, review',
+    inputs: 'Notes, images, files',
+    outputs: 'Notebook state, exports',
+    accent: '#3156D4',
     icon: labNotebookIcon,
-    tags: ['Experiments', 'Signatures', 'Attachments']
+    tags: ['Daily logs', 'Intake', 'Attachments'],
   },
   {
     id: 'cdna',
     name: 'cDNA Calculator',
-    summary: 'Plan master mixes, dilutions, and reaction volumes in minutes.',
-    description: 'Build cDNA runs with consistent volumes, templates, and export-ready tables.',
-    accent: '#F7C97A',
+    group: 'Planning',
+    summary: 'Reaction setup and dilution calculations for cDNA runs.',
+    workflow: 'Plan reactions',
+    inputs: 'RNA/sample table',
+    outputs: 'Master mix table',
+    accent: '#C77916',
     icon: cdnaIcon,
-    tags: ['Master mix', 'Dilutions', 'Exports']
+    tags: ['Dilutions', 'Volumes', 'Export'],
   },
   {
     id: 'qpcr-planner',
     name: 'qPCR Planner',
-    summary: 'Design 384-well layouts and gene plate overrides without guesswork.',
-    description: 'Paste sample lists, set controls, and get multi-plate layouts instantly.',
-    accent: '#79D6C1',
+    group: 'Planning',
+    summary: '384-well layout planning with controls and gene overrides.',
+    workflow: 'Build plate map',
+    inputs: 'Sample list',
+    outputs: 'Plate layout',
+    accent: '#088B74',
     icon: qpcrPlannerIcon,
-    tags: ['Plate layout', 'Controls', 'Overrides']
+    tags: ['Layout', 'Controls', 'Overrides'],
   },
   {
     id: 'qpcr-analysis',
     name: 'qPCR Analysis',
-    summary: 'Analyze Ct tables, normalize runs, and export figures fast.',
-    description: 'Load sample sheets, map genes, and generate ready-to-share reports.',
-    accent: '#E18A3D',
+    group: 'Analysis',
+    summary: 'Ct normalization, comparisons, figures, and report exports.',
+    workflow: 'Analyze run',
+    inputs: 'Ct tables',
+    outputs: 'Plots, report',
+    accent: '#B45309',
     icon: qpcrAnalysisIcon,
-    tags: ['Normalization', 'Plots', 'Reports']
+    tags: ['Normalization', 'Plots', 'Report'],
   },
   {
     id: 'elisa-analysis',
     name: 'ELISA Analysis',
-    summary: 'Analyze plate-reader absorbance with Auto-QC standard fitting.',
-    description: 'Assign standards and blanks, fit curves, and quantify samples with export-ready results.',
-    accent: '#C87DFF',
+    group: 'Analysis',
+    summary: 'Plate-reader absorbance analysis with standard curve QC.',
+    workflow: 'Fit curve',
+    inputs: 'Plate data',
+    outputs: 'Concentrations',
+    accent: '#7C3AED',
     icon: elisaIcon,
-    tags: ['Standard curves', 'Auto-QC', 'Quantification']
+    tags: ['Standards', 'QC', 'Quantification'],
   },
   {
     id: 'animal-pairing',
     name: 'Animal Pairing',
-    summary: 'Balance cohorts or generate breeding pairs from colony sheets.',
-    description: 'Upload CSV/XLSX, filter genotypes, and export grouped animals or male/female pairs.',
-    accent: '#60A5FA',
+    group: 'Colony',
+    summary: 'Cohort balancing and animal pairing from colony sheets.',
+    workflow: 'Group animals',
+    inputs: 'CSV/XLSX',
+    outputs: 'Cohort export',
+    accent: '#2563EB',
     icon: animalPairingIcon,
-    tags: ['Cohorts', 'Genotypes', 'Excel export']
+    tags: ['Cohorts', 'Genotypes', 'Excel'],
   },
   {
     id: 'breeding',
     name: 'Breeding Pair Selector',
-    summary: 'Target a genotype and surface direct + indirect breeder matches.',
-    description: 'Manage a gene catalog, apply probability thresholds, and export recommended breeder pairs.',
-    accent: '#34D399',
+    group: 'Colony',
+    summary: 'Breeder matching from gene targets and probability thresholds.',
+    workflow: 'Select pairs',
+    inputs: 'Gene catalog',
+    outputs: 'Pair list',
+    accent: '#168451',
     icon: breedingIcon,
-    tags: ['Breeding', 'Genes', 'Probabilities']
+    tags: ['Breeding', 'Genes', 'Probability'],
   },
   {
     id: 'ymaze',
     name: 'Y-Maze Randomizer',
-    summary: 'Generate balanced learning/reversal schedules and exit-arm assignments.',
-    description: 'Paste animal rows, tune day/trial counts, and export CSV/Excel schedules per day.',
-    accent: '#F472B6',
+    group: 'Behaviour',
+    summary: 'Balanced learning/reversal schedules and exit-arm assignments.',
+    workflow: 'Randomize schedule',
+    inputs: 'Animal rows',
+    outputs: 'CSV/Excel',
+    accent: '#C0266A',
     icon: ymazeIcon,
-    tags: ['Scheduling', 'Randomization', 'CSV/Excel']
-  }
+    tags: ['Schedule', 'Randomize', 'Export'],
+  },
+]
+
+const GROUPS: Array<'All' | ModuleGroup> = ['All', 'Notebook', 'Planning', 'Analysis', 'Colony', 'Behaviour']
+const RAIL_ITEMS: Array<'All' | ModuleGroup> = ['All', 'Notebook', 'Planning', 'Analysis', 'Colony', 'Behaviour']
+
+const INTAKE_STATUS = [
+  { name: 'WhatsApp', detail: 'Text and image intake', state: 'Ready', accent: '#16a34a' },
+  { name: 'Telegram', detail: 'Text and image intake', state: 'Ready', accent: '#0284c7' },
 ]
 
 const fallbackInfo: SuiteInfo = {
   name: 'Easylab Suite',
   version: 'Web preview',
-  platform: 'web'
+  platform: 'web',
 }
 
 function App() {
@@ -134,6 +173,8 @@ function App() {
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>(() => (electron ? 'loading' : 'ready'))
   const [errorMessage, setErrorMessage] = useState('')
   const [webNotice, setWebNotice] = useState<ModuleId | null>(null)
+  const [query, setQuery] = useState('')
+  const [activeGroup, setActiveGroup] = useState<'All' | ModuleGroup>('All')
 
   const loadSuiteInfo = useCallback(async () => {
     if (!electron) return
@@ -153,10 +194,40 @@ function App() {
     loadSuiteInfo()
   }, [electron, loadSuiteInfo])
 
+  const filteredModules = useMemo(() => {
+    const term = query.trim().toLowerCase()
+    return MODULES.filter((module) => {
+      const groupMatch = activeGroup === 'All' || module.group === activeGroup
+      if (!groupMatch) return false
+      if (!term) return true
+      const haystack = [
+        module.name,
+        module.group,
+        module.summary,
+        module.workflow,
+        module.inputs,
+        module.outputs,
+        ...module.tags,
+      ]
+        .join(' ')
+        .toLowerCase()
+      return haystack.includes(term)
+    })
+  }, [activeGroup, query])
+
+  const groupedModules = useMemo(() => {
+    const groups = new Map<ModuleGroup, ModuleDefinition[]>()
+    filteredModules.forEach((module) => {
+      const items = groups.get(module.group) ?? []
+      groups.set(module.group, [...items, module])
+    })
+    return Array.from(groups.entries())
+  }, [filteredModules])
+
   const statusLabel = useMemo(() => {
-    if (status === 'loading') return 'Loading suite modules…'
-    if (status === 'error') return 'Suite offline'
-    return 'All modules ready'
+    if (status === 'loading') return 'Loading'
+    if (status === 'error') return 'Needs review'
+    return 'Ready'
   }, [status])
 
   const handleLaunch = async (moduleId: ModuleId) => {
@@ -176,133 +247,224 @@ function App() {
 
   return (
     <div className="suite" data-testid="suite-root">
-      <header className="suite-hero">
-        <div className="hero-top">
-          <div className="hero-badge">Easylab</div>
-          <div className="hero-meta">
-            <span>{suiteInfo.name}</span>
-            <span className="dot" />
-            <span>{suiteInfo.version}</span>
-            <span className="dot" />
-            <span>{suiteInfo.platform}</span>
-          </div>
-        </div>
-        <div className="hero-main">
-          <div>
-            <h1>Easylab Suite</h1>
-            <p>
-              Launch every lab tool you need from a single, focused workspace. Each module opens in its own
-              window with consistent storage paths and desktop-ready performance. Every module now includes an
-              in-app guided tutorial with Next, Back, and Skip controls.
-            </p>
-          </div>
-          <div className="hero-status" data-testid="suite-status">
-            <span className={`status-dot status-${status}`} />
-            <span>{statusLabel}</span>
-          </div>
-        </div>
-      </header>
-
-      {status === 'loading' && (
-        <div className="suite-banner" data-testid="suite-loading">
-          Syncing suite configuration…
-        </div>
-      )}
-
-      {status === 'error' && (
-        <div className="suite-banner error" data-testid="suite-error">
-          <div>
-            <strong>Suite needs attention.</strong> {errorMessage}
-          </div>
-          <button type="button" className="ghost" onClick={loadSuiteInfo}>
-            Retry
-          </button>
-        </div>
-      )}
-
-      <section className="module-grid" aria-label="Suite modules">
-        {MODULES.map((module) => (
-          <article
-            key={module.id}
-            className="module-card"
-            data-testid={`module-card-${module.id}`}
-            style={{ ['--accent' as string]: module.accent }}
-          >
-            <div className="card-header">
-              <div className="card-title">
-                <div className="module-icon" aria-hidden="true">
-                  <img src={module.icon} alt="" />
-                </div>
-                <div>
-                  <h2>{module.name}</h2>
-                  <p className="summary">{module.summary}</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                className="primary"
-                data-testid={`module-launch-${module.id}`}
-                onClick={() => handleLaunch(module.id)}
-              >
-                Launch
-              </button>
+      <div className="suite-shell">
+        <aside className="suite-rail" aria-label="Suite navigation">
+          <div className="brand-lockup rail-brand" aria-label="Easylab Suite">
+            <div className="suite-mark">EL</div>
+            <div>
+              <h1>Easylab Suite</h1>
+              <p>
+                {suiteInfo.version} / {suiteInfo.platform}
+              </p>
             </div>
-            <p className="description">{module.description}</p>
-            <div className="tag-row" aria-label={`${module.name} capabilities`}>
-              {module.tags.map((tag) => (
-                <span key={tag} className="tag">
-                  {tag}
-                </span>
+          </div>
+
+          <nav className="rail-nav" aria-label="Module groups">
+            {RAIL_ITEMS.map((group) => {
+              const count = group === 'All' ? MODULES.length : MODULES.filter((module) => module.group === group).length
+              return (
+                <button
+                  key={group}
+                  type="button"
+                  className={group === activeGroup ? 'active' : ''}
+                  onClick={() => setActiveGroup(group)}
+                >
+                  <span>{group === 'All' ? 'Command Center' : group}</span>
+                  <strong>{count}</strong>
+                </button>
+              )
+            })}
+          </nav>
+
+          <section className="rail-card" aria-label="Local data status">
+            <div className="rail-card-head">
+              <span>Local data</span>
+              <strong>Device only</strong>
+            </div>
+            <p>Notebook files, module outputs, and intake captures stay on this laptop.</p>
+            <div className="rail-metric">
+              <span>Database</span>
+              <strong>Ready</strong>
+            </div>
+            <div className="rail-metric">
+              <span>Storage</span>
+              <strong>Local</strong>
+            </div>
+          </section>
+
+          <section className="rail-card" aria-label="Intake status">
+            <div className="rail-card-head">
+              <span>Intake</span>
+              <strong>Live</strong>
+            </div>
+            <div className="intake-list">
+              {INTAKE_STATUS.map((item) => (
+                <div className="intake-row" key={item.name} style={{ ['--accent' as string]: item.accent }}>
+                  <span className="intake-dot" />
+                  <div>
+                    <strong>{item.name}</strong>
+                    <p>{item.detail}</p>
+                  </div>
+                  <em>{item.state}</em>
+                </div>
               ))}
             </div>
-          </article>
-        ))}
-      </section>
+          </section>
 
-      {MODULES.length === 0 && (
-        <section className="empty" data-testid="suite-empty">
-          <h2>No modules configured</h2>
-          <p>Add module paths in the desktop installer to enable tools.</p>
-        </section>
-      )}
+          <footer className="rail-signature" data-testid="suite-signature">
+            <span>Made by Meghamsh Teja Konda</span>
+            <a href="mailto:meghamshteja555@gmail.com">meghamshteja555@gmail.com</a>
+          </footer>
+        </aside>
 
-      <section className="suite-footer">
-        <div>
-          <h3>Workspace defaults</h3>
-          <p>Storage paths follow your Documents/Easylab directory with module-specific subfolders.</p>
+        <div className="suite-workspace">
+          <header className="suite-header">
+            <div>
+              <p className="eyebrow">Command Center</p>
+              <h2>Overview of lab apps and local intake</h2>
+            </div>
+
+            <div className="suite-status" data-testid="suite-status">
+              <span className={`status-dot status-${status}`} />
+              <span>{statusLabel}</span>
+            </div>
+          </header>
+
+          <section className="command-surface" aria-label="Module command surface">
+            <label className="module-search">
+              <span>Search modules</span>
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Notebook, qPCR, ELISA, colony..."
+              />
+            </label>
+
+            <div className="group-tabs" aria-label="Module groups">
+              {GROUPS.map((group) => (
+                <button
+                  key={group}
+                  type="button"
+                  className={group === activeGroup ? 'active' : ''}
+                  onClick={() => setActiveGroup(group)}
+                >
+                  {group}
+                </button>
+              ))}
+            </div>
+
+            <div className="ops-strip" aria-label="Workspace summary">
+              <div>
+                <span>Modules</span>
+                <strong>{MODULES.length}</strong>
+              </div>
+              <div>
+                <span>Data</span>
+                <strong>Local</strong>
+              </div>
+              <div>
+                <span>Intake</span>
+                <strong>WhatsApp + Telegram</strong>
+              </div>
+            </div>
+          </section>
+
+          {status === 'loading' && (
+            <div className="suite-banner" data-testid="suite-loading">
+              Loading suite configuration.
+            </div>
+          )}
+
+          {status === 'error' && (
+            <div className="suite-banner error" data-testid="suite-error">
+              <div>
+                <strong>Suite needs attention.</strong> {errorMessage}
+              </div>
+              <button type="button" className="ghost" onClick={loadSuiteInfo}>
+                Retry
+              </button>
+            </div>
+          )}
+
+          <main className="module-console" aria-label="Suite modules">
+            {groupedModules.map(([group, modules]) => (
+              <section className="module-section" key={group} aria-label={`${group} modules`}>
+                <div className="section-head">
+                  <h2>{group}</h2>
+                  <span>{modules.length}</span>
+                </div>
+
+                <div className="module-grid">
+                  {modules.map((module) => (
+                    <article
+                      key={module.id}
+                      className="module-card"
+                      data-testid={`module-card-${module.id}`}
+                      style={{ ['--accent' as string]: module.accent }}
+                    >
+                      <div className="module-card-main">
+                        <div className="module-icon" aria-hidden="true">
+                          <img src={module.icon} alt="" />
+                        </div>
+                        <div className="module-copy">
+                          <h3>{module.name}</h3>
+                          <p>{module.summary}</p>
+                        </div>
+                      </div>
+
+                      <dl className="module-facts">
+                        <div>
+                          <dt>Workflow</dt>
+                          <dd>{module.workflow}</dd>
+                        </div>
+                        <div>
+                          <dt>Input</dt>
+                          <dd>{module.inputs}</dd>
+                        </div>
+                        <div>
+                          <dt>Output</dt>
+                          <dd>{module.outputs}</dd>
+                        </div>
+                      </dl>
+
+                      <div className="module-card-foot">
+                        <div className="tag-row" aria-label={`${module.name} capabilities`}>
+                          {module.tags.map((tag) => (
+                            <span key={tag} className="tag">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                        <button
+                          type="button"
+                          className="primary"
+                          data-testid={`module-launch-${module.id}`}
+                          onClick={() => handleLaunch(module.id)}
+                        >
+                          Launch
+                        </button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </main>
+
+          {filteredModules.length === 0 && (
+            <section className="empty" data-testid="suite-empty">
+              <h2>No matching modules</h2>
+              <p>Clear search or choose another group.</p>
+            </section>
+          )}
         </div>
-        <div className="footer-cards">
-          <div className="footer-card">
-            <span className="label">Status</span>
-            <strong>{status === 'ready' ? 'Operational' : status === 'loading' ? 'Connecting' : 'Needs review'}</strong>
-          </div>
-          <div className="footer-card">
-            <span className="label">Security</span>
-            <strong>Local-only data</strong>
-          </div>
-          <div className="footer-card">
-            <span className="label">Exports</span>
-            <strong>CSV, Excel, PDF</strong>
-          </div>
-        </div>
-      </section>
-
-      <footer className="suite-signature" data-testid="suite-signature">
-        <span className="sig-primary">Made by Meghamsh Teja Konda</span>
-        <span className="sig-dot" aria-hidden="true" />
-        <a className="sig-link" href="mailto:meghamshteja555@gmail.com">
-          meghamshteja555@gmail.com
-        </a>
-      </footer>
+      </div>
 
       {activeNotice && (
         <div className="modal" role="dialog" aria-modal="true" data-testid="web-modal">
           <div className="modal-card">
             <h2>Desktop required</h2>
-            <p>
-              {activeNotice.name} launches inside the Easylab desktop app. Install the Windows build to open
-              this module.
-            </p>
+            <p>{activeNotice.name} launches inside the Easylab desktop app.</p>
             <button type="button" className="primary" onClick={() => setWebNotice(null)}>
               Got it
             </button>

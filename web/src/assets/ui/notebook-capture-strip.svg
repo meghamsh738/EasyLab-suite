@@ -1,0 +1,19 @@
+<svg width="820" height="300" viewBox="0 0 820 300" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Easylab notebook capture strip">
+  <rect width="820" height="300" rx="18" fill="#F3F6FA"/>
+  <rect x="26" y="26" width="768" height="248" rx="12" fill="#FFFFFF" stroke="#D6DEE8"/>
+  <text x="54" y="66" fill="#07111F" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700">Today captures</text>
+  <text x="636" y="65" fill="#64748B" font-family="Segoe UI, Arial, sans-serif" font-size="14">Local only</text>
+  <circle cx="712" cy="60" r="7" fill="#059669"/>
+  <rect x="54" y="94" width="712" height="72" rx="10" fill="#F7F9FC" stroke="#D6DEE8"/>
+  <circle cx="84" cy="130" r="13" fill="#16A34A"/>
+  <text x="112" y="122" fill="#07111F" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="700">WhatsApp</text>
+  <text x="112" y="145" fill="#334155" font-family="Segoe UI, Arial, sans-serif" font-size="15">Can we include the 25 nM point as well?</text>
+  <rect x="618" y="112" width="108" height="36" rx="6" fill="#FFFFFF" stroke="#D6DEE8"/>
+  <text x="638" y="135" fill="#64748B" font-family="Segoe UI, Arial, sans-serif" font-size="13">image.png</text>
+  <rect x="54" y="182" width="712" height="72" rx="10" fill="#F7F9FC" stroke="#D6DEE8"/>
+  <circle cx="84" cy="218" r="13" fill="#0284C7"/>
+  <text x="112" y="210" fill="#07111F" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="700">Telegram</text>
+  <text x="112" y="233" fill="#334155" font-family="Segoe UI, Arial, sans-serif" font-size="15">Reminder: include NTCs and update run sheet.</text>
+  <rect x="618" y="200" width="108" height="36" rx="6" fill="#FFFFFF" stroke="#D6DEE8"/>
+  <text x="644" y="223" fill="#64748B" font-family="Segoe UI, Arial, sans-serif" font-size="13">run.pdf</text>
+</svg>

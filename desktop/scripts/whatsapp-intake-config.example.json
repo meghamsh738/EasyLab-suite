@@ -1,0 +1,12 @@
+{
+  "enabled": true,
+  "port": 8787,
+  "verifyToken": "replace-with-a-long-random-secret",
+  "accessToken": "replace-with-your-meta-whatsapp-token",
+  "appSecret": "replace-with-your-meta-app-secret",
+  "graphApiVersion": "v20.0",
+  "allowedSenders": [
+    "353000000000"
+  ],
+  "timezone": "Europe/London"
+}

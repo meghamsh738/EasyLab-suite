@@ -1,0 +1,17 @@
+<svg width="720" height="260" viewBox="0 0 720 260" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Easylab intake status card">
+  <rect width="720" height="260" rx="16" fill="#F3F6FA"/>
+  <rect x="24" y="24" width="672" height="212" rx="12" fill="#FFFFFF" stroke="#D6DEE8"/>
+  <text x="52" y="62" fill="#64748B" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700">INTAKE STATUS</text>
+  <circle cx="612" cy="57" r="7" fill="#059669"/>
+  <text x="628" y="63" fill="#07111F" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">Live</text>
+  <rect x="52" y="88" width="616" height="54" rx="9" fill="#F7F9FC" stroke="#D6DEE8"/>
+  <circle cx="80" cy="115" r="10" fill="#16A34A"/>
+  <text x="104" y="109" fill="#07111F" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="700">WhatsApp</text>
+  <text x="104" y="130" fill="#64748B" font-family="Segoe UI, Arial, sans-serif" font-size="14">Text and image captures</text>
+  <text x="598" y="121" fill="#047857" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700">Ready</text>
+  <rect x="52" y="154" width="616" height="54" rx="9" fill="#F7F9FC" stroke="#D6DEE8"/>
+  <circle cx="80" cy="181" r="10" fill="#0284C7"/>
+  <text x="104" y="175" fill="#07111F" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="700">Telegram</text>
+  <text x="104" y="196" fill="#64748B" font-family="Segoe UI, Arial, sans-serif" font-size="14">Text and image captures</text>
+  <text x="598" y="187" fill="#0369A1" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700">Ready</text>
+</svg>

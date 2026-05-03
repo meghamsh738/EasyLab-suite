@@ -1,0 +1,9 @@
+{
+  "enabled": true,
+  "botToken": "replace-with-your-telegram-bot-token",
+  "allowedChatIds": [
+    "123456789"
+  ],
+  "pollIntervalMs": 3000,
+  "timezone": "Europe/London"
+}

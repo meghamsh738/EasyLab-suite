@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron')
 const { spawn, spawnSync } = require('child_process')
+const crypto = require('crypto')
 const fs = require('fs')
 const http = require('http')
 const net = require('net')
@@ -7,6 +8,13 @@ const os = require('os')
 const path = require('path')
 
 const isDev = !app.isPackaged
+const hasAppSwitch = (name) => {
+  const normalized = String(name || '').replace(/^--/, '')
+  return process.argv.includes(`--${normalized}`) || app.commandLine.hasSwitch(normalized)
+}
+
+const isWhatsappIntakeMode = hasAppSwitch('labnote-whatsapp-intake')
+const isTelegramIntakeMode = hasAppSwitch('labnote-telegram-intake')
 const rootDir = path.join(__dirname, '..', '..')
 const fallbackIconPath = path.join(__dirname, '..', 'build', 'icon.png')
 const suiteIconPath = path.join(__dirname, 'icons', 'suite.png')
@@ -265,6 +273,8 @@ const attachZoomOverlay = (win, scope) => {
 const windows = new Map()
 const backendProcesses = new Map()
 const staticServers = new Map()
+let whatsappIntakeServer = null
+let telegramIntakePoller = null
 
 const ensureDirectories = (paths) => {
   const targets = Object.values(paths || {}).filter((val) => typeof val === 'string' && val.trim())
@@ -329,6 +339,10 @@ const STATIC_CONTENT_TYPES = {
 const LABNOTE_API_PREFIX = '/labnote-api'
 const LABNOTE_UPLOADS_PREFIX = '/labnote-uploads/'
 const LABNOTE_STATE_FILE = 'labnote-shared-state.json'
+const WHATSAPP_CONFIG_FILE = 'whatsapp-intake-config.json'
+const WHATSAPP_DELETED_MESSAGE_ERROR = 131051
+const TELEGRAM_CONFIG_FILE = 'telegram-intake-config.json'
+const TELEGRAM_RUNTIME_STATE_FILE = 'telegram-intake-state.json'
 
 const sendJson = (res, statusCode, payload) => {
   res.writeHead(statusCode, {
@@ -420,7 +434,9 @@ const readLabnoteState = () => {
 const writeLabnoteState = (payload) => {
   ensureLabnoteStorage()
   const { stateFile } = getLabnoteStorage()
-  fs.writeFileSync(stateFile, `${JSON.stringify(payload, null, 2)}\n`, 'utf-8')
+  const tempFile = `${stateFile}.${process.pid}.${Date.now()}.tmp`
+  fs.writeFileSync(tempFile, `${JSON.stringify(payload, null, 2)}\n`, 'utf-8')
+  fs.renameSync(tempFile, stateFile)
 }
 
 const toSafeUploadPath = (uploadsDir, requestUrl) => {
@@ -437,6 +453,941 @@ const toSafeUploadPath = (uploadsDir, requestUrl) => {
   const root = path.resolve(uploadsDir)
   if (resolved.startsWith(`${root}${path.sep}`) || resolved === root) return resolved
   return null
+}
+
+const isObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value)
+
+const parseList = (value) => {
+  if (Array.isArray(value)) return value.map((item) => String(item).trim()).filter(Boolean)
+  if (typeof value === 'string') {
+    return value
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean)
+  }
+  return []
+}
+
+const normalizeSender = (sender) => String(sender || '').replace(/[^\d]/g, '')
+
+const parsePositiveInt = (value, fallback) => {
+  const parsed = Number(value)
+  if (!Number.isFinite(parsed) || parsed <= 0) return fallback
+  return Math.floor(parsed)
+}
+
+const readWhatsappConfig = () => {
+  const { dataDir } = getLabnoteStorage()
+  const configPath = process.env.EASYLAB_WHATSAPP_CONFIG || path.join(dataDir, WHATSAPP_CONFIG_FILE)
+  let fileConfig = {}
+  try {
+    if (fs.existsSync(configPath)) {
+      const rawConfig = fs.readFileSync(configPath, 'utf-8').replace(/^\uFEFF/, '')
+      fileConfig = JSON.parse(rawConfig)
+    }
+  } catch {
+    fileConfig = {}
+  }
+
+  const allowedSenders = parseList(process.env.WHATSAPP_ALLOWED_SENDERS || fileConfig.allowedSenders)
+    .map(normalizeSender)
+    .filter(Boolean)
+
+  return {
+    configPath,
+    enabled: process.env.EASYLAB_WHATSAPP_ENABLED
+      ? process.env.EASYLAB_WHATSAPP_ENABLED !== '0'
+      : fileConfig.enabled !== false,
+    port: parsePositiveInt(process.env.EASYLAB_WHATSAPP_INTAKE_PORT || fileConfig.port, 8787),
+    verifyToken: String(process.env.WHATSAPP_VERIFY_TOKEN || fileConfig.verifyToken || ''),
+    accessToken: String(process.env.WHATSAPP_ACCESS_TOKEN || fileConfig.accessToken || ''),
+    appSecret: String(process.env.WHATSAPP_APP_SECRET || fileConfig.appSecret || ''),
+    graphApiVersion: String(process.env.WHATSAPP_GRAPH_API_VERSION || fileConfig.graphApiVersion || 'v20.0'),
+    allowedSenders,
+    timezone: String(process.env.EASYLAB_WHATSAPP_TIMEZONE || fileConfig.timezone || 'Europe/London'),
+  }
+}
+
+const getWhatsappConfigStatus = (config = readWhatsappConfig()) => ({
+  enabled: config.enabled,
+  port: config.port,
+  configPath: config.configPath,
+  hasVerifyToken: Boolean(config.verifyToken),
+  hasAccessToken: Boolean(config.accessToken),
+  hasAppSecret: Boolean(config.appSecret),
+  allowedSenderCount: config.allowedSenders.length,
+  timezone: config.timezone,
+})
+
+const normalizeTelegramChatId = (chatId) => String(chatId || '').trim()
+
+const readTelegramConfig = () => {
+  const { dataDir } = getLabnoteStorage()
+  const configPath = process.env.EASYLAB_TELEGRAM_CONFIG || path.join(dataDir, TELEGRAM_CONFIG_FILE)
+  let fileConfig = {}
+  let configExists = false
+  try {
+    if (fs.existsSync(configPath)) {
+      configExists = true
+      const rawConfig = fs.readFileSync(configPath, 'utf-8').replace(/^\uFEFF/, '')
+      fileConfig = JSON.parse(rawConfig)
+    }
+  } catch {
+    fileConfig = {}
+  }
+
+  const allowedChatIds = parseList(process.env.TELEGRAM_ALLOWED_CHAT_IDS || fileConfig.allowedChatIds)
+    .map(normalizeTelegramChatId)
+    .filter(Boolean)
+
+  return {
+    configPath,
+    enabled: process.env.EASYLAB_TELEGRAM_ENABLED
+      ? process.env.EASYLAB_TELEGRAM_ENABLED !== '0'
+      : configExists && fileConfig.enabled !== false,
+    botToken: String(fileConfig.botToken || process.env.TELEGRAM_BOT_TOKEN || ''),
+    allowedChatIds,
+    pollIntervalMs: parsePositiveInt(process.env.EASYLAB_TELEGRAM_POLL_INTERVAL_MS || fileConfig.pollIntervalMs, 3000),
+    timezone: String(process.env.EASYLAB_TELEGRAM_TIMEZONE || fileConfig.timezone || 'Europe/London'),
+  }
+}
+
+const getTelegramConfigStatus = (config = readTelegramConfig()) => ({
+  enabled: config.enabled,
+  configPath: config.configPath,
+  hasBotToken: Boolean(config.botToken),
+  allowedChatCount: config.allowedChatIds.length,
+  pollIntervalMs: config.pollIntervalMs,
+  timezone: config.timezone,
+})
+
+const getTelegramRuntimeStatePath = () => {
+  const { dataDir } = getLabnoteStorage()
+  return path.join(dataDir, TELEGRAM_RUNTIME_STATE_FILE)
+}
+
+const readTelegramRuntimeState = () => {
+  const statePath = getTelegramRuntimeStatePath()
+  try {
+    if (!fs.existsSync(statePath)) return { lastUpdateId: null }
+    const parsed = JSON.parse(fs.readFileSync(statePath, 'utf-8').replace(/^\uFEFF/, ''))
+    const lastUpdateId = Number(parsed?.lastUpdateId)
+    return { lastUpdateId: Number.isFinite(lastUpdateId) ? lastUpdateId : null }
+  } catch {
+    return { lastUpdateId: null }
+  }
+}
+
+const writeTelegramRuntimeState = (state) => {
+  const statePath = getTelegramRuntimeStatePath()
+  const dir = path.dirname(statePath)
+  fs.mkdirSync(dir, { recursive: true })
+  const lastUpdateId = Number(state?.lastUpdateId)
+  fs.writeFileSync(statePath, JSON.stringify({
+    lastUpdateId: Number.isFinite(lastUpdateId) ? lastUpdateId : null,
+    updatedAt: new Date().toISOString(),
+  }, null, 2))
+}
+
+const readRawBody = (req, maxBytes = 25 * 1024 * 1024) => new Promise((resolve, reject) => {
+  const chunks = []
+  let size = 0
+
+  req.on('data', (chunk) => {
+    size += chunk.length
+    if (size > maxBytes) {
+      reject(new Error('Payload too large'))
+      req.destroy()
+      return
+    }
+    chunks.push(chunk)
+  })
+  req.on('end', () => resolve(Buffer.concat(chunks)))
+  req.on('error', reject)
+})
+
+const sendPlain = (res, statusCode, text) => {
+  res.writeHead(statusCode, {
+    'Content-Type': 'text/plain; charset=utf-8',
+    'Cache-Control': 'no-store',
+  })
+  res.end(text)
+}
+
+const verifyWhatsappSignature = (rawBody, appSecret, signatureHeader) => {
+  if (!appSecret) return true
+  const provided = String(signatureHeader || '')
+  if (!provided.startsWith('sha256=')) return false
+  const expected = `sha256=${crypto.createHmac('sha256', appSecret).update(rawBody).digest('hex')}`
+  const providedBuffer = Buffer.from(provided)
+  const expectedBuffer = Buffer.from(expected)
+  if (providedBuffer.length !== expectedBuffer.length) return false
+  return crypto.timingSafeEqual(providedBuffer, expectedBuffer)
+}
+
+const stableShortHash = (value, length = 12) =>
+  crypto.createHash('sha1').update(String(value || '')).digest('hex').slice(0, length)
+
+const parseWhatsappSentDate = (timestamp) => {
+  const seconds = Number(timestamp)
+  if (Number.isFinite(seconds) && seconds > 0) return new Date(seconds * 1000)
+  return new Date()
+}
+
+const datePartsForZone = (date, timeZone) => {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date)
+  const byType = Object.fromEntries(parts.map((part) => [part.type, part.value]))
+  return {
+    year: byType.year,
+    month: byType.month,
+    day: byType.day,
+  }
+}
+
+const dateBucketForZone = (date, timeZone) => {
+  const parts = datePartsForZone(date, timeZone)
+  return `${parts.year}-${parts.month}-${parts.day}`
+}
+
+const displayDateForZone = (date, timeZone) =>
+  new Intl.DateTimeFormat('en-US', { timeZone, month: 'short', day: 'numeric', year: 'numeric' }).format(date)
+
+const displayTimeForZone = (date, timeZone) =>
+  new Intl.DateTimeFormat('en-GB', { timeZone, hour: '2-digit', minute: '2-digit' }).format(date)
+
+const normalizeLabnoteState = (state) => ({
+  version: Number(state?.version) || 1,
+  projects: Array.isArray(state?.projects) ? state.projects : [],
+  experiments: Array.isArray(state?.experiments) ? state.experiments : [],
+  entries: isObject(state?.entries) ? state.entries : {},
+  attachments: Array.isArray(state?.attachments) ? state.attachments : [],
+})
+
+const readWritableLabnoteState = () => normalizeLabnoteState(readLabnoteState())
+
+const extractWhatsappMessages = (payload) => {
+  const messages = []
+  const entries = Array.isArray(payload?.entry) ? payload.entry : []
+  entries.forEach((entry) => {
+    const changes = Array.isArray(entry?.changes) ? entry.changes : []
+    changes.forEach((change) => {
+      const value = change?.value || {}
+      const batch = Array.isArray(value.messages) ? value.messages : []
+      batch.forEach((message) => messages.push({ message, value }))
+    })
+  })
+  return messages
+}
+
+const isAllowedWhatsappSender = (sender, config) => {
+  const normalized = normalizeSender(sender)
+  if (!normalized || config.allowedSenders.length === 0) return false
+  return config.allowedSenders.includes(normalized)
+}
+
+const isWhatsappDeleteMessage = (message) => {
+  if (!message || message.type !== 'unsupported') return false
+  const errors = Array.isArray(message.errors) ? message.errors : []
+  if (errors.some((error) => Number(error?.code) === WHATSAPP_DELETED_MESSAGE_ERROR)) return true
+  const errorText = JSON.stringify(errors).toLowerCase()
+  return errorText.includes('deleted') || errorText.includes('delete')
+}
+
+const getAttachmentUploadPath = (attachment) => {
+  const candidates = [attachment?.storagePath, attachment?.thumbnail].filter(Boolean)
+  const { uploadsDir } = getLabnoteStorage()
+  for (const candidate of candidates) {
+    let pathname = String(candidate)
+    try {
+      if (/^https?:\/\//i.test(pathname)) pathname = new URL(pathname).pathname
+    } catch {
+      // Keep original string and try it as a local upload path.
+    }
+    if (!pathname.includes(LABNOTE_UPLOADS_PREFIX)) continue
+    const safePath = toSafeUploadPath(uploadsDir, pathname)
+    if (safePath) return safePath
+  }
+  return null
+}
+
+const deleteLocalAttachmentFile = (attachment) => {
+  const fullPath = getAttachmentUploadPath(attachment)
+  if (!fullPath) return false
+  try {
+    if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
+      fs.unlinkSync(fullPath)
+      return true
+    }
+  } catch {
+    return false
+  }
+  return false
+}
+
+const ensureWhatsappEntry = (state, dateBucket, sentDate, config) => {
+  const entryId = `entry-whatsapp-${dateBucket}`
+  const existing = state.entries[entryId]
+  if (existing) {
+    existing.whatsappCaptures = Array.isArray(existing.whatsappCaptures) ? existing.whatsappCaptures : []
+    existing.source = 'whatsapp'
+    return existing
+  }
+
+  const createdDatetime = sentDate.toISOString()
+  const entry = {
+    id: entryId,
+    createdDatetime,
+    lastEditedDatetime: createdDatetime,
+    authorId: 'whatsapp',
+    title: `WhatsApp captures - ${displayDateForZone(sentDate, config.timezone)}`,
+    dateBucket,
+    isDaily: true,
+    content: [],
+    tags: ['WhatsApp'],
+    projectTags: [],
+    experimentTags: [],
+    searchTerms: ['WhatsApp'],
+    linkedFiles: [],
+    pinnedRegions: [],
+    source: 'whatsapp',
+    whatsappCaptures: [],
+  }
+  state.entries[entryId] = entry
+  return entry
+}
+
+const buildWhatsappBlocks = (capture, config) => {
+  const seed = stableShortHash(capture.messageId)
+  const sentDate = new Date(capture.sentAt)
+  const headerText = `${displayTimeForZone(sentDate, config.timezone)} WhatsApp`
+  const blocks = [
+    {
+      id: `b-wa-${seed}-head`,
+      type: 'heading',
+      level: 3,
+      text: headerText,
+      updatedAt: capture.receivedAt,
+      updatedBy: 'whatsapp',
+    },
+  ]
+
+  if (capture.text) {
+    blocks.push({
+      id: `b-wa-${seed}-text`,
+      type: 'paragraph',
+      text: capture.text,
+      updatedAt: capture.receivedAt,
+      updatedBy: 'whatsapp',
+    })
+  }
+
+  capture.attachmentIds.forEach((attachmentId, index) => {
+    blocks.push({
+      id: `b-wa-${seed}-att-${index + 1}`,
+      type: capture.type === 'image' ? 'image' : 'file',
+      attachmentId,
+      caption: capture.type === 'image' ? capture.text || 'WhatsApp image' : undefined,
+      label: capture.type === 'image' ? undefined : 'WhatsApp attachment',
+      updatedAt: capture.receivedAt,
+      updatedBy: 'whatsapp',
+    })
+  })
+
+  blocks.push({ id: `b-wa-${seed}-div`, type: 'divider', updatedAt: capture.receivedAt, updatedBy: 'whatsapp' })
+  return blocks
+}
+
+const rebuildWhatsappEntryContent = (entry, config) => {
+  const captures = Array.isArray(entry.whatsappCaptures) ? entry.whatsappCaptures : []
+  const sorted = [...captures].sort((a, b) => String(a.sentAt).localeCompare(String(b.sentAt)))
+  entry.whatsappCaptures = sorted.map((capture) => {
+    const blocks = buildWhatsappBlocks(capture, config)
+    return { ...capture, blockIds: blocks.map((block) => block.id) }
+  })
+  entry.content = entry.whatsappCaptures.flatMap((capture) => buildWhatsappBlocks(capture, config))
+  entry.linkedFiles = Array.from(new Set(entry.whatsappCaptures.flatMap((capture) => capture.attachmentIds || [])))
+  entry.searchTerms = Array.from(
+    new Set([
+      ...(Array.isArray(entry.searchTerms) ? entry.searchTerms : []),
+      'WhatsApp',
+      ...entry.whatsappCaptures.flatMap((capture) => [
+        capture.sender,
+        capture.messageId,
+        ...(capture.mediaIds || []),
+      ]),
+    ].filter(Boolean))
+  )
+  entry.lastEditedDatetime = new Date().toISOString()
+}
+
+const saveWhatsappMedia = (media, message, dateBucket) => {
+  const { uploadsDir } = getLabnoteStorage()
+  const mediaId = message?.[message.type]?.id || message?.image?.id || 'media'
+  const baseName = safeUploadBaseName(media.filename || `${mediaId}${extensionForMime(media.contentType) || '.bin'}`)
+  const ext = path.extname(baseName) || extensionForMime(media.contentType) || '.bin'
+  const stem = baseName.replace(new RegExp(`${ext.replace('.', '\\.')}$`), '') || 'whatsapp'
+  const suffix = stableShortHash(`${message.id}-${mediaId}`, 10)
+  const relativeDir = path.join('whatsapp', dateBucket)
+  const fullDir = path.join(uploadsDir, relativeDir)
+  fs.mkdirSync(fullDir, { recursive: true })
+  const finalName = `${stem}-${suffix}${ext}`
+  const fullPath = path.join(fullDir, finalName)
+  fs.writeFileSync(fullPath, media.buffer)
+  const relativeUrl = path.join(relativeDir, finalName).split(path.sep).join('/')
+  const uploadUrl = `${LABNOTE_UPLOADS_PREFIX}${relativeUrl}`
+  return {
+    uploadUrl,
+    fullPath,
+    finalName,
+    sha256: crypto.createHash('sha256').update(media.buffer).digest('hex'),
+    sizeKb: `${Math.max(1, Math.round(media.buffer.length / 1024))} KB`,
+  }
+}
+
+const downloadWhatsappMedia = async (mediaId, config) => {
+  if (!config.accessToken) throw new Error('WhatsApp access token is not configured.')
+  const graphUrl = `https://graph.facebook.com/${config.graphApiVersion}/${encodeURIComponent(mediaId)}`
+  const metadataResponse = await fetch(graphUrl, {
+    headers: { Authorization: `Bearer ${config.accessToken}` },
+  })
+  if (!metadataResponse.ok) throw new Error(`Media metadata request failed: HTTP ${metadataResponse.status}`)
+  const metadata = await metadataResponse.json()
+  if (!metadata?.url) throw new Error('Media metadata response did not include a URL.')
+
+  const fileResponse = await fetch(metadata.url, {
+    headers: { Authorization: `Bearer ${config.accessToken}` },
+  })
+  if (!fileResponse.ok) throw new Error(`Media download failed: HTTP ${fileResponse.status}`)
+  const buffer = Buffer.from(await fileResponse.arrayBuffer())
+  const contentType = fileResponse.headers.get('content-type') || metadata.mime_type || 'application/octet-stream'
+  return {
+    buffer,
+    contentType,
+    filename: metadata.file_name || `${mediaId}${extensionForMime(contentType) || ''}`,
+  }
+}
+
+const upsertWhatsappMessage = async (message, config) => {
+  const sender = normalizeSender(message.from)
+  const messageId = String(message.id || '')
+  if (!messageId) return { action: 'skipped', reason: 'missing-message-id' }
+  if (!isAllowedWhatsappSender(sender, config)) return { action: 'ignored', reason: 'sender-not-allowed' }
+
+  const state = readWritableLabnoteState()
+  const alreadyImported = Object.values(state.entries).some((entry) =>
+    Array.isArray(entry?.whatsappCaptures) && entry.whatsappCaptures.some((capture) => capture.messageId === messageId)
+  )
+  if (alreadyImported) return { action: 'skipped', reason: 'duplicate-message' }
+
+  const sentDate = parseWhatsappSentDate(message.timestamp)
+  const dateBucket = dateBucketForZone(sentDate, config.timezone)
+  const entry = ensureWhatsappEntry(state, dateBucket, sentDate, config)
+  const receivedAt = new Date().toISOString()
+  const attachmentIds = []
+  const mediaIds = []
+  let text = ''
+  let type = message.type === 'image' ? 'image' : message.type === 'text' ? 'text' : 'unsupported'
+
+  if (message.type === 'text') {
+    text = String(message.text?.body || '').trim()
+  } else if (message.type === 'image') {
+    const image = message.image || {}
+    const mediaId = String(image.id || '')
+    text = String(image.caption || '').trim()
+    if (mediaId) {
+      mediaIds.push(mediaId)
+      const downloaded = await downloadWhatsappMedia(mediaId, config)
+      const saved = saveWhatsappMedia(downloaded, message, dateBucket)
+      const attachmentId = `att-wa-${stableShortHash(`${messageId}-${mediaId}`)}`
+      const attachment = {
+        id: attachmentId,
+        entryId: entry.id,
+        type: 'image',
+        filename: saved.finalName,
+        filesize: saved.sizeKb,
+        storagePath: saved.uploadUrl,
+        thumbnail: saved.uploadUrl,
+        pinnedOffline: true,
+        source: 'whatsapp',
+        sourceMessageId: messageId,
+        sourceMediaId: mediaId,
+        contentType: downloaded.contentType,
+        sha256: saved.sha256,
+      }
+      state.attachments = state.attachments.filter((item) => item.id !== attachmentId)
+      state.attachments.unshift(attachment)
+      attachmentIds.push(attachmentId)
+    }
+  } else {
+    type = 'unsupported'
+    text = `Unsupported WhatsApp message type: ${message.type || 'unknown'}`
+  }
+
+  const capture = {
+    messageId,
+    sender,
+    sentAt: sentDate.toISOString(),
+    receivedAt,
+    type,
+    text,
+    blockIds: [],
+    attachmentIds,
+    mediaIds,
+  }
+  entry.whatsappCaptures = [...(Array.isArray(entry.whatsappCaptures) ? entry.whatsappCaptures : []), capture]
+  rebuildWhatsappEntryContent(entry, config)
+  writeLabnoteState(state)
+  return { action: 'imported', entryId: entry.id, attachmentIds }
+}
+
+const hardDeleteWhatsappMessage = (message, config) => {
+  const sender = normalizeSender(message.from)
+  const messageId = String(message.id || '')
+  if (!messageId) return { action: 'skipped', reason: 'missing-message-id' }
+  if (!isAllowedWhatsappSender(sender, config)) return { action: 'ignored', reason: 'sender-not-allowed' }
+
+  const state = readWritableLabnoteState()
+  let deleted = false
+  const attachmentIdsToDelete = new Set()
+
+  Object.entries(state.entries).forEach(([entryId, entry]) => {
+    if (!Array.isArray(entry?.whatsappCaptures)) return
+    const captures = entry.whatsappCaptures
+    const remaining = captures.filter((capture) => {
+      const match = capture.messageId === messageId && normalizeSender(capture.sender) === sender
+      if (match) {
+        deleted = true
+        ;(capture.attachmentIds || []).forEach((id) => attachmentIdsToDelete.add(id))
+      }
+      return !match
+    })
+
+    if (remaining.length === captures.length) return
+    if (remaining.length === 0 && entry.source === 'whatsapp' && entryId.startsWith('entry-whatsapp-')) {
+      delete state.entries[entryId]
+      return
+    }
+    entry.whatsappCaptures = remaining
+    rebuildWhatsappEntryContent(entry, config)
+  })
+
+  if (!deleted) return { action: 'skipped', reason: 'no-matching-capture' }
+
+  state.attachments = state.attachments.filter((attachment) => {
+    if (!attachmentIdsToDelete.has(attachment.id)) return true
+    deleteLocalAttachmentFile(attachment)
+    return false
+  })
+  writeLabnoteState(state)
+  return { action: 'deleted', attachmentCount: attachmentIdsToDelete.size }
+}
+
+const handleWhatsappWebhookRequest = async (req, res) => {
+  const config = readWhatsappConfig()
+  const requestUrl = new URL(req.url || '/', `http://${req.headers.host || '127.0.0.1'}`)
+  const pathname = requestUrl.pathname
+  const method = String(req.method || 'GET').toUpperCase()
+
+  if (pathname === '/health' || pathname === '/whatsapp/health') {
+    sendJson(res, 200, { ok: true, service: 'easylab-whatsapp-intake', config: getWhatsappConfigStatus(config) })
+    return
+  }
+
+  if (pathname !== '/whatsapp/webhook') {
+    sendJson(res, 404, { ok: false, error: 'Not found' })
+    return
+  }
+
+  if (!config.enabled) {
+    sendJson(res, 503, { ok: false, error: 'WhatsApp intake is disabled.' })
+    return
+  }
+
+  if (method === 'GET') {
+    const mode = requestUrl.searchParams.get('hub.mode')
+    const token = requestUrl.searchParams.get('hub.verify_token')
+    const challenge = requestUrl.searchParams.get('hub.challenge') || ''
+    if (mode === 'subscribe' && token && token === config.verifyToken) {
+      sendPlain(res, 200, challenge)
+      return
+    }
+    sendJson(res, 403, { ok: false, error: 'Verification failed.' })
+    return
+  }
+
+  if (method !== 'POST') {
+    sendJson(res, 405, { ok: false, error: 'Method not allowed' })
+    return
+  }
+
+  try {
+    const rawBody = await readRawBody(req)
+    if (!verifyWhatsappSignature(rawBody, config.appSecret, req.headers['x-hub-signature-256'])) {
+      sendJson(res, 403, { ok: false, error: 'Invalid webhook signature.' })
+      return
+    }
+    const payload = rawBody.length ? JSON.parse(rawBody.toString('utf8')) : {}
+    const results = []
+    for (const { message } of extractWhatsappMessages(payload)) {
+      if (isWhatsappDeleteMessage(message)) {
+        results.push(hardDeleteWhatsappMessage(message, config))
+      } else {
+        results.push(await upsertWhatsappMessage(message, config))
+      }
+    }
+    sendJson(res, 200, { ok: true, results })
+  } catch (err) {
+    sendJson(res, 400, { ok: false, error: err instanceof Error ? err.message : String(err) })
+  }
+}
+
+const startWhatsappIntakeServer = async () => {
+  const config = readWhatsappConfig()
+  if (!config.enabled) return null
+  if (await isPortOpen(config.port)) return null
+
+  const server = http.createServer((req, res) => {
+    void handleWhatsappWebhookRequest(req, res)
+  })
+
+  await new Promise((resolve, reject) => {
+    server.once('error', reject)
+    server.listen(config.port, '127.0.0.1', resolve)
+  })
+  return server
+}
+
+const stopWhatsappIntakeServer = () => {
+  if (!whatsappIntakeServer) return
+  whatsappIntakeServer.close()
+  whatsappIntakeServer = null
+}
+
+const isAllowedTelegramChat = (chatId, config) => {
+  const normalized = normalizeTelegramChatId(chatId)
+  if (!normalized || config.allowedChatIds.length === 0) return false
+  return config.allowedChatIds.includes(normalized)
+}
+
+const telegramApiRequest = async (config, method, params = {}) => {
+  if (!config.botToken) throw new Error('Telegram bot token is not configured.')
+  const url = new URL(`https://api.telegram.org/bot${config.botToken}/${method}`)
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') url.searchParams.set(key, String(value))
+  })
+  const response = await fetch(url)
+  if (!response.ok) throw new Error(`Telegram ${method} failed: HTTP ${response.status}`)
+  const payload = await response.json()
+  if (!payload?.ok) throw new Error(`Telegram ${method} failed: ${payload?.description || 'unknown error'}`)
+  return payload.result
+}
+
+const parseTelegramSentDate = (seconds) => {
+  const value = Number(seconds)
+  if (Number.isFinite(value) && value > 0) return new Date(value * 1000)
+  return new Date()
+}
+
+const ensureTelegramEntry = (state, dateBucket, sentDate, config) => {
+  const entryId = `entry-telegram-${dateBucket}`
+  const existing = state.entries[entryId]
+  if (existing) {
+    existing.telegramCaptures = Array.isArray(existing.telegramCaptures) ? existing.telegramCaptures : []
+    existing.source = existing.source || 'telegram'
+    return existing
+  }
+
+  const createdDatetime = sentDate.toISOString()
+  const entry = {
+    id: entryId,
+    createdDatetime,
+    lastEditedDatetime: createdDatetime,
+    authorId: 'telegram',
+    title: `Telegram captures - ${displayDateForZone(sentDate, config.timezone)}`,
+    dateBucket,
+    isDaily: true,
+    content: [],
+    tags: ['Telegram'],
+    projectTags: [],
+    experimentTags: [],
+    searchTerms: ['Telegram'],
+    linkedFiles: [],
+    pinnedRegions: [],
+    source: 'telegram',
+    telegramCaptures: [],
+  }
+  state.entries[entryId] = entry
+  return entry
+}
+
+const buildTelegramBlocks = (capture, config) => {
+  const seed = stableShortHash(capture.messageId)
+  const sentDate = new Date(capture.sentAt)
+  const headerText = `${displayTimeForZone(sentDate, config.timezone)} Telegram`
+  const blocks = [
+    {
+      id: `b-tg-${seed}-head`,
+      type: 'heading',
+      level: 3,
+      text: headerText,
+      updatedAt: capture.receivedAt,
+      updatedBy: 'telegram',
+    },
+  ]
+
+  if (capture.text) {
+    blocks.push({
+      id: `b-tg-${seed}-text`,
+      type: 'paragraph',
+      text: capture.text,
+      updatedAt: capture.receivedAt,
+      updatedBy: 'telegram',
+    })
+  }
+
+  capture.attachmentIds.forEach((attachmentId, index) => {
+    blocks.push({
+      id: `b-tg-${seed}-att-${index + 1}`,
+      type: capture.type === 'image' ? 'image' : 'file',
+      attachmentId,
+      caption: capture.type === 'image' ? capture.text || 'Telegram image' : undefined,
+      label: capture.type === 'image' ? undefined : 'Telegram attachment',
+      updatedAt: capture.receivedAt,
+      updatedBy: 'telegram',
+    })
+  })
+
+  blocks.push({ id: `b-tg-${seed}-div`, type: 'divider', updatedAt: capture.receivedAt, updatedBy: 'telegram' })
+  return blocks
+}
+
+const rebuildTelegramEntryContent = (entry, config) => {
+  const captures = Array.isArray(entry.telegramCaptures) ? entry.telegramCaptures : []
+  const sorted = [...captures].sort((a, b) => String(a.sentAt).localeCompare(String(b.sentAt)))
+  entry.telegramCaptures = sorted.map((capture) => {
+    const blocks = buildTelegramBlocks(capture, config)
+    return { ...capture, blockIds: blocks.map((block) => block.id) }
+  })
+  entry.content = entry.telegramCaptures.flatMap((capture) => buildTelegramBlocks(capture, config))
+  entry.linkedFiles = Array.from(new Set(entry.telegramCaptures.flatMap((capture) => capture.attachmentIds || [])))
+  entry.searchTerms = Array.from(
+    new Set([
+      ...(Array.isArray(entry.searchTerms) ? entry.searchTerms : []),
+      'Telegram',
+      ...entry.telegramCaptures.flatMap((capture) => [
+        capture.chatId,
+        capture.messageId,
+        capture.fromUsername,
+        ...(capture.mediaIds || []),
+      ]),
+    ].filter(Boolean))
+  )
+  entry.lastEditedDatetime = new Date().toISOString()
+}
+
+const saveTelegramMedia = (media, message, dateBucket) => {
+  const { uploadsDir } = getLabnoteStorage()
+  const messageId = String(message?.message_id || 'message')
+  const baseName = safeUploadBaseName(media.filename || `${media.fileId}${extensionForMime(media.contentType) || '.bin'}`)
+  const ext = path.extname(baseName) || extensionForMime(media.contentType) || '.bin'
+  const stem = baseName.replace(new RegExp(`${ext.replace('.', '\\.')}$`), '') || 'telegram'
+  const suffix = stableShortHash(`${message.chat?.id}-${messageId}-${media.fileId}`, 10)
+  const relativeDir = path.join('telegram', dateBucket)
+  const fullDir = path.join(uploadsDir, relativeDir)
+  fs.mkdirSync(fullDir, { recursive: true })
+  const finalName = `${stem}-${suffix}${ext}`
+  const fullPath = path.join(fullDir, finalName)
+  fs.writeFileSync(fullPath, media.buffer)
+  const relativeUrl = path.join(relativeDir, finalName).split(path.sep).join('/')
+  const uploadUrl = `${LABNOTE_UPLOADS_PREFIX}${relativeUrl}`
+  return {
+    uploadUrl,
+    fullPath,
+    finalName,
+    sha256: crypto.createHash('sha256').update(media.buffer).digest('hex'),
+    sizeKb: `${Math.max(1, Math.round(media.buffer.length / 1024))} KB`,
+  }
+}
+
+const downloadTelegramMedia = async (fileId, config, fallbackFilename, fallbackContentType) => {
+  const file = await telegramApiRequest(config, 'getFile', { file_id: fileId })
+  if (!file?.file_path) throw new Error('Telegram getFile response did not include file_path.')
+  const response = await fetch(`https://api.telegram.org/file/bot${config.botToken}/${file.file_path}`)
+  if (!response.ok) throw new Error(`Telegram media download failed: HTTP ${response.status}`)
+  const buffer = Buffer.from(await response.arrayBuffer())
+  const contentType = response.headers.get('content-type') || fallbackContentType || 'application/octet-stream'
+  return {
+    buffer,
+    contentType,
+    fileId,
+    filename: fallbackFilename || path.basename(file.file_path) || `${fileId}${extensionForMime(contentType) || ''}`,
+  }
+}
+
+const getTelegramMessageMedia = (message) => {
+  const photos = Array.isArray(message?.photo) ? message.photo : []
+  if (photos.length > 0) {
+    const photo = [...photos].sort((a, b) => Number(b?.file_size || 0) - Number(a?.file_size || 0))[0]
+    return {
+      type: 'image',
+      fileId: String(photo?.file_id || ''),
+      filename: `${message.message_id || 'telegram-photo'}.jpg`,
+      contentType: 'image/jpeg',
+    }
+  }
+  const document = message?.document
+  if (document?.file_id && String(document.mime_type || '').toLowerCase().startsWith('image/')) {
+    return {
+      type: 'image',
+      fileId: String(document.file_id),
+      filename: document.file_name || `${message.message_id || 'telegram-document'}${extensionForMime(document.mime_type) || ''}`,
+      contentType: document.mime_type || 'application/octet-stream',
+    }
+  }
+  return null
+}
+
+const upsertTelegramMessage = async (message, config) => {
+  const chatId = normalizeTelegramChatId(message?.chat?.id)
+  const telegramMessageId = String(message?.message_id || '')
+  const messageId = chatId && telegramMessageId ? `${chatId}:${telegramMessageId}` : ''
+  if (!messageId) return { action: 'skipped', reason: 'missing-message-id' }
+  if (!isAllowedTelegramChat(chatId, config)) return { action: 'ignored', reason: 'chat-not-allowed' }
+
+  const state = readWritableLabnoteState()
+  const alreadyImported = Object.values(state.entries).some((entry) =>
+    Array.isArray(entry?.telegramCaptures) && entry.telegramCaptures.some((capture) => capture.messageId === messageId)
+  )
+  if (alreadyImported) return { action: 'skipped', reason: 'duplicate-message' }
+
+  const text = String(message.text || message.caption || '').trim()
+  const media = getTelegramMessageMedia(message)
+  if (!text && !media) return { action: 'skipped', reason: 'unsupported-message' }
+
+  const sentDate = parseTelegramSentDate(message.date)
+  const dateBucket = dateBucketForZone(sentDate, config.timezone)
+  const entry = ensureTelegramEntry(state, dateBucket, sentDate, config)
+  const receivedAt = new Date().toISOString()
+  const attachmentIds = []
+  const mediaIds = []
+  let type = media?.type || 'text'
+
+  if (media?.fileId) {
+    mediaIds.push(media.fileId)
+    const downloaded = await downloadTelegramMedia(media.fileId, config, media.filename, media.contentType)
+    const saved = saveTelegramMedia(downloaded, message, dateBucket)
+    const attachmentId = `att-tg-${stableShortHash(`${messageId}-${media.fileId}`)}`
+    const attachment = {
+      id: attachmentId,
+      entryId: entry.id,
+      type,
+      filename: saved.finalName,
+      filesize: saved.sizeKb,
+      storagePath: saved.uploadUrl,
+      thumbnail: type === 'image' ? saved.uploadUrl : undefined,
+      pinnedOffline: true,
+      source: 'telegram',
+      sourceMessageId: messageId,
+      sourceMediaId: media.fileId,
+      contentType: downloaded.contentType,
+      sha256: saved.sha256,
+    }
+    state.attachments = state.attachments.filter((item) => item.id !== attachmentId)
+    state.attachments.unshift(attachment)
+    attachmentIds.push(attachmentId)
+  }
+
+  const capture = {
+    messageId,
+    chatId,
+    telegramMessageId,
+    fromUsername: message.from?.username ? `@${message.from.username}` : '',
+    fromName: [message.from?.first_name, message.from?.last_name].filter(Boolean).join(' '),
+    sentAt: sentDate.toISOString(),
+    receivedAt,
+    type,
+    text,
+    blockIds: [],
+    attachmentIds,
+    mediaIds,
+  }
+  entry.telegramCaptures = [...(Array.isArray(entry.telegramCaptures) ? entry.telegramCaptures : []), capture]
+  rebuildTelegramEntryContent(entry, config)
+  writeLabnoteState(state)
+  return { action: 'imported', entryId: entry.id, attachmentIds }
+}
+
+const pollTelegramUpdates = async (config) => {
+  const runtimeState = readTelegramRuntimeState()
+  const params = {
+    timeout: 0,
+    limit: 50,
+  }
+  if (Number.isFinite(Number(runtimeState.lastUpdateId))) {
+    params.offset = Number(runtimeState.lastUpdateId) + 1
+  }
+
+  const updates = await telegramApiRequest(config, 'getUpdates', params)
+  if (!Array.isArray(updates) || updates.length === 0) return []
+
+  const results = []
+  let lastUpdateId = Number(runtimeState.lastUpdateId)
+  if (!Number.isFinite(lastUpdateId)) lastUpdateId = null
+
+  for (const update of updates) {
+    const updateId = Number(update?.update_id)
+    try {
+      if (update?.message) results.push(await upsertTelegramMessage(update.message, config))
+    } catch (err) {
+      results.push({ action: 'error', error: err instanceof Error ? err.message : String(err) })
+    }
+    if (Number.isFinite(updateId)) {
+      lastUpdateId = lastUpdateId === null ? updateId : Math.max(lastUpdateId, updateId)
+      writeTelegramRuntimeState({ lastUpdateId })
+    }
+  }
+  return results
+}
+
+const startTelegramIntakePoller = () => {
+  const config = readTelegramConfig()
+  if (!config.enabled) return null
+  if (!config.botToken) throw new Error('Telegram bot token is not configured.')
+  if (config.allowedChatIds.length === 0) throw new Error('Telegram allowedChatIds is empty.')
+
+  let running = false
+  const tick = async () => {
+    if (running) return
+    running = true
+    try {
+      await pollTelegramUpdates(config)
+    } catch (err) {
+      console.warn('Telegram intake poll failed', err)
+    } finally {
+      running = false
+    }
+  }
+
+  const interval = setInterval(() => {
+    void tick()
+  }, config.pollIntervalMs)
+  void tick()
+
+  return {
+    stop: () => clearInterval(interval),
+    config,
+  }
+}
+
+const stopTelegramIntakePoller = () => {
+  if (!telegramIntakePoller) return
+  telegramIntakePoller.stop()
+  telegramIntakePoller = null
 }
 
 const handleLabnoteApiRequest = async (req, res) => {
@@ -1101,7 +2052,36 @@ const createModuleWindow = async (moduleId) => {
   windows.set(moduleId, win)
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  if (isWhatsappIntakeMode || isTelegramIntakeMode) {
+    try {
+      if (isWhatsappIntakeMode) {
+        whatsappIntakeServer = await startWhatsappIntakeServer()
+        if (!whatsappIntakeServer) app.quit()
+      }
+      if (isTelegramIntakeMode) {
+        telegramIntakePoller = startTelegramIntakePoller()
+        if (!telegramIntakePoller) app.quit()
+      }
+    } catch (err) {
+      console.error(err instanceof Error ? err.message : String(err))
+      app.quit()
+    }
+    return
+  }
+
+  startWhatsappIntakeServer()
+    .then((server) => {
+      if (server) whatsappIntakeServer = server
+    })
+    .catch((err) => console.warn('WhatsApp intake not started', err))
+
+  try {
+    telegramIntakePoller = startTelegramIntakePoller()
+  } catch (err) {
+    console.warn('Telegram intake not started', err)
+  }
+
   createSuiteWindow()
 
   app.on('activate', () => {
@@ -1112,11 +2092,15 @@ app.whenReady().then(() => {
 app.on('before-quit', () => {
   Array.from(backendProcesses.keys()).forEach((moduleId) => stopBackend(moduleId))
   Array.from(staticServers.keys()).forEach((moduleId) => stopStaticServer(moduleId))
+  stopWhatsappIntakeServer()
+  stopTelegramIntakePoller()
 })
 
 app.on('window-all-closed', () => {
   Array.from(backendProcesses.keys()).forEach((moduleId) => stopBackend(moduleId))
   Array.from(staticServers.keys()).forEach((moduleId) => stopStaticServer(moduleId))
+  if (!isWhatsappIntakeMode) stopWhatsappIntakeServer()
+  if (!isTelegramIntakeMode) stopTelegramIntakePoller()
   if (process.platform !== 'darwin') app.quit()
 })
 

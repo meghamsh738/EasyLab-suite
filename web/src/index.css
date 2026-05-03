@@ -1,5 +1,3 @@
-/* Offline-first fonts: self-hosted so the suite works without internet access.
-   Font files live in src/assets/fonts and are bundled by Vite. */
 @font-face {
   font-family: 'Space Grotesk';
   font-style: normal;
@@ -27,52 +25,34 @@
 :root {
   --font-sans: 'Space Grotesk', 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
   --font-mono: 'Space Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
-  --tracking-display: 0.08em;
-  --tracking-label: 0.12em;
 
-  --bg: #F6F2EA;
-  --surface: #FFFFFF;
-  --surface-2: #FFF7EC;
-  --surface-3: #F2EADF;
-  --panel: #FFFFFF;
+  --bg: #eef2f7;
+  --surface: #ffffff;
+  --surface-2: #f7f9fc;
+  --panel: rgba(255, 255, 255, 0.92);
 
-  --text: #111113;
-  --text-muted: #575762;
-  --text-subtle: #2F2F36;
+  --text: #111827;
+  --text-muted: #5f6b7c;
+  --text-subtle: #374151;
 
-  --border: #15151A;
-  --border-2: #0F0F14;
+  --border: rgba(17, 24, 39, 0.14);
+  --border-2: rgba(17, 24, 39, 0.24);
 
-  --accent: #1f5bff;
-  --accent-weak: rgba(31, 91, 255, 0.18);
-  --focus: rgba(31, 91, 255, 0.35);
+  --accent: #3156d4;
+  --accent-weak: rgba(49, 86, 212, 0.12);
+  --focus: rgba(49, 86, 212, 0.2);
 
-  --radius-md: 12px;
-  --radius-lg: 12px;
-  --radius-xl: 18px;
+  --shadow-sm: 0 1px 2px rgba(17, 24, 39, 0.04), 0 10px 28px rgba(17, 24, 39, 0.06);
+  --shadow-md: 0 16px 34px rgba(17, 24, 39, 0.08);
+  --shadow-lg: 0 24px 70px rgba(17, 24, 39, 0.16);
 
-  --shadow-md: 10px 10px 0 rgba(17, 17, 20, 0.9);
-  --shadow-lg: 14px 14px 0 rgba(17, 17, 20, 0.9);
-
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 24px;
-  --space-6: 32px;
-  --space-7: 48px;
-  --space-8: 64px;
-  --space-9: 80px;
-  --space-10: 96px;
-
-  --text-xs: 0.7rem;
-  --text-sm: 0.85rem;
+  --text-xs: 0.72rem;
+  --text-sm: 0.88rem;
   --text-md: 1rem;
 
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
   --t-fast: 120ms;
   --t: 160ms;
-  --t-slow: 220ms;
 }
 
 * {
@@ -81,21 +61,30 @@
 
 body {
   margin: 0;
+  min-height: 100vh;
   font-family: var(--font-sans);
   color: var(--text);
-  background: radial-gradient(1200px 600px at 8% -10%, rgba(31, 91, 255, 0.12), transparent 60%),
-    radial-gradient(900px 500px at 95% 10%, rgba(0, 0, 0, 0.08), transparent 70%),
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.62), rgba(238, 242, 247, 0.78)),
+    repeating-linear-gradient(
+      90deg,
+      rgba(17, 24, 39, 0.035) 0,
+      rgba(17, 24, 39, 0.035) 1px,
+      transparent 1px,
+      transparent 48px
+    ),
     var(--bg);
-  min-height: 100vh;
   color-scheme: light;
+  letter-spacing: 0;
 }
 
 #root {
   min-height: 100vh;
 }
 
-button {
-  font-family: var(--font-sans);
+button,
+input {
+  font-family: inherit;
 }
 
 ::selection {
