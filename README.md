@@ -6,6 +6,14 @@ The suite is designed for laptop use: notebook data, attachments, module outputs
 
 ![Easylab Suite command center](screenshots/suite_command_center.png)
 
+The current visual system was refreshed from a ChatGPT Images v2 reference pass: compact scientific command-center layout, dark navigation rail, white analysis surfaces, cool neutral grid background, and module-specific pictogram icons.
+
+![ChatGPT Images v2 UI reference sheet](screenshots/references/chatgpt-images-v2-ui-reference.png)
+
+### Compact Launcher
+
+![Easylab Suite compact command center](screenshots/suite_command_center_mobile.png)
+
 ## Modules
 
 | Module | What it does | Runtime |
