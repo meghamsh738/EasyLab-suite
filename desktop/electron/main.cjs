@@ -6,6 +6,7 @@ const http = require('http')
 const net = require('net')
 const os = require('os')
 const path = require('path')
+const { pathToFileURL } = require('url')
 
 const isDev = !app.isPackaged
 const hasAppSwitch = (name) => {
@@ -110,11 +111,12 @@ const buildZoomOverlayScript = (scope) => {
   if (!api || typeof api.getZoomFactor !== 'function' || typeof api.setZoomFactor !== 'function') return;
   const clamp = (value) => Math.min(config.max, Math.max(config.min, Number(value) || config.defaultZoom));
   const key = 'easylab.zoom.' + config.scope;
+  const shouldPersistZoom = !config.scope.startsWith('module-');
   const widgetId = 'easylab-zoom-widget';
   const existing = document.getElementById(widgetId);
   if (existing) existing.remove();
 
-  let zoom = clamp(window.localStorage?.getItem(key) ?? config.defaultZoom);
+  let zoom = clamp(shouldPersistZoom ? (window.localStorage?.getItem(key) ?? config.defaultZoom) : config.defaultZoom);
 
   const widget = document.createElement('div');
   widget.id = widgetId;
@@ -211,7 +213,7 @@ const buildZoomOverlayScript = (scope) => {
     }
     zoom = applied;
     syncLabel();
-    if (persist && window.localStorage) window.localStorage.setItem(key, String(zoom));
+    if (persist && shouldPersistZoom && window.localStorage) window.localStorage.setItem(key, String(zoom));
   };
 
   const onWheel = (event) => {
@@ -241,7 +243,7 @@ const buildZoomOverlayScript = (scope) => {
   const init = async () => {
     try {
       const current = clamp(await api.getZoomFactor());
-      const saved = window.localStorage?.getItem(key);
+      const saved = shouldPersistZoom ? window.localStorage?.getItem(key) : null;
       if (saved === null || saved === undefined || saved === '') {
         zoom = current;
         syncLabel();
@@ -273,6 +275,8 @@ const attachZoomOverlay = (win, scope) => {
 const windows = new Map()
 const backendProcesses = new Map()
 const staticServers = new Map()
+const pythonResolutionCache = new Map()
+const prewarmPromises = new Map()
 let whatsappIntakeServer = null
 let telegramIntakePoller = null
 
@@ -1499,7 +1503,7 @@ const sendStaticFile = (res, filePath) => {
   })
 }
 
-const spawnStaticServer = async (moduleId, port) => {
+const spawnStaticServer = async (moduleId, port, options = {}) => {
   if (staticServers.has(moduleId)) return true
   if (await isPortOpen(port)) return true
 
@@ -1507,12 +1511,14 @@ const spawnStaticServer = async (moduleId, port) => {
   const webRoot = path.join(moduleRoot, 'web')
   const indexPath = path.join(webRoot, 'index.html')
   if (!fs.existsSync(indexPath)) {
-    dialog.showMessageBox({
-      type: 'warning',
-      title: 'Module not available',
-      message: `${MODULES[moduleId]?.label ?? moduleId} is missing web assets.`,
-      detail: `Expected file not found: ${indexPath}`,
-    })
+    if (!options.silent) {
+      dialog.showMessageBox({
+        type: 'warning',
+        title: 'Module not available',
+        message: `${MODULES[moduleId]?.label ?? moduleId} is missing web assets.`,
+        detail: `Expected file not found: ${indexPath}`,
+      })
+    }
     return false
   }
 
@@ -1568,12 +1574,14 @@ const spawnStaticServer = async (moduleId, port) => {
     staticServers.set(moduleId, server)
     return true
   } catch (err) {
-    dialog.showMessageBox({
-      type: 'warning',
-      title: 'Server not started',
-      message: `The ${MODULES[moduleId]?.label ?? moduleId} server could not start.`,
-      detail: err instanceof Error ? err.message : String(err),
-    })
+    if (!options.silent) {
+      dialog.showMessageBox({
+        type: 'warning',
+        title: 'Server not started',
+        message: `The ${MODULES[moduleId]?.label ?? moduleId} server could not start.`,
+        detail: err instanceof Error ? err.message : String(err),
+      })
+    }
     return false
   }
 }
@@ -1739,16 +1747,27 @@ const ensureModulePython = (moduleId, moduleType, moduleRoot) => {
     : ['fastapi', 'uvicorn']
   const requirementsPath = getModuleRequirementsPath(moduleRoot, moduleType)
   const venvPython = getBootstrapVenvPython(moduleId)
+  const cacheKey = `${moduleId}:${moduleType}:${requirementsPath}`
+  const cached = pythonResolutionCache.get(cacheKey)
+
+  if (cached?.python && fs.existsSync(cached.python)) {
+    return { ...cached, usedCache: true }
+  }
+
+  const remember = (resolution) => {
+    if (resolution?.python) pythonResolutionCache.set(cacheKey, resolution)
+    return resolution
+  }
 
   if (fs.existsSync(venvPython) && hasRequiredImports(venvPython, requiredImports)) {
-    return { python: venvPython, usedBootstrap: false, reason: '' }
+    return remember({ python: venvPython, usedBootstrap: false, reason: '' })
   }
 
   const candidates = resolvePythonCandidates()
   for (const candidate of candidates) {
     if (!canRunPython(candidate)) continue
     if (hasRequiredImports(candidate, requiredImports)) {
-      return { python: candidate, usedBootstrap: false, reason: '' }
+      return remember({ python: candidate, usedBootstrap: false, reason: '' })
     }
   }
 
@@ -1776,7 +1795,7 @@ const ensureModulePython = (moduleId, moduleType, moduleRoot) => {
       })
       if (installReq.status !== 0) continue
       if (hasRequiredImports(venvPython, requiredImports)) {
-        return { python: venvPython, usedBootstrap: true, reason: '' }
+        return remember({ python: venvPython, usedBootstrap: true, reason: '' })
       }
     } catch (err) {
       continue
@@ -1816,19 +1835,21 @@ const getModuleRoot = (moduleId) => {
   return path.join(baseRoot, 'apps', moduleId)
 }
 
-const spawnFastApi = async (moduleId, port) => {
+const spawnFastApi = async (moduleId, port, options = {}) => {
   if (backendProcesses.has(moduleId)) return true
   if (await isPortOpen(port)) return true
 
   const moduleRoot = getModuleRoot(moduleId)
   const pythonResolution = ensureModulePython(moduleId, 'fastapi', moduleRoot)
   if (!pythonResolution.python) {
-    dialog.showMessageBox({
-      type: 'warning',
-      title: 'Backend not started',
-      message: `The ${MODULES[moduleId]?.label ?? 'module'} backend could not start.`,
-      detail: `${pythonResolution.reason}\n\nInstall Python 3.10+ or set APP_PYTHON_PATH, then restart.\nIf Python is installed, ensure pip can install:\n${getModuleRequirementsPath(moduleRoot, 'fastapi')}`,
-    })
+    if (!options.silent) {
+      dialog.showMessageBox({
+        type: 'warning',
+        title: 'Backend not started',
+        message: `The ${MODULES[moduleId]?.label ?? 'module'} backend could not start.`,
+        detail: `${pythonResolution.reason}\n\nInstall Python 3.10+ or set APP_PYTHON_PATH, then restart.\nIf Python is installed, ensure pip can install:\n${getModuleRequirementsPath(moduleRoot, 'fastapi')}`,
+      })
+    }
     return false
   }
 
@@ -1867,28 +1888,32 @@ const spawnFastApi = async (moduleId, port) => {
     // fall through to dialog below
   }
 
-  dialog.showMessageBox({
-    type: 'warning',
-    title: 'Backend not started',
-    message: `The ${MODULES[moduleId]?.label ?? 'module'} backend could not start.`,
-    detail: `Python used: ${pythonResolution.python}\n\nIf this is the first launch, wait for dependency install to complete and retry.\nOtherwise reinstall dependencies from:\n${getModuleRequirementsPath(moduleRoot, 'fastapi')}`,
-  })
+  if (!options.silent) {
+    dialog.showMessageBox({
+      type: 'warning',
+      title: 'Backend not started',
+      message: `The ${MODULES[moduleId]?.label ?? 'module'} backend could not start.`,
+      detail: `Python used: ${pythonResolution.python}\n\nIf this is the first launch, wait for dependency install to complete and retry.\nOtherwise reinstall dependencies from:\n${getModuleRequirementsPath(moduleRoot, 'fastapi')}`,
+    })
+  }
   return false
 }
 
-const spawnStreamlit = async (moduleId, port) => {
+const spawnStreamlit = async (moduleId, port, options = {}) => {
   if (backendProcesses.has(moduleId)) return true
   if (await isPortOpen(port)) return true
 
   const moduleRoot = getModuleRoot(moduleId)
   const pythonResolution = ensureModulePython(moduleId, 'streamlit', moduleRoot)
   if (!pythonResolution.python) {
-    dialog.showMessageBox({
-      type: 'warning',
-      title: 'Server not started',
-      message: `The ${MODULES[moduleId]?.label ?? 'module'} server could not start.`,
-      detail: `${pythonResolution.reason}\n\nInstall Python 3.10+ or set APP_PYTHON_PATH, then restart.\nIf Python is installed, ensure pip can install:\n${getModuleRequirementsPath(moduleRoot, 'streamlit')}`,
-    })
+    if (!options.silent) {
+      dialog.showMessageBox({
+        type: 'warning',
+        title: 'Server not started',
+        message: `The ${MODULES[moduleId]?.label ?? 'module'} server could not start.`,
+        detail: `${pythonResolution.reason}\n\nInstall Python 3.10+ or set APP_PYTHON_PATH, then restart.\nIf Python is installed, ensure pip can install:\n${getModuleRequirementsPath(moduleRoot, 'streamlit')}`,
+      })
+    }
     return false
   }
 
@@ -1939,12 +1964,14 @@ const spawnStreamlit = async (moduleId, port) => {
     // fall through to dialog below
   }
 
-  dialog.showMessageBox({
-    type: 'warning',
-    title: 'Server not started',
-    message: `The ${MODULES[moduleId]?.label ?? 'module'} server could not start.`,
-    detail: `Python used: ${pythonResolution.python}\n\nIf this is the first launch, wait for dependency install to complete and retry.\nOtherwise reinstall dependencies from:\n${getModuleRequirementsPath(moduleRoot, 'streamlit')}`,
-  })
+  if (!options.silent) {
+    dialog.showMessageBox({
+      type: 'warning',
+      title: 'Server not started',
+      message: `The ${MODULES[moduleId]?.label ?? 'module'} server could not start.`,
+      detail: `Python used: ${pythonResolution.python}\n\nIf this is the first launch, wait for dependency install to complete and retry.\nOtherwise reinstall dependencies from:\n${getModuleRequirementsPath(moduleRoot, 'streamlit')}`,
+    })
+  }
   return false
 }
 
@@ -1972,8 +1999,16 @@ const createSuiteWindow = () => {
       nodeIntegration: false,
     },
   })
-  attachZoomOverlay(win, 'suite-launcher')
 
+  loadSuiteHome(win)
+
+  return win
+}
+
+const loadSuiteHome = (win) => {
+  if (!win || win.isDestroyed()) return
+  win.setTitle(app.getName())
+  win.webContents.setZoomFactor(1)
   if (isDev) {
     const devUrl = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5178'
     win.loadURL(devUrl)
@@ -1981,8 +2016,146 @@ const createSuiteWindow = () => {
     const webDist = path.join(rootDir, '.suite-dist', 'web', 'index.html')
     win.loadFile(webDist)
   }
+}
 
-  return win
+const appendModuleQuery = (url, moduleId) => {
+  const launchUrl = new URL(url)
+  launchUrl.searchParams.set('easylabModule', moduleId)
+  return launchUrl.toString()
+}
+
+const buildModuleShellOverlayScript = (moduleId, label) => `
+(() => {
+  const api = window.electronAPI;
+  if (!api || typeof api.returnToSuite !== 'function') return;
+
+  const existing = document.getElementById('easylab-module-shell');
+  if (existing) existing.remove();
+
+  const shell = document.createElement('div');
+  shell.id = 'easylab-module-shell';
+  shell.style.position = 'fixed';
+  shell.style.top = '10px';
+  shell.style.left = '10px';
+  shell.style.right = '10px';
+  shell.style.zIndex = '2147483400';
+  shell.style.display = 'flex';
+  shell.style.alignItems = 'center';
+  shell.style.justifyContent = 'space-between';
+  shell.style.gap = '10px';
+  shell.style.padding = '8px 10px';
+  shell.style.border = '1px solid rgba(255, 255, 255, 0.16)';
+  shell.style.borderRadius = '9px';
+  shell.style.background = 'rgba(15, 23, 42, 0.94)';
+  shell.style.backdropFilter = 'blur(10px)';
+  shell.style.boxShadow = '0 12px 28px rgba(15, 23, 42, 0.22)';
+  shell.style.color = '#f8fafc';
+  shell.style.fontFamily = 'Segoe UI, Inter, system-ui, sans-serif';
+  shell.style.fontSize = '13px';
+
+  const title = document.createElement('div');
+  title.textContent = ${JSON.stringify(label)};
+  title.style.fontWeight = '700';
+  title.style.overflow = 'hidden';
+  title.style.textOverflow = 'ellipsis';
+  title.style.whiteSpace = 'nowrap';
+
+  const back = document.createElement('button');
+  back.type = 'button';
+  back.textContent = 'Back to modules';
+  back.style.height = '32px';
+  back.style.padding = '0 12px';
+  back.style.border = '1px solid rgba(255, 255, 255, 0.22)';
+  back.style.borderRadius = '7px';
+  back.style.background = '#ffffff';
+  back.style.color = '#0f172a';
+  back.style.font = '700 13px/1 Segoe UI, Inter, system-ui, sans-serif';
+  back.style.cursor = 'pointer';
+  back.addEventListener('click', () => void api.returnToSuite());
+
+  shell.appendChild(title);
+  shell.appendChild(back);
+  document.documentElement.style.setProperty('--easylab-suite-shell-offset', '58px');
+  if (document.body) {
+    document.body.style.paddingTop = 'var(--easylab-suite-shell-offset)';
+    document.body.appendChild(shell);
+  }
+})();
+`
+
+const prepareModuleLaunch = async (moduleId, options = {}) => {
+  const config = MODULES[moduleId]
+  if (!config) return null
+
+  if (config.type === 'fastapi') {
+    const started = await spawnFastApi(moduleId, config.port, options)
+    if (!started) return null
+  }
+
+  if (config.type === 'streamlit') {
+    const started = await spawnStreamlit(moduleId, config.port, options)
+    if (!started) return null
+  }
+
+  if (config.type === 'static' && config.webPort) {
+    const started = await spawnStaticServer(moduleId, config.webPort, options)
+    if (!started) return null
+  }
+
+  let url
+  if (config.type === 'streamlit') {
+    url = appendModuleQuery(`http://127.0.0.1:${config.port}`, moduleId)
+  } else if (config.type === 'static' && config.webPort) {
+    url = appendModuleQuery(`http://127.0.0.1:${config.webPort}`, moduleId)
+  } else {
+    const moduleRoot = getModuleRoot(moduleId)
+    const indexPath = path.join(moduleRoot, 'web', 'index.html')
+    const launchUrl = new URL(pathToFileURL(indexPath).toString())
+    launchUrl.searchParams.set('easylabModule', moduleId)
+    if (config.port) launchUrl.searchParams.set('apiBase', `http://127.0.0.1:${config.port}`)
+    url = launchUrl.toString()
+  }
+
+  return {
+    id: moduleId,
+    label: config.label,
+    url,
+  }
+}
+
+const prewarmModule = async (moduleId) => {
+  if (!MODULES[moduleId]) return false
+  const existing = prewarmPromises.get(moduleId)
+  if (existing) return existing
+
+  const promise = prepareModuleLaunch(moduleId, { silent: true })
+    .then(Boolean)
+    .catch(() => false)
+    .finally(() => prewarmPromises.delete(moduleId))
+  prewarmPromises.set(moduleId, promise)
+  return promise
+}
+
+const openModuleInWindow = async (win, moduleId) => {
+  const config = MODULES[moduleId]
+  if (!config || !win || win.isDestroyed()) return
+  const pendingPrewarm = prewarmPromises.get(moduleId)
+  if (pendingPrewarm) await pendingPrewarm.catch(() => false)
+  const launch = await prepareModuleLaunch(moduleId)
+  if (!launch) return
+
+  win.setTitle(`Easylab Suite - ${config.label}`)
+  win.webContents.setZoomFactor(1)
+  win.webContents.once('did-finish-load', () => {
+    if (win.isDestroyed()) return
+    win.webContents
+      .executeJavaScript(
+        `${buildModuleShellOverlayScript(moduleId, config.label)}\n${buildZoomOverlayScript(`module-${moduleId}`)}`,
+        true,
+      )
+      .catch((err) => console.warn(`Module shell overlay failed for ${moduleId}`, err))
+  })
+  await win.loadURL(launch.url)
 }
 
 const createModuleWindow = async (moduleId) => {
@@ -1995,20 +2168,10 @@ const createModuleWindow = async (moduleId) => {
     return
   }
 
-  if (config.type === 'fastapi') {
-    const started = await spawnFastApi(moduleId, config.port)
-    if (!started) return
-  }
-
-  if (config.type === 'streamlit') {
-    const started = await spawnStreamlit(moduleId, config.port)
-    if (!started) return
-  }
-
-  if (config.type === 'static' && config.webPort) {
-    const started = await spawnStaticServer(moduleId, config.webPort)
-    if (!started) return
-  }
+  const pendingPrewarm = prewarmPromises.get(moduleId)
+  if (pendingPrewarm) await pendingPrewarm.catch(() => false)
+  const launch = await prepareModuleLaunch(moduleId)
+  if (!launch) return
 
   const win = new BrowserWindow({
     width: 1440,
@@ -2028,15 +2191,10 @@ const createModuleWindow = async (moduleId) => {
   })
   attachZoomOverlay(win, `module-${moduleId}`)
 
-  if (config.type === 'streamlit') {
-    win.loadURL(`http://127.0.0.1:${config.port}`)
-  } else if (config.type === 'static' && config.webPort) {
-    win.loadURL(`http://127.0.0.1:${config.webPort}`)
+  if (launch.url.startsWith('file:')) {
+    win.loadURL(launch.url)
   } else {
-    const moduleRoot = getModuleRoot(moduleId)
-    const indexPath = path.join(moduleRoot, 'web', 'index.html')
-    const query = config.port ? { apiBase: `http://127.0.0.1:${config.port}` } : undefined
-    win.loadFile(indexPath, { query })
+    win.loadURL(launch.url)
   }
 
   win.on('closed', () => {
@@ -2106,6 +2264,20 @@ app.on('window-all-closed', () => {
 
 ipcMain.handle('launch-module', async (_event, moduleId) => {
   await createModuleWindow(moduleId)
+})
+
+ipcMain.handle('prepare-module-launch', async (_event, moduleId) => prepareModuleLaunch(moduleId))
+
+ipcMain.handle('prewarm-module', async (_event, moduleId) => prewarmModule(moduleId))
+
+ipcMain.handle('open-module-in-suite', async (event, moduleId) => {
+  const win = BrowserWindow.fromWebContents(event.sender)
+  await openModuleInWindow(win, moduleId)
+})
+
+ipcMain.handle('return-to-suite', (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender)
+  loadSuiteHome(win)
 })
 
 ipcMain.handle('select-directory', async (_event, options = {}) => {

@@ -30,8 +30,11 @@ type SuiteInfo = {
 
 type ElectronAPI = {
   launchModule: (moduleId: ModuleId) => Promise<void>
+  openModuleInSuite?: (moduleId: ModuleId) => Promise<void>
+  prewarmModule?: (moduleId: ModuleId) => Promise<boolean>
   getSuiteInfo?: () => Promise<SuiteInfo>
   getAppInfo?: () => Promise<SuiteInfo>
+  setZoomFactor?: (value: number) => Promise<number>
 }
 
 type ModuleGroup = 'Notebook' | 'Planning' | 'Analysis' | 'Colony' | 'Behaviour'
@@ -175,6 +178,7 @@ function App() {
   const [webNotice, setWebNotice] = useState<ModuleId | null>(null)
   const [query, setQuery] = useState('')
   const [activeGroup, setActiveGroup] = useState<'All' | ModuleGroup>('All')
+  const [launchingModule, setLaunchingModule] = useState<ModuleId | null>(null)
 
   const loadSuiteInfo = useCallback(async () => {
     if (!electron) return
@@ -236,11 +240,23 @@ function App() {
       return
     }
     try {
-      await electron.launchModule(moduleId)
+      setLaunchingModule(moduleId)
+      if (electron.openModuleInSuite) {
+        await electron.openModuleInSuite(moduleId)
+      } else {
+        await electron.launchModule(moduleId)
+      }
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : 'Unable to launch module.')
       setStatus('error')
+    } finally {
+      setLaunchingModule(null)
     }
+  }
+
+  const handlePrewarm = (moduleId: ModuleId) => {
+    if (!electron?.prewarmModule || launchingModule) return
+    void electron.prewarmModule(moduleId)
   }
 
   const activeNotice = webNotice ? MODULES.find((module) => module.id === webNotice) : null
@@ -439,9 +455,12 @@ function App() {
                           type="button"
                           className="primary"
                           data-testid={`module-launch-${module.id}`}
+                          onFocus={() => handlePrewarm(module.id)}
+                          onMouseEnter={() => handlePrewarm(module.id)}
                           onClick={() => handleLaunch(module.id)}
+                          disabled={launchingModule === module.id}
                         >
-                          Launch
+                          {launchingModule === module.id ? 'Opening' : 'Open'}
                         </button>
                       </div>
                     </article>

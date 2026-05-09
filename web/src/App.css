@@ -10,6 +10,23 @@
   gap: 12px;
 }
 
+.suite.module-active {
+  padding: 8px;
+  overflow: hidden;
+}
+
+.suite-shell.module-active {
+  min-height: calc(100vh - 16px);
+  height: calc(100vh - 16px);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.suite-shell.module-active .suite-rail,
+.suite-shell.module-active .suite-header,
+.suite-shell.module-active .command-surface {
+  display: none;
+}
+
 .suite-rail,
 .suite-header,
 .command-surface,
@@ -41,6 +58,13 @@
   display: grid;
   align-content: start;
   gap: 12px;
+}
+
+.suite-shell.module-active .suite-workspace {
+  min-height: 0;
+  height: 100%;
+  align-content: stretch;
+  gap: 0;
 }
 
 .suite-header {
@@ -381,6 +405,70 @@
   gap: 12px;
 }
 
+.module-workbench {
+  min-height: calc(100vh - 132px);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #101827;
+  box-shadow: var(--shadow-md);
+}
+
+.suite-shell.module-active .module-workbench {
+  min-height: 0;
+  height: 100%;
+  border-radius: 9px;
+}
+
+.workbench-bar {
+  min-height: 58px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  background:
+    linear-gradient(90deg, rgba(24, 167, 164, 0.16), transparent 40%),
+    #101827;
+  color: #f8fafc;
+}
+
+.workbench-bar h2 {
+  margin: 2px 0 0;
+  font-size: 1rem;
+}
+
+.workbench-bar .eyebrow {
+  color: #77e0db;
+}
+
+.workbench-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.workbench-actions .ghost {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #f8fafc;
+}
+
+.module-webview {
+  width: 100%;
+  height: 100%;
+  min-height: 680px;
+  display: block;
+  background: #edf3f9;
+}
+
+.suite-shell.module-active .module-webview {
+  min-height: 0;
+}
+
 .module-section {
   padding: 12px;
   display: grid;
@@ -661,6 +749,10 @@
   .module-card-foot,
   .ops-strip {
     grid-template-columns: 1fr;
+  }
+
+  .module-workbench {
+    min-height: 760px;
   }
 
   .primary {
