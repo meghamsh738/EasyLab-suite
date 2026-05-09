@@ -4,15 +4,25 @@ Easylab Suite is a local-first Windows desktop launcher for the Easylab lab work
 
 The suite is designed for laptop use: notebook data, attachments, module outputs, and Telegram/WhatsApp intake captures stay on the machine unless the user deliberately points storage at a sync folder.
 
-![Easylab Suite command center](screenshots/suite_command_center.png)
+<p align="center">
+  <img src="screenshots/suite_command_center.png" alt="Easylab Suite command center" width="920">
+</p>
 
 The current visual system was refreshed from a ChatGPT Images v2 reference pass: compact scientific command-center layout, dark navigation rail, white analysis surfaces, cool neutral grid background, and module-specific pictogram icons.
 
-![ChatGPT Images v2 UI reference sheet](screenshots/references/chatgpt-images-v2-ui-reference.png)
+## Screenshots
 
-### Compact Launcher
+### Suite Launcher
 
-![Easylab Suite compact command center](screenshots/suite_command_center_mobile.png)
+| Desktop command center | Compact launcher |
+| --- | --- |
+| <img src="screenshots/suite_command_center.png" alt="Easylab Suite desktop command center" width="560"> | <img src="screenshots/suite_command_center_mobile.png" alt="Easylab Suite compact launcher" width="220"> |
+
+### Visual Reference
+
+<p align="center">
+  <img src="screenshots/references/chatgpt-images-v2-ui-reference.png" alt="ChatGPT Images v2 UI reference sheet" width="920">
+</p>
 
 ## Modules
 
@@ -31,55 +41,28 @@ The current visual system was refreshed from a ChatGPT Images v2 reference pass:
 
 Lab Notebook is the main capture surface. It supports date-based entries, project and experiment tagging, rich editor blocks, attachments, exports, storage setup, local disk sync, mobile pairing, and local message intake.
 
-![Lab Notebook workspace](screenshots/labnotebook_workspace.png)
+| Workspace | Filters and calendar |
+| --- | --- |
+| <img src="screenshots/labnotebook_workspace.png" alt="Lab Notebook workspace" width="520"> | <img src="screenshots/labnotebook_filters_calendar.png" alt="Lab Notebook filters and calendar" width="520"> |
 
-### Filtering And Calendar
-
-Filter entries by project tags, experiment tags, attachment presence, and calendar date ranges.
-
-![Lab Notebook filters and calendar](screenshots/labnotebook_filters_calendar.png)
-
-### Files And Entry Metadata
-
-The entry surface includes note, file, and detail tabs so attachment capture and metadata review stay beside the note.
-
-![Lab Notebook files and details](screenshots/labnotebook_files_details.png)
-
-### Storage, Mobile, And Sync
-
-Settings cover storage folders, disk cache, master sync location, mobile pairing links, and import from existing state files.
-
-![Lab Notebook settings and sync](screenshots/labnotebook_settings_sync.png)
+| Files and entry metadata | Storage, mobile, and sync |
+| --- | --- |
+| <img src="screenshots/labnotebook_files_details.png" alt="Lab Notebook files and details" width="520"> | <img src="screenshots/labnotebook_settings_sync.png" alt="Lab Notebook settings and sync" width="520"> |
 
 ## Module Screenshots
 
-### cDNA Calculator
+Each module opens from the Suite launcher and keeps its own workflow intact while sharing the refreshed Easylab visual system.
 
-![cDNA calculator](screenshots/module_cdna.png)
-
-### qPCR Planner
-
-![qPCR planner](screenshots/module_qpcr_planner.png)
-
-### qPCR Analysis
-
-![qPCR analysis](screenshots/module_qpcr_analysis.png)
-
-### ELISA Analysis
-
-![ELISA analysis](screenshots/module_elisa_analysis.png)
-
-### Animal Pairing
-
-![Animal pairing](screenshots/module_animal_pairing.png)
-
-### Breeding Pair Selector
-
-![Breeding pair selector](screenshots/module_breeding.png)
-
-### Y-Maze Randomizer
-
-![Y-Maze randomizer](screenshots/module_ymaze.png)
+| Module | Screenshot | Main workflow |
+| --- | --- | --- |
+| Lab Notebook | <img src="screenshots/labnotebook_workspace.png" alt="Lab Notebook workspace" width="360"> | Daily notes, experiment tags, attachments, signatures, exports, sync, mobile pairing, Telegram intake, and WhatsApp intake. |
+| cDNA Calculator | <img src="screenshots/module_cdna.png" alt="cDNA calculator" width="360"> | RNA inputs, dilution planning, cDNA reaction setup, master mix, and export-ready tables. |
+| qPCR Planner | <img src="screenshots/module_qpcr_planner.png" alt="qPCR planner" width="360"> | 384-well plate layouts, sample/gene overrides, controls, and plate-map exports. |
+| qPCR Analysis | <img src="screenshots/module_qpcr_analysis.png" alt="qPCR analysis" width="360"> | Ct import, replicate review, normalization, plots, standards, reports, and exports. |
+| ELISA Analysis | <img src="screenshots/module_elisa_analysis.png" alt="ELISA analysis" width="360"> | Plate-reader import, standards, curve fitting, QC, concentration output, and export tables. |
+| Animal Pairing | <img src="screenshots/module_animal_pairing.png" alt="Animal pairing" width="360"> | Cohort balancing, genotype filters, animal pair generation, and Excel/CSV exports. |
+| Breeding Pair Selector | <img src="screenshots/module_breeding.png" alt="Breeding pair selector" width="360"> | Gene catalog management, probability thresholds, direct and indirect breeder matching. |
+| Y-Maze Randomizer | <img src="screenshots/module_ymaze.png" alt="Y-Maze randomizer" width="360"> | Balanced learning/reversal schedules, cohort setup, exit-arm assignments, and CSV/Excel exports. |
 
 ## Local Phone Intake
 
