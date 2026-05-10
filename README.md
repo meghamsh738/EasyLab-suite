@@ -39,15 +39,19 @@ The current visual system was refreshed from a ChatGPT Images v2 reference pass:
 
 ## Lab Notebook
 
-Lab Notebook is the main capture surface. It supports date-based entries, project and experiment tagging, rich editor blocks, attachments, exports, storage setup, local disk sync, mobile pairing, and local message intake.
+Lab Notebook is the main capture surface. It supports date-based entries, project and experiment tagging, rich editor blocks, optional per-entry workbooks, attachments, exports, storage setup, local disk sync, mobile pairing, and local message intake.
 
-| Workspace | Filters and calendar |
+| Workspace | Details and calendar |
 | --- | --- |
-| <img src="screenshots/labnotebook_workspace.png" alt="Lab Notebook workspace" width="520"> | <img src="screenshots/labnotebook_filters_calendar.png" alt="Lab Notebook filters and calendar" width="520"> |
+| <img src="screenshots/labnotebook_workspace.png" alt="Lab Notebook workspace" width="520"> | <img src="screenshots/labnotebook_filters_calendar.png" alt="Lab Notebook details and calendar" width="520"> |
 
-| Files and entry metadata | Storage, mobile, and sync |
+| Optional workbook | Files and entry metadata |
 | --- | --- |
-| <img src="screenshots/labnotebook_files_details.png" alt="Lab Notebook files and details" width="520"> | <img src="screenshots/labnotebook_settings_sync.png" alt="Lab Notebook settings and sync" width="520"> |
+| <img src="screenshots/labnotebook_workbook.png" alt="Lab Notebook optional workbook" width="520"> | <img src="screenshots/labnotebook_files_details.png" alt="Lab Notebook files and details" width="520"> |
+
+| Storage, mobile, and sync |
+| --- |
+| <img src="screenshots/labnotebook_settings_sync.png" alt="Lab Notebook settings and sync" width="720"> |
 
 ## Module Screenshots
 
@@ -55,7 +59,7 @@ Each module opens from the Suite launcher and keeps its own workflow intact whil
 
 | Module | Screenshot | Main workflow |
 | --- | --- | --- |
-| Lab Notebook | <img src="screenshots/labnotebook_workspace.png" alt="Lab Notebook workspace" width="360"> | Daily notes, experiment tags, attachments, signatures, exports, sync, mobile pairing, Telegram intake, and WhatsApp intake. |
+| Lab Notebook | <img src="screenshots/labnotebook_workspace.png" alt="Lab Notebook workspace" width="360"> | Daily notes, optional workbook grids, experiment tags, attachments, signatures, exports, sync, mobile pairing, Telegram intake, and WhatsApp intake. |
 | cDNA Calculator | <img src="screenshots/module_cdna.png" alt="cDNA calculator" width="360"> | RNA inputs, dilution planning, cDNA reaction setup, master mix, and export-ready tables. |
 | qPCR Planner | <img src="screenshots/module_qpcr_planner.png" alt="qPCR planner" width="360"> | 384-well plate layouts, sample/gene overrides, controls, and plate-map exports. |
 | qPCR Analysis | <img src="screenshots/module_qpcr_analysis.png" alt="qPCR analysis" width="360"> | Ct import, replicate review, normalization, plots, standards, reports, and exports. |
