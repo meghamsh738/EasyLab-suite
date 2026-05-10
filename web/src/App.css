@@ -3,6 +3,317 @@
   padding: 14px;
 }
 
+/* Easylab lab-operations visual system: warm paper, evergreen navigation, IBM Plex. */
+:root {
+  --el-paper: #f4efe5;
+  --el-paper-grid: rgba(20, 38, 32, 0.045);
+  --el-ink: #142620;
+  --el-muted: #68736d;
+  --el-nav: #053f32;
+  --el-nav-deep: #002f26;
+  --el-accent: #075c49;
+  --el-accent-soft: rgba(7, 92, 73, 0.11);
+  --el-card: rgba(255, 252, 245, 0.92);
+  --el-card-strong: rgba(255, 252, 245, 0.98);
+  --el-line: rgba(32, 48, 42, 0.12);
+  --el-line-strong: rgba(32, 48, 42, 0.18);
+  --el-shadow: 0 16px 42px rgba(20, 38, 32, 0.09);
+  --el-shadow-soft: 0 8px 22px rgba(20, 38, 32, 0.06);
+  color: var(--el-ink);
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  background:
+    linear-gradient(var(--el-paper-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--el-paper-grid) 1px, transparent 1px),
+    var(--el-paper);
+  background-size: 28px 28px;
+  color: var(--el-ink);
+  font-family: "IBM Plex Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.suite-shell {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 88% 10%, rgba(7, 92, 73, 0.08), transparent 28rem),
+    linear-gradient(var(--el-paper-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--el-paper-grid) 1px, transparent 1px),
+    var(--el-paper) !important;
+  background-size: auto, 28px 28px, 28px 28px, auto;
+  color: var(--el-ink);
+  letter-spacing: 0;
+}
+
+.suite-shell * {
+  letter-spacing: 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(7, 92, 73, 0.24) transparent;
+}
+
+.suite-shell *::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+.suite-shell *::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.suite-shell *::-webkit-scrollbar-thumb {
+  background: rgba(7, 92, 73, 0.22);
+  border-radius: 999px;
+}
+
+.suite-rail {
+  background: linear-gradient(180deg, var(--el-nav), var(--el-nav-deep)) !important;
+  color: rgba(255, 252, 245, 0.92);
+  border: 1px solid rgba(255, 252, 245, 0.12);
+  box-shadow: 0 24px 50px rgba(0, 47, 38, 0.22);
+}
+
+.suite-rail :is(h1, h2, h3, strong, .rail-title, .rail-link, .rail-stat-value) {
+  color: rgba(255, 252, 245, 0.96) !important;
+}
+
+.suite-rail :is(p, span, small, .rail-copy, .rail-meta, .module-count) {
+  color: rgba(255, 252, 245, 0.68);
+}
+
+.rail-nav button,
+.rail-card,
+.rail-status-card,
+.rail-footer,
+.suite-rail .local-data-card,
+.suite-rail .intake-card {
+  background: rgba(255, 252, 245, 0.075) !important;
+  border: 1px solid rgba(255, 252, 245, 0.14) !important;
+  color: rgba(255, 252, 245, 0.88) !important;
+  box-shadow: none !important;
+}
+
+.rail-nav button:hover,
+.rail-nav button.active,
+.suite-rail .is-active {
+  background: rgba(255, 252, 245, 0.14) !important;
+}
+
+.suite-logo,
+.module-icon,
+.module-card-icon {
+  background: var(--el-accent-soft) !important;
+  border: 1px solid rgba(7, 92, 73, 0.18) !important;
+  color: var(--el-accent) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 252, 245, 0.7);
+}
+
+.command-surface,
+.suite-header,
+.suite-banner,
+.module-section,
+.module-card,
+.search-row,
+.filter-row,
+.suite-summary-card,
+.intake-summary,
+.module-frame-shell,
+.module-frame-toolbar {
+  background: var(--el-card) !important;
+  border: 1px solid var(--el-line) !important;
+  border-radius: 10px !important;
+  box-shadow: var(--el-shadow-soft) !important;
+  color: var(--el-ink) !important;
+}
+
+.command-surface {
+  padding: clamp(18px, 2vw, 28px) !important;
+  gap: 16px !important;
+}
+
+.suite-header,
+.suite-banner {
+  padding: 18px 22px !important;
+  min-height: 0 !important;
+}
+
+.suite-kicker,
+.eyebrow,
+.module-category,
+.stat-label,
+.chip-label,
+.module-meta,
+.module-card small,
+.module-card p,
+.suite-muted {
+  color: var(--el-muted) !important;
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+}
+
+.suite-kicker,
+.eyebrow,
+.module-category,
+.stat-label {
+  font-family: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Consolas, monospace !important;
+  font-size: 0.72rem !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase;
+}
+
+.suite-header h1,
+.suite-banner h1,
+.module-section h2,
+.module-card h3 {
+  color: var(--el-ink) !important;
+  font-family: "IBM Plex Sans", system-ui, sans-serif !important;
+  font-weight: 700 !important;
+}
+
+.module-card {
+  display: grid;
+  gap: 14px;
+  padding: 16px !important;
+  min-height: 0 !important;
+  transform: none !important;
+}
+
+.module-card::before {
+  opacity: 0.72 !important;
+}
+
+.module-card:hover {
+  border-color: rgba(7, 92, 73, 0.24) !important;
+  box-shadow: var(--el-shadow) !important;
+  transform: translateY(-1px) !important;
+}
+
+.module-card-main,
+.module-card-foot {
+  gap: 12px !important;
+}
+
+.module-tags,
+.module-card-tags,
+.filter-pills {
+  gap: 7px !important;
+}
+
+.tag,
+.chip,
+.pill,
+.module-tag,
+.module-card .tag,
+.module-card .chip,
+.filter-pill,
+.status-pill,
+.suite-badge {
+  min-height: 24px !important;
+  padding: 3px 9px !important;
+  border-radius: 999px !important;
+  background: rgba(255, 252, 245, 0.78) !important;
+  border: 1px solid var(--el-line-strong) !important;
+  color: var(--el-ink) !important;
+  font-size: 0.76rem !important;
+  font-family: "IBM Plex Sans", system-ui, sans-serif !important;
+  box-shadow: none !important;
+}
+
+button,
+.button,
+.launch-button,
+.open-button,
+.module-card button,
+input,
+select,
+textarea {
+  font-family: "IBM Plex Sans", system-ui, sans-serif !important;
+  border-radius: 9px !important;
+  letter-spacing: 0 !important;
+}
+
+input,
+select,
+textarea,
+.search-input,
+.filter-input {
+  background: rgba(255, 252, 245, 0.88) !important;
+  border: 1px solid var(--el-line-strong) !important;
+  color: var(--el-ink) !important;
+  box-shadow: none !important;
+}
+
+button,
+.button,
+.filter-button,
+.secondary-button {
+  background: rgba(255, 252, 245, 0.68) !important;
+  border: 1px solid var(--el-line-strong) !important;
+  color: var(--el-ink) !important;
+  box-shadow: none !important;
+}
+
+.launch-button,
+.open-button,
+.primary-button,
+button.primary,
+.module-card .launch-button {
+  background: var(--el-accent) !important;
+  border-color: rgba(0, 47, 38, 0.18) !important;
+  color: #fffdf7 !important;
+  box-shadow: 0 10px 20px rgba(7, 92, 73, 0.18) !important;
+}
+
+.launch-button:hover,
+.open-button:hover,
+.primary-button:hover,
+button.primary:hover {
+  background: #064f40 !important;
+  transform: translateY(-1px);
+}
+
+.status-dot,
+.ready-dot,
+.intake-dot {
+  background: var(--el-accent) !important;
+  box-shadow: 0 0 0 4px rgba(7, 92, 73, 0.1) !important;
+}
+
+.module-frame-shell,
+.module-frame {
+  background: var(--el-paper) !important;
+}
+
+.module-frame iframe,
+iframe.module-frame,
+.module-iframe {
+  background: var(--el-paper) !important;
+  border: 0 !important;
+}
+
+.suite-shell.module-active .module-frame-shell {
+  border-radius: 0 !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.back-to-modules,
+.module-frame-toolbar button {
+  background: rgba(255, 252, 245, 0.86) !important;
+  border: 1px solid var(--el-line) !important;
+  color: var(--el-ink) !important;
+}
+
+@media (max-width: 980px) {
+  .suite-rail {
+    border-radius: 0 0 12px 12px !important;
+  }
+
+  .command-surface {
+    padding: 14px !important;
+  }
+}
+
 .suite-shell {
   min-height: calc(100vh - 28px);
   display: grid;
@@ -758,4 +1069,174 @@
   .primary {
     width: 100%;
   }
+}
+
+/* Final cascade pass for the warm lab-operations theme. */
+.suite-shell,
+.suite-shell :where(button, input, select, textarea) {
+  font-family: "IBM Plex Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+}
+
+.suite-shell {
+  background:
+    radial-gradient(circle at 88% 10%, rgba(7, 92, 73, 0.08), transparent 28rem),
+    linear-gradient(rgba(20, 38, 32, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(20, 38, 32, 0.045) 1px, transparent 1px),
+    #f4efe5 !important;
+  background-size: auto, 28px 28px, 28px 28px, auto !important;
+  color: #142620 !important;
+}
+
+.suite-rail {
+  background: linear-gradient(180deg, #053f32, #002f26) !important;
+  border-color: rgba(255, 252, 245, 0.12) !important;
+  box-shadow: 0 24px 50px rgba(0, 47, 38, 0.22) !important;
+}
+
+.suite-rail :where(h1, h2, h3, strong, button) {
+  color: rgba(255, 252, 245, 0.96) !important;
+}
+
+.suite-rail :where(p, span, small) {
+  color: rgba(255, 252, 245, 0.68);
+}
+
+.suite-rail :where(button, .rail-card, .rail-status-card, .rail-footer) {
+  background: rgba(255, 252, 245, 0.075) !important;
+  border-color: rgba(255, 252, 245, 0.14) !important;
+  box-shadow: none !important;
+}
+
+.suite-rail :where(button:hover, button.active, .is-active) {
+  background: rgba(255, 252, 245, 0.14) !important;
+}
+
+.command-surface,
+.suite-header,
+.suite-banner,
+.module-section,
+.module-card,
+.search-row,
+.filter-row,
+.suite-summary-card,
+.intake-summary,
+.module-frame-toolbar {
+  background: rgba(255, 252, 245, 0.92) !important;
+  border: 1px solid rgba(32, 48, 42, 0.12) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 22px rgba(20, 38, 32, 0.06) !important;
+  color: #142620 !important;
+}
+
+.command-surface {
+  padding: clamp(18px, 2vw, 28px) !important;
+  gap: 16px !important;
+}
+
+.suite-header,
+.suite-banner {
+  padding: 18px 22px !important;
+  min-height: 0 !important;
+}
+
+.suite-shell :where(.suite-kicker, .eyebrow, .module-category, .stat-label) {
+  color: #68736d !important;
+  font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Consolas, monospace !important;
+  font-size: 0.72rem !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase;
+}
+
+.suite-shell :where(h1, h2, h3, h4, .module-title) {
+  color: #142620 !important;
+  font-family: "IBM Plex Sans", system-ui, sans-serif !important;
+  font-weight: 700 !important;
+}
+
+.suite-shell :where(p, small, .module-copy, .module-meta) {
+  color: #68736d !important;
+}
+
+.module-card {
+  padding: 16px !important;
+  transform: none !important;
+}
+
+.module-card:hover {
+  border-color: rgba(7, 92, 73, 0.24) !important;
+  box-shadow: 0 16px 42px rgba(20, 38, 32, 0.09) !important;
+  transform: translateY(-1px) !important;
+}
+
+.suite-shell :where(.tag, .chip, .pill, .module-tag, .filter-pill, .status-pill, .suite-badge) {
+  min-height: 24px !important;
+  padding: 3px 9px !important;
+  border-radius: 999px !important;
+  background: rgba(255, 252, 245, 0.78) !important;
+  border: 1px solid rgba(32, 48, 42, 0.18) !important;
+  color: #142620 !important;
+  font-size: 0.76rem !important;
+  box-shadow: none !important;
+}
+
+.suite-shell :where(input, select, textarea, .search-input, .filter-input) {
+  background: rgba(255, 252, 245, 0.88) !important;
+  border: 1px solid rgba(32, 48, 42, 0.18) !important;
+  color: #142620 !important;
+  box-shadow: none !important;
+}
+
+.suite-shell :where(button, .button, .filter-button, .secondary-button) {
+  background: rgba(255, 252, 245, 0.68) !important;
+  border: 1px solid rgba(32, 48, 42, 0.18) !important;
+  color: #142620 !important;
+  box-shadow: none !important;
+}
+
+.suite-shell :where(.launch-button, .open-button, .primary-button, button.primary, .module-card .launch-button) {
+  background: #075c49 !important;
+  border-color: rgba(0, 47, 38, 0.18) !important;
+  color: #fffdf7 !important;
+  box-shadow: 0 10px 20px rgba(7, 92, 73, 0.18) !important;
+}
+
+.suite-shell :where(.module-icon, .module-card-icon, .suite-logo) {
+  background: rgba(7, 92, 73, 0.11) !important;
+  border: 1px solid rgba(7, 92, 73, 0.18) !important;
+  color: #075c49 !important;
+}
+
+.suite-shell :where(.status-dot, .ready-dot, .intake-dot) {
+  background: #075c49 !important;
+  box-shadow: 0 0 0 4px rgba(7, 92, 73, 0.1) !important;
+}
+
+.module-frame-shell,
+.module-frame,
+.suite-shell.module-active {
+  background: #f4efe5 !important;
+}
+
+.suite-shell :where(iframe, .module-iframe) {
+  background: #f4efe5 !important;
+  border: 0 !important;
+}
+
+.suite-shell * {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(7, 92, 73, 0.24) transparent;
+}
+
+.suite-shell *::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+.suite-shell *::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.suite-shell *::-webkit-scrollbar-thumb {
+  background: rgba(7, 92, 73, 0.22);
+  border-radius: 999px;
 }

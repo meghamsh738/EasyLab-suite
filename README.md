@@ -8,7 +8,7 @@ The suite is designed for laptop use: notebook data, attachments, module outputs
   <img src="screenshots/suite_command_center.png" alt="Easylab Suite command center" width="920">
 </p>
 
-The current visual system was refreshed from a ChatGPT Images v2 reference pass: compact scientific command-center layout, dark navigation rail, white analysis surfaces, cool neutral grid background, and module-specific pictogram icons.
+The current visual system uses a warm local lab-operations style: IBM Plex Sans/Mono typography, a paper-toned grid background, deep evergreen navigation, compact badges, table-first surfaces, and module-specific pictogram icons.
 
 ## Screenshots
 
@@ -18,11 +18,13 @@ The current visual system was refreshed from a ChatGPT Images v2 reference pass:
 | --- | --- |
 | <img src="screenshots/suite_command_center.png" alt="Easylab Suite desktop command center" width="560"> | <img src="screenshots/suite_command_center_mobile.png" alt="Easylab Suite compact launcher" width="220"> |
 
-### Visual Reference
+### Visual Direction
 
 <p align="center">
   <img src="screenshots/references/chatgpt-images-v2-ui-reference.png" alt="ChatGPT Images v2 UI reference sheet" width="920">
 </p>
+
+The shipped UI now follows the warmer Lab Notebook/colony-app direction rather than the earlier high-contrast blue launcher pass. Screenshots below are regenerated from built module artifacts where available.
 
 ## Modules
 
