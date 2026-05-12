@@ -117,92 +117,50 @@ const buildZoomOverlayScript = (scope) => {
   if (existing) existing.remove();
 
   let zoom = clamp(shouldPersistZoom ? (window.localStorage?.getItem(key) ?? config.defaultZoom) : config.defaultZoom);
+  let hideTimer = null;
 
-  const widget = document.createElement('div');
-  widget.id = widgetId;
-  widget.setAttribute('aria-label', 'Zoom controls');
-  widget.style.position = 'fixed';
-  widget.style.right = '14px';
-  widget.style.bottom = '14px';
-  widget.style.zIndex = '2147483500';
-  widget.style.display = 'grid';
-  widget.style.gridTemplateColumns = 'auto 1fr auto';
-  widget.style.gap = '8px';
-  widget.style.alignItems = 'center';
-  widget.style.padding = '8px 10px';
-  widget.style.border = '1px solid rgba(15, 23, 42, 0.22)';
-  widget.style.background = 'rgba(255, 255, 255, 0.94)';
-  widget.style.backdropFilter = 'blur(6px)';
-  widget.style.borderRadius = '12px';
-  widget.style.boxShadow = '0 10px 26px rgba(15, 23, 42, 0.18)';
-  widget.style.fontFamily = 'Segoe UI, Inter, system-ui, sans-serif';
-  widget.style.fontSize = '12px';
-  widget.style.color = '#0f172a';
+  const rail = document.createElement('div');
+  rail.id = widgetId;
+  rail.setAttribute('aria-label', 'Zoom level');
+  rail.style.position = 'fixed';
+  rail.style.left = '50%';
+  rail.style.bottom = '8px';
+  rail.style.transform = 'translateX(-50%)';
+  rail.style.width = '132px';
+  rail.style.height = '4px';
+  rail.style.zIndex = '2147483500';
+  rail.style.pointerEvents = 'none';
+  rail.style.borderRadius = '999px';
+  rail.style.background = 'rgba(20, 38, 32, 0.14)';
+  rail.style.boxShadow = '0 1px 4px rgba(20, 38, 32, 0.16)';
+  rail.style.opacity = '0';
+  rail.style.transition = 'opacity 160ms ease';
+  rail.style.overflow = 'hidden';
 
-  const makeButton = (label, title) => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.textContent = label;
-    btn.title = title;
-    btn.style.width = '26px';
-    btn.style.height = '26px';
-    btn.style.border = '1px solid rgba(15, 23, 42, 0.2)';
-    btn.style.borderRadius = '7px';
-    btn.style.background = '#ffffff';
-    btn.style.cursor = 'pointer';
-    btn.style.fontWeight = '700';
-    btn.style.color = '#0f172a';
-    return btn;
+  const fill = document.createElement('div');
+  fill.style.height = '100%';
+  fill.style.width = '0%';
+  fill.style.borderRadius = 'inherit';
+  fill.style.background = 'rgba(7, 92, 73, 0.7)';
+  fill.style.transition = 'width 120ms ease';
+  rail.appendChild(fill);
+
+  const syncRail = () => {
+    const range = Math.max(config.max - config.min, config.step);
+    const pct = Math.round(((zoom - config.min) / range) * 100);
+    fill.style.width = Math.min(100, Math.max(0, pct)) + '%';
+    rail.title = 'Zoom ' + Math.round(zoom * 100) + '%';
   };
 
-  const minus = makeButton('-', 'Zoom out');
-  const plus = makeButton('+', 'Zoom in');
-
-  const middle = document.createElement('div');
-  middle.style.display = 'grid';
-  middle.style.gap = '4px';
-  middle.style.minWidth = '150px';
-
-  const label = document.createElement('div');
-  label.style.display = 'flex';
-  label.style.justifyContent = 'space-between';
-  label.style.alignItems = 'center';
-
-  const title = document.createElement('span');
-  title.textContent = 'Zoom';
-  title.style.fontWeight = '600';
-  const value = document.createElement('span');
-  value.style.fontFamily = 'ui-monospace, SFMono-Regular, Menlo, monospace';
-  label.appendChild(title);
-  label.appendChild(value);
-
-  const slider = document.createElement('input');
-  slider.type = 'range';
-  slider.min = String(config.min);
-  slider.max = String(config.max);
-  slider.step = String(config.step);
-  slider.value = String(zoom);
-  slider.style.width = '100%';
-  slider.style.cursor = 'pointer';
-
-  const helper = document.createElement('div');
-  helper.textContent = 'Ctrl + wheel to zoom';
-  helper.style.fontSize = '11px';
-  helper.style.opacity = '0.72';
-
-  middle.appendChild(label);
-  middle.appendChild(slider);
-  middle.appendChild(helper);
-  widget.appendChild(minus);
-  widget.appendChild(middle);
-  widget.appendChild(plus);
-
-  const syncLabel = () => {
-    slider.value = String(zoom);
-    value.textContent = Math.round(zoom * 100) + '%';
+  const showRail = () => {
+    rail.style.opacity = '1';
+    if (hideTimer) window.clearTimeout(hideTimer);
+    hideTimer = window.setTimeout(() => {
+      rail.style.opacity = '0';
+    }, 900);
   };
 
-  const apply = async (nextZoom, persist = true) => {
+  const apply = async (nextZoom, persist = true, announce = true) => {
     const requested = clamp(nextZoom);
     let applied = requested;
     try {
@@ -212,7 +170,8 @@ const buildZoomOverlayScript = (scope) => {
       applied = requested;
     }
     zoom = applied;
-    syncLabel();
+    syncRail();
+    if (announce) showRail();
     if (persist && shouldPersistZoom && window.localStorage) window.localStorage.setItem(key, String(zoom));
   };
 
@@ -231,14 +190,11 @@ const buildZoomOverlayScript = (scope) => {
     }
   };
 
-  minus.addEventListener('click', () => void apply(zoom - config.step));
-  plus.addEventListener('click', () => void apply(zoom + config.step));
-  slider.addEventListener('input', () => void apply(Number(slider.value)));
   window.addEventListener('wheel', onWheel, { passive: false, capture: true });
   window.addEventListener('keydown', onKey, true);
 
-  if (document.body) document.body.appendChild(widget);
-  syncLabel();
+  if (document.body) document.body.appendChild(rail);
+  syncRail();
 
   const init = async () => {
     try {
@@ -246,12 +202,12 @@ const buildZoomOverlayScript = (scope) => {
       const saved = shouldPersistZoom ? window.localStorage?.getItem(key) : null;
       if (saved === null || saved === undefined || saved === '') {
         zoom = current;
-        syncLabel();
+        syncRail();
       } else {
-        await apply(zoom, false);
+        await apply(zoom, false, false);
       }
     } catch {
-      await apply(zoom, false);
+      await apply(zoom, false, false);
     }
   };
 
