@@ -2,7 +2,7 @@
 
 Easylab Suite is a local-first Windows desktop launcher for the Easylab lab workflow apps. It packages Lab Notebook, reagent calculators, qPCR/ELISA tools, animal workflow helpers, and local phone-message intake into one Electron app.
 
-The suite is designed for laptop use: notebook data, attachments, module outputs, and Telegram/WhatsApp intake captures stay on the machine unless the user deliberately points storage at a sync folder.
+The suite is designed for laptop use: notebook data, attachments, module outputs, generated exports, and Telegram/WhatsApp intake captures stay on the machine unless the user deliberately points storage at a sync folder.
 
 <p align="center">
   <img src="screenshots/suite_command_center.png" alt="Easylab Suite command center" width="920">
@@ -14,7 +14,7 @@ The current visual system uses a warm local lab-operations style: IBM Plex Sans/
 
 ### Suite Launcher
 
-| Desktop command center | Compact launcher |
+| Desktop command center with storage/output locations | Compact launcher |
 | --- | --- |
 | <img src="screenshots/suite_command_center.png" alt="Easylab Suite desktop command center" width="560"> | <img src="screenshots/suite_command_center_mobile.png" alt="Easylab Suite compact launcher" width="220"> |
 
@@ -38,6 +38,23 @@ The shipped UI now follows the warmer Lab Notebook/colony-app direction rather t
 | Animal Pairing | Cohort balancing and animal pairing from colony/sample sheets. | Vite + FastAPI |
 | Breeding Pair Selector | Breeder matching from gene targets and probability thresholds. | Vite + FastAPI |
 | Y-Maze Randomizer | Balanced learning/reversal schedules and exit-arm assignments. | Vite + FastAPI |
+
+## Where Files Go
+
+The Suite launcher shows a **Storage & outputs** panel for every module. Each module has the same local folder layout under:
+
+```text
+%USERPROFILE%\Documents\Easylab\<Module Name>\
+```
+
+| Folder | Purpose |
+| --- | --- |
+| `data` | Module state, cached inputs, database files, or notebook state files. |
+| `attachments` | Files captured or linked by the module, including Lab Notebook phone-intake images. |
+| `exports` | Generated output files such as PDF, Markdown, CSV, Excel, plots, reports, and result tables. |
+| `sync` | Optional destination root for files you want to keep together or mirror through a sync tool. |
+
+Some browser-style export buttons may still ask you to confirm a save location. Use the module's `exports` folder to keep generated files organized.
 
 ## Lab Notebook
 
@@ -125,6 +142,34 @@ WhatsApp intake uses WhatsApp Cloud API webhooks exposed through Tailscale Funne
    ```
 
 Limitation: if the laptop or Funnel URL is unavailable, Meta may retry delivery for a limited period, but capture is not guaranteed after longer downtime.
+
+## Install Easylab Suite
+
+### Option 1: Download an installer
+
+Use the latest Windows installer from the repository releases page when one is published:
+
+[Easylab Suite releases](https://github.com/meghamsh738/EasyLab-suite/releases)
+
+If the installer is too large for GitHub releases, host the `.exe` on Google Drive and link it from the release notes or README. Do not commit installers, tokens, local configs, or personal data files into the repository.
+
+### Option 2: Build locally
+
+Clone the repo, install dependencies, sync the module builds, and package the Windows app:
+
+```bash
+git clone https://github.com/meghamsh738/EasyLab-suite.git
+cd EasyLab-suite
+npm install
+npm --prefix web install
+npm run build:electron
+```
+
+The installer is generated under:
+
+```text
+desktop/dist/Easylab Suite Setup 0.1.18.exe
+```
 
 ## Build Requirements
 

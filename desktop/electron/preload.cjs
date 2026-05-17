@@ -21,7 +21,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   selectDirectory: (options) => ipcRenderer.invoke('select-directory', options),
   ensureDirectories: (paths) => ipcRenderer.invoke('ensure-directories', paths),
   getAppInfo: () => ipcRenderer.invoke('get-app-info'),
-  getDefaultPaths: () => ipcRenderer.invoke('get-default-paths', moduleId),
+  getDefaultPaths: (target) => ipcRenderer.invoke('get-default-paths', target || moduleId),
   getPairingLink: () => ipcRenderer.invoke('get-pairing-link', moduleId),
   getZoomFactor: () => ipcRenderer.invoke('get-zoom-factor'),
   setZoomFactor: (value) => ipcRenderer.invoke('set-zoom-factor', value),
