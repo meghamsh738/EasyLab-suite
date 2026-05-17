@@ -97,12 +97,12 @@ Telegram is the simpler local intake path. It uses a bot token and polling, so n
 
 1. Create a bot with [BotFather](https://t.me/BotFather).
 2. Send a test message to the bot.
-3. Open `https://api.telegram.org/bot<bot-token>/getUpdates` and copy `message.chat.id`.
-4. Copy `desktop/scripts/telegram-intake-config.example.json` to:
+3. Open `https://api.telegram.org/bot<bot-token>/getUpdates` in a browser and copy `message.chat.id` from the JSON response.
+4. Copy [`desktop/scripts/telegram-intake-config.example.json`](desktop/scripts/telegram-intake-config.example.json) to:
    ```text
    %USERPROFILE%\Documents\Easylab\Lab Notebook\data\telegram-intake-config.json
    ```
-5. Fill in `botToken` and `allowedChatIds`.
+5. Fill in `botToken` and `allowedChatIds`. Keep this real config file local; do not commit it.
 6. Start the local poller:
    ```powershell
    & "$env:LOCALAPPDATA\Programs\Easylab Suite\Easylab Suite.exe" --labnote-telegram-intake
