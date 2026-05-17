@@ -18,13 +18,7 @@ The current visual system uses a warm local lab-operations style: IBM Plex Sans/
 | --- | --- |
 | <img src="screenshots/suite_command_center.png" alt="Easylab Suite desktop command center" width="560"> | <img src="screenshots/suite_command_center_mobile.png" alt="Easylab Suite compact launcher" width="220"> |
 
-### Visual Direction
-
-<p align="center">
-  <img src="screenshots/references/chatgpt-images-v2-ui-reference.png" alt="ChatGPT Images v2 UI reference sheet" width="920">
-</p>
-
-The shipped UI now follows the warmer Lab Notebook/colony-app direction rather than the earlier high-contrast blue launcher pass. Screenshots below are regenerated from built module artifacts where available.
+Screenshots below show the shipped UI captured from built module artifacts where available.
 
 ## Modules
 
