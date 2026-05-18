@@ -37,12 +37,14 @@ Lab Notebook is the main capture surface. It supports date-based entries, projec
 
 <table>
   <tr>
-    <td><img src="screenshots/labnotebook_workspace.png" alt="Lab Notebook workspace" width="430"><br><strong>Workspace</strong></td>
-    <td><img src="screenshots/labnotebook_workbook.png" alt="Lab Notebook optional workbook" width="430"><br><strong>Optional workbook</strong></td>
+    <td><img src="screenshots/labnotebook_note_editor.png" alt="Lab Notebook note editor" width="300"><br><strong>Note editor</strong></td>
+    <td><img src="screenshots/labnotebook_workbook_grid.png" alt="Lab Notebook workbook grid" width="300"><br><strong>Workbook grid</strong></td>
+    <td><img src="screenshots/labnotebook_files_tab.png" alt="Lab Notebook files tab" width="300"><br><strong>Files tab</strong></td>
   </tr>
   <tr>
-    <td><img src="screenshots/labnotebook_files_details.png" alt="Lab Notebook files and details" width="430"><br><strong>Files and details</strong></td>
-    <td><img src="screenshots/labnotebook_settings_sync.png" alt="Lab Notebook settings and sync" width="430"><br><strong>Settings and sync</strong></td>
+    <td><img src="screenshots/labnotebook_details_tab.png" alt="Lab Notebook details tab" width="300"><br><strong>Details tab</strong></td>
+    <td><img src="screenshots/labnotebook_settings_panel.png" alt="Lab Notebook settings panel" width="300"><br><strong>Settings and storage</strong></td>
+    <td><img src="screenshots/labnotebook_sidebar_calendar.png" alt="Lab Notebook sidebar calendar and filters" width="180"><br><strong>Calendar and filters</strong></td>
   </tr>
 </table>
 
