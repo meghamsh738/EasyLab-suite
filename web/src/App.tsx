@@ -26,20 +26,12 @@ type SuiteInfo = {
   isPackaged?: boolean
 }
 
-type DefaultPaths = {
-  dataPath: string
-  attachmentsPath: string
-  exportsPath: string
-  syncPath: string
-}
-
 type ElectronAPI = {
   launchModule: (moduleId: ModuleId) => Promise<void>
   openModuleInSuite?: (moduleId: ModuleId) => Promise<void>
   prewarmModule?: (moduleId: ModuleId) => Promise<boolean>
   getSuiteInfo?: () => Promise<SuiteInfo>
   getAppInfo?: () => Promise<SuiteInfo>
-  getDefaultPaths?: (moduleId?: ModuleId) => Promise<DefaultPaths>
   setZoomFactor?: (value: number) => Promise<number>
 }
 
@@ -53,8 +45,6 @@ type ModuleDefinition = {
   workflow: string
   inputs: string
   outputs: string
-  outputDetail: string
-  storageName: string
   accent: string
   icon: string
   tags: string[]
@@ -74,8 +64,6 @@ const MODULES: ModuleDefinition[] = [
     workflow: 'Write, import, review',
     inputs: 'Notes, images, files',
     outputs: 'Notebook state, exports',
-    outputDetail: 'PDF/Markdown exports, attachments, phone captures, and the local notebook state file.',
-    storageName: 'Lab Notebook',
     accent: '#3156D4',
     icon: labNotebookIcon,
     tags: ['Daily logs', 'Intake', 'Attachments'],
@@ -88,8 +76,6 @@ const MODULES: ModuleDefinition[] = [
     workflow: 'Plan reactions',
     inputs: 'RNA/sample table',
     outputs: 'Master mix table',
-    outputDetail: 'Calculated dilution tables, master mix plans, copied TSV, CSV, and Excel workbooks.',
-    storageName: 'cDNA',
     accent: '#C77916',
     icon: cdnaIcon,
     tags: ['Dilutions', 'Volumes', 'Export'],
@@ -102,8 +88,6 @@ const MODULES: ModuleDefinition[] = [
     workflow: 'Build plate map',
     inputs: 'Sample list',
     outputs: 'Plate layout',
-    outputDetail: 'Plate maps, control layouts, and qPCR setup exports.',
-    storageName: 'qPCR Planner',
     accent: '#088B74',
     icon: qpcrPlannerIcon,
     tags: ['Layout', 'Controls', 'Overrides'],
@@ -116,8 +100,6 @@ const MODULES: ModuleDefinition[] = [
     workflow: 'Analyze run',
     inputs: 'Ct tables',
     outputs: 'Plots, report',
-    outputDetail: 'Normalized Ct tables, plots, report packages, and analysis exports.',
-    storageName: 'qPCR Analysis',
     accent: '#B45309',
     icon: qpcrAnalysisIcon,
     tags: ['Normalization', 'Plots', 'Report'],
@@ -130,8 +112,6 @@ const MODULES: ModuleDefinition[] = [
     workflow: 'Fit curve',
     inputs: 'Plate data',
     outputs: 'Concentrations',
-    outputDetail: 'Standard curve QC, sample concentration tables, and export-ready result files.',
-    storageName: 'ELISA Analysis',
     accent: '#7C3AED',
     icon: elisaIcon,
     tags: ['Standards', 'QC', 'Quantification'],
@@ -144,8 +124,6 @@ const MODULES: ModuleDefinition[] = [
     workflow: 'Group animals',
     inputs: 'CSV/XLSX',
     outputs: 'Cohort export',
-    outputDetail: 'Balanced cohort sheets, pairing tables, and Excel/CSV exports.',
-    storageName: 'Animal Pairing',
     accent: '#2563EB',
     icon: animalPairingIcon,
     tags: ['Cohorts', 'Genotypes', 'Excel'],
@@ -158,8 +136,6 @@ const MODULES: ModuleDefinition[] = [
     workflow: 'Select pairs',
     inputs: 'Gene catalog',
     outputs: 'Pair list',
-    outputDetail: 'Breeding recommendations, genotype probability tables, and pair-list exports.',
-    storageName: 'Breeding',
     accent: '#168451',
     icon: breedingIcon,
     tags: ['Breeding', 'Genes', 'Probability'],
@@ -172,8 +148,6 @@ const MODULES: ModuleDefinition[] = [
     workflow: 'Randomize schedule',
     inputs: 'Animal rows',
     outputs: 'CSV/Excel',
-    outputDetail: 'Learning/reversal schedules, exit-arm assignments, and CSV/Excel exports.',
-    storageName: 'Y-Maze',
     accent: '#C0266A',
     icon: ymazeIcon,
     tags: ['Schedule', 'Randomize', 'Export'],
@@ -194,18 +168,6 @@ const fallbackInfo: SuiteInfo = {
   platform: 'web',
 }
 
-const getFallbackPaths = (module: ModuleDefinition): DefaultPaths => {
-  const base = `%USERPROFILE%\\Documents\\Easylab\\${module.storageName}`
-  return {
-    dataPath: `${base}\\data`,
-    attachmentsPath: `${base}\\attachments`,
-    exportsPath: `${base}\\exports`,
-    syncPath: `${base}\\sync`,
-  }
-}
-
-const formatPath = (pathValue: string) => pathValue.replaceAll('/', '\\')
-
 function App() {
   const electron = getElectronAPI()
   const [suiteInfo, setSuiteInfo] = useState<SuiteInfo>(fallbackInfo)
@@ -215,7 +177,6 @@ function App() {
   const [query, setQuery] = useState('')
   const [activeGroup, setActiveGroup] = useState<'All' | ModuleGroup>('All')
   const [launchingModule, setLaunchingModule] = useState<ModuleId | null>(null)
-  const [modulePaths, setModulePaths] = useState<Partial<Record<ModuleId, DefaultPaths>>>({})
 
   const loadSuiteInfo = useCallback(async () => {
     if (!electron) return
@@ -234,32 +195,6 @@ function App() {
     if (!electron) return
     loadSuiteInfo()
   }, [electron, loadSuiteInfo])
-
-  useEffect(() => {
-    if (!electron?.getDefaultPaths) return
-
-    let isMounted = true
-    Promise.all(
-      MODULES.map(async (module) => {
-        try {
-          return [module.id, await electron.getDefaultPaths?.(module.id)] as const
-        } catch {
-          return [module.id, null] as const
-        }
-      }),
-    ).then((entries) => {
-      if (!isMounted) return
-      const nextPaths: Partial<Record<ModuleId, DefaultPaths>> = {}
-      entries.forEach(([moduleId, paths]) => {
-        if (paths) nextPaths[moduleId] = paths
-      })
-      setModulePaths(nextPaths)
-    })
-
-    return () => {
-      isMounted = false
-    }
-  }, [electron])
 
   const filteredModules = useMemo(() => {
     const term = query.trim().toLowerCase()
@@ -323,7 +258,6 @@ function App() {
   }
 
   const activeNotice = webNotice ? MODULES.find((module) => module.id === webNotice) : null
-  const pathForModule = (module: ModuleDefinition) => modulePaths[module.id] ?? getFallbackPaths(module)
 
   return (
     <div className="suite" data-testid="suite-root">
@@ -446,48 +380,6 @@ function App() {
                 <span>Intake</span>
                 <strong>WhatsApp + Telegram</strong>
               </div>
-            </div>
-          </section>
-
-          <section className="storage-panel" aria-label="Storage and output destinations" data-testid="storage-panel">
-            <div className="storage-panel-head">
-              <div>
-                <p className="eyebrow">Storage & outputs</p>
-                <h2>Where generated files go</h2>
-              </div>
-              <p>
-                Easylab keeps every module under <strong>Documents\Easylab</strong>. Generated exports should be saved
-                in the module exports folder; browser-style downloads may still ask you to confirm a location.
-              </p>
-            </div>
-
-            <div className="storage-table" role="table" aria-label="Module output folders">
-              <div className="storage-row storage-row-head" role="row">
-                <span role="columnheader">Module</span>
-                <span role="columnheader">Generated exports</span>
-                <span role="columnheader">Data and cache</span>
-                <span role="columnheader">Attachments and sync</span>
-              </div>
-              {filteredModules.map((module) => {
-                const paths = pathForModule(module)
-                return (
-                  <div className="storage-row" role="row" key={`storage-${module.id}`}>
-                    <div className="storage-module" role="cell">
-                      <img src={module.icon} alt="" />
-                      <div>
-                        <strong>{module.name}</strong>
-                        <span>{module.outputDetail}</span>
-                      </div>
-                    </div>
-                    <code role="cell">{formatPath(paths.exportsPath)}</code>
-                    <code role="cell">{formatPath(paths.dataPath)}</code>
-                    <code role="cell">
-                      {formatPath(paths.attachmentsPath)}
-                      <span>{formatPath(paths.syncPath)}</span>
-                    </code>
-                  </div>
-                )
-              })}
             </div>
           </section>
 

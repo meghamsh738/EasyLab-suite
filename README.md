@@ -4,21 +4,16 @@ Easylab Suite is a local-first Windows desktop launcher for the Easylab lab work
 
 The suite is designed for laptop use: notebook data, attachments, module outputs, generated exports, and Telegram/WhatsApp intake captures stay on the machine unless the user deliberately points storage at a sync folder.
 
-<p align="center">
-  <img src="screenshots/suite_command_center.png" alt="Easylab Suite command center" width="920">
-</p>
-
 The current visual system uses a warm local lab-operations style: IBM Plex Sans/Mono typography, a paper-toned grid background, deep evergreen navigation, compact badges, table-first surfaces, and module-specific pictogram icons.
 
 ## Screenshots
 
-### Suite Launcher
-
-| Desktop command center with storage/output locations | Compact launcher |
-| --- | --- |
-| <img src="screenshots/suite_command_center.png" alt="Easylab Suite desktop command center" width="560"> | <img src="screenshots/suite_command_center_mobile.png" alt="Easylab Suite compact launcher" width="220"> |
-
-Screenshots below show the shipped UI captured from built module artifacts where available.
+<table>
+  <tr>
+    <td width="72%"><img src="screenshots/suite_command_center.png" alt="Easylab Suite desktop command center" width="760"></td>
+    <td width="28%"><img src="screenshots/suite_command_center_mobile.png" alt="Easylab Suite compact launcher" width="220"></td>
+  </tr>
+</table>
 
 ## Modules
 
@@ -33,53 +28,44 @@ Screenshots below show the shipped UI captured from built module artifacts where
 | Breeding Pair Selector | Breeder matching from gene targets and probability thresholds. | Vite + FastAPI |
 | Y-Maze Randomizer | Balanced learning/reversal schedules and exit-arm assignments. | Vite + FastAPI |
 
-## Where Files Go
-
-The Suite launcher shows a **Storage & outputs** panel for every module. Each module has the same local folder layout under:
-
-```text
-%USERPROFILE%\Documents\Easylab\<Module Name>\
-```
-
-| Folder | Purpose |
-| --- | --- |
-| `data` | Module state, cached inputs, database files, or notebook state files. |
-| `attachments` | Files captured or linked by the module, including Lab Notebook phone-intake images. |
-| `exports` | Generated output files such as PDF, Markdown, CSV, Excel, plots, reports, and result tables. |
-| `sync` | Optional destination root for files you want to keep together or mirror through a sync tool. |
-
-Some browser-style export buttons may still ask you to confirm a save location. Use the module's `exports` folder to keep generated files organized.
-
 ## Lab Notebook
 
 Lab Notebook is the main capture surface. It supports date-based entries, project and experiment tagging, rich editor blocks, optional per-entry workbooks, attachments, exports, storage setup, local disk sync, mobile pairing, and local message intake.
 
-| Workspace | Details and calendar |
-| --- | --- |
-| <img src="screenshots/labnotebook_workspace.png" alt="Lab Notebook workspace" width="520"> | <img src="screenshots/labnotebook_filters_calendar.png" alt="Lab Notebook details and calendar" width="520"> |
+<details>
+<summary>Lab Notebook screenshots</summary>
 
-| Optional workbook | Files and entry metadata |
-| --- | --- |
-| <img src="screenshots/labnotebook_workbook.png" alt="Lab Notebook optional workbook" width="520"> | <img src="screenshots/labnotebook_files_details.png" alt="Lab Notebook files and details" width="520"> |
+<table>
+  <tr>
+    <td><img src="screenshots/labnotebook_workspace.png" alt="Lab Notebook workspace" width="430"><br><strong>Workspace</strong></td>
+    <td><img src="screenshots/labnotebook_workbook.png" alt="Lab Notebook optional workbook" width="430"><br><strong>Optional workbook</strong></td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/labnotebook_files_details.png" alt="Lab Notebook files and details" width="430"><br><strong>Files and details</strong></td>
+    <td><img src="screenshots/labnotebook_settings_sync.png" alt="Lab Notebook settings and sync" width="430"><br><strong>Settings and sync</strong></td>
+  </tr>
+</table>
 
-| Storage, mobile, and sync |
-| --- |
-| <img src="screenshots/labnotebook_settings_sync.png" alt="Lab Notebook settings and sync" width="720"> |
+</details>
 
 ## Module Screenshots
 
 Each module opens from the Suite launcher and keeps its own workflow intact while sharing the refreshed Easylab visual system.
 
-| Module | Screenshot | Main workflow |
-| --- | --- | --- |
-| Lab Notebook | <img src="screenshots/labnotebook_workspace.png" alt="Lab Notebook workspace" width="360"> | Daily notes, optional workbook grids, experiment tags, attachments, signatures, exports, sync, mobile pairing, Telegram intake, and WhatsApp intake. |
-| cDNA Calculator | <img src="screenshots/module_cdna.png" alt="cDNA calculator" width="360"> | RNA inputs, dilution planning, cDNA reaction setup, master mix, and export-ready tables. |
-| qPCR Planner | <img src="screenshots/module_qpcr_planner.png" alt="qPCR planner" width="360"> | 384-well plate layouts, sample/gene overrides, controls, and plate-map exports. |
-| qPCR Analysis | <img src="screenshots/module_qpcr_analysis.png" alt="qPCR analysis" width="360"> | Ct import, replicate review, normalization, plots, standards, reports, and exports. |
-| ELISA Analysis | <img src="screenshots/module_elisa_analysis.png" alt="ELISA analysis" width="360"> | Plate-reader import, standards, curve fitting, QC, concentration output, and export tables. |
-| Animal Pairing | <img src="screenshots/module_animal_pairing.png" alt="Animal pairing" width="360"> | Cohort balancing, genotype filters, animal pair generation, and Excel/CSV exports. |
-| Breeding Pair Selector | <img src="screenshots/module_breeding.png" alt="Breeding pair selector" width="360"> | Gene catalog management, probability thresholds, direct and indirect breeder matching. |
-| Y-Maze Randomizer | <img src="screenshots/module_ymaze.png" alt="Y-Maze randomizer" width="360"> | Balanced learning/reversal schedules, cohort setup, exit-arm assignments, and CSV/Excel exports. |
+<table>
+  <tr>
+    <td><img src="screenshots/labnotebook_workspace.png" alt="Lab Notebook workspace" width="240"><br><strong>Lab Notebook</strong><br>Daily notes, workbooks, attachments, phone intake.</td>
+    <td><img src="screenshots/module_cdna.png" alt="cDNA calculator" width="240"><br><strong>cDNA Calculator</strong><br>RNA inputs, dilution planning, master mix.</td>
+    <td><img src="screenshots/module_qpcr_planner.png" alt="qPCR planner" width="240"><br><strong>qPCR Planner</strong><br>384-well layouts, controls, gene overrides.</td>
+    <td><img src="screenshots/module_qpcr_analysis.png" alt="qPCR analysis" width="240"><br><strong>qPCR Analysis</strong><br>Ct import, normalization, reports, exports.</td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/module_elisa_analysis.png" alt="ELISA analysis" width="240"><br><strong>ELISA Analysis</strong><br>Plate-reader import, curves, QC, outputs.</td>
+    <td><img src="screenshots/module_animal_pairing.png" alt="Animal pairing" width="240"><br><strong>Animal Pairing</strong><br>Cohort balancing, genotype filters, exports.</td>
+    <td><img src="screenshots/module_breeding.png" alt="Breeding pair selector" width="240"><br><strong>Breeding Pair Selector</strong><br>Gene targets, probabilities, pair lists.</td>
+    <td><img src="screenshots/module_ymaze.png" alt="Y-Maze randomizer" width="240"><br><strong>Y-Maze Randomizer</strong><br>Balanced schedules and exit-arm exports.</td>
+  </tr>
+</table>
 
 ## Local Phone Intake
 
