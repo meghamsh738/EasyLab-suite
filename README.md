@@ -28,27 +28,29 @@ The current visual system uses a warm local lab-operations style: IBM Plex Sans/
 | Breeding Pair Selector | Breeder matching from gene targets and probability thresholds. | Vite + FastAPI |
 | Y-Maze Randomizer | Balanced learning/reversal schedules and exit-arm assignments. | Vite + FastAPI |
 
-## Lab Notebook
+## Lab Notebook Deep Dive
 
-Lab Notebook is the main capture surface. It supports date-based entries, project and experiment tagging, rich editor blocks, optional per-entry workbooks, attachments, exports, storage setup, local disk sync, mobile pairing, and local message intake.
+Lab Notebook is the main capture surface in Easylab Suite. It is built for daily experiment records, local-first attachments, optional Excel-like workbook data, and laptop-only Telegram/WhatsApp capture.
 
-<details>
-<summary>Lab Notebook screenshots</summary>
+| Area | Included features |
+| --- | --- |
+| Daily records | Date-based entries, calendar filtering, project and experiment tags, custom daily templates, rich note blocks, checklists, tables, and structured guide prompts. |
+| Workbook | Per-entry spreadsheet-style tab for pasted Excel/Prism/instrument data. Empty workbooks are ignored on save, so unused sheets do not clutter entries. |
+| Files and exports | Dragged files, pasted images, camera uploads, PDF/Markdown exports, local attachment storage, and clear output/storage paths in Settings. |
+| Local intake | Telegram polling and WhatsApp Cloud API webhook receivers can append text and images into Lab Notebook while keeping files on the laptop. |
 
 <table>
   <tr>
-    <td><img src="screenshots/labnotebook_note_editor.png" alt="Lab Notebook note editor" width="300"><br><strong>Note editor</strong></td>
-    <td><img src="screenshots/labnotebook_workbook_grid.png" alt="Lab Notebook workbook grid" width="300"><br><strong>Workbook grid</strong></td>
-    <td><img src="screenshots/labnotebook_files_tab.png" alt="Lab Notebook files tab" width="300"><br><strong>Files tab</strong></td>
+    <td width="50%"><img src="screenshots/labnotebook_note_editor.png" alt="Lab Notebook note editor" width="460" height="320"><br><strong>Note editor</strong><br>Daily note structure, compact tags, editor toolbar, and context panel.</td>
+    <td width="50%"><img src="screenshots/labnotebook_workbook_grid.png" alt="Lab Notebook workbook grid" width="460" height="320"><br><strong>Workbook grid</strong><br>Paste tabular data and keep it with the day only when it contains data.</td>
   </tr>
   <tr>
-    <td><img src="screenshots/labnotebook_details_tab.png" alt="Lab Notebook details tab" width="300"><br><strong>Details tab</strong></td>
-    <td><img src="screenshots/labnotebook_settings_panel.png" alt="Lab Notebook settings panel" width="300"><br><strong>Settings and storage</strong></td>
-    <td><img src="screenshots/labnotebook_sidebar_calendar.png" alt="Lab Notebook sidebar calendar and filters" width="180"><br><strong>Calendar and filters</strong></td>
+    <td width="50%"><img src="screenshots/labnotebook_files_tab.png" alt="Lab Notebook files tab" width="460" height="320"><br><strong>Files tab</strong><br>Review attachments, intake files, and linked generated outputs.</td>
+    <td width="50%"><img src="screenshots/labnotebook_settings_panel.png" alt="Lab Notebook settings panel" width="460" height="320"><br><strong>Settings and storage</strong><br>See exactly where notes, attachments, exports, and sync references go.</td>
   </tr>
 </table>
 
-</details>
+Additional views: [details tab](screenshots/labnotebook_details_tab.png), [sidebar calendar and filters](screenshots/labnotebook_sidebar_calendar.png).
 
 ## Module Screenshots
 
@@ -56,16 +58,16 @@ Each module opens from the Suite launcher and keeps its own workflow intact whil
 
 <table>
   <tr>
-    <td><img src="screenshots/labnotebook_workspace.png" alt="Lab Notebook workspace" width="240"><br><strong>Lab Notebook</strong><br>Daily notes, workbooks, attachments, phone intake.</td>
-    <td><img src="screenshots/module_cdna.png" alt="cDNA calculator" width="240"><br><strong>cDNA Calculator</strong><br>RNA inputs, dilution planning, master mix.</td>
-    <td><img src="screenshots/module_qpcr_planner.png" alt="qPCR planner" width="240"><br><strong>qPCR Planner</strong><br>384-well layouts, controls, gene overrides.</td>
-    <td><img src="screenshots/module_qpcr_analysis.png" alt="qPCR analysis" width="240"><br><strong>qPCR Analysis</strong><br>Ct import, normalization, reports, exports.</td>
+    <td><img src="screenshots/labnotebook_workspace.png" alt="Lab Notebook workspace" width="240" height="167"><br><strong>Lab Notebook</strong><br>Daily notes, workbooks, attachments, phone intake.</td>
+    <td><img src="screenshots/module_cdna.png" alt="cDNA calculator" width="240" height="167"><br><strong>cDNA Calculator</strong><br>RNA inputs, dilution planning, master mix.</td>
+    <td><img src="screenshots/module_qpcr_planner.png" alt="qPCR planner" width="240" height="167"><br><strong>qPCR Planner</strong><br>384-well layouts, controls, gene overrides.</td>
+    <td><img src="screenshots/module_qpcr_analysis.png" alt="qPCR analysis" width="240" height="167"><br><strong>qPCR Analysis</strong><br>Ct import, normalization, reports, exports.</td>
   </tr>
   <tr>
-    <td><img src="screenshots/module_elisa_analysis.png" alt="ELISA analysis" width="240"><br><strong>ELISA Analysis</strong><br>Plate-reader import, curves, QC, outputs.</td>
-    <td><img src="screenshots/module_animal_pairing.png" alt="Animal pairing" width="240"><br><strong>Animal Pairing</strong><br>Cohort balancing, genotype filters, exports.</td>
-    <td><img src="screenshots/module_breeding.png" alt="Breeding pair selector" width="240"><br><strong>Breeding Pair Selector</strong><br>Gene targets, probabilities, pair lists.</td>
-    <td><img src="screenshots/module_ymaze.png" alt="Y-Maze randomizer" width="240"><br><strong>Y-Maze Randomizer</strong><br>Balanced schedules and exit-arm exports.</td>
+    <td><img src="screenshots/module_elisa_analysis.png" alt="ELISA analysis" width="240" height="167"><br><strong>ELISA Analysis</strong><br>Plate-reader import, curves, QC, outputs.</td>
+    <td><img src="screenshots/module_animal_pairing.png" alt="Animal pairing" width="240" height="167"><br><strong>Animal Pairing</strong><br>Cohort balancing, genotype filters, exports.</td>
+    <td><img src="screenshots/module_breeding.png" alt="Breeding pair selector" width="240" height="167"><br><strong>Breeding Pair Selector</strong><br>Gene targets, probabilities, pair lists.</td>
+    <td><img src="screenshots/module_ymaze.png" alt="Y-Maze randomizer" width="240" height="167"><br><strong>Y-Maze Randomizer</strong><br>Balanced schedules and exit-arm exports.</td>
   </tr>
 </table>
 
