@@ -58,16 +58,16 @@ Each module opens from the Suite launcher and keeps its own workflow intact whil
 
 <table>
   <tr>
-    <td><img src="screenshots/labnotebook_workspace.png" alt="Lab Notebook workspace" width="240" height="167"><br><strong>Lab Notebook</strong><br>Daily notes, workbooks, attachments, phone intake.</td>
-    <td><img src="screenshots/module_cdna.png" alt="cDNA calculator" width="240" height="167"><br><strong>cDNA Calculator</strong><br>RNA inputs, dilution planning, master mix.</td>
-    <td><img src="screenshots/module_qpcr_planner.png" alt="qPCR planner" width="240" height="167"><br><strong>qPCR Planner</strong><br>384-well layouts, controls, gene overrides.</td>
-    <td><img src="screenshots/module_qpcr_analysis.png" alt="qPCR analysis" width="240" height="167"><br><strong>qPCR Analysis</strong><br>Ct import, normalization, reports, exports.</td>
+    <td width="25%" valign="top"><img src="screenshots/readme/module-labnotebook.png" alt="Lab Notebook workspace" width="240" height="150"><br><strong>Lab Notebook</strong><br>Daily notes, workbooks, attachments, phone intake.</td>
+    <td width="25%" valign="top"><img src="screenshots/readme/module-cdna.png" alt="cDNA calculator" width="240" height="150"><br><strong>cDNA Calculator</strong><br>RNA inputs, dilution planning, master mix.</td>
+    <td width="25%" valign="top"><img src="screenshots/readme/module-qpcr-planner.png" alt="qPCR planner" width="240" height="150"><br><strong>qPCR Planner</strong><br>384-well layouts, controls, gene overrides.</td>
+    <td width="25%" valign="top"><img src="screenshots/readme/module-qpcr-analysis.png" alt="qPCR analysis" width="240" height="150"><br><strong>qPCR Analysis</strong><br>Ct import, normalization, reports, exports.</td>
   </tr>
   <tr>
-    <td><img src="screenshots/module_elisa_analysis.png" alt="ELISA analysis" width="240" height="167"><br><strong>ELISA Analysis</strong><br>Plate-reader import, curves, QC, outputs.</td>
-    <td><img src="screenshots/module_animal_pairing.png" alt="Animal pairing" width="240" height="167"><br><strong>Animal Pairing</strong><br>Cohort balancing, genotype filters, exports.</td>
-    <td><img src="screenshots/module_breeding.png" alt="Breeding pair selector" width="240" height="167"><br><strong>Breeding Pair Selector</strong><br>Gene targets, probabilities, pair lists.</td>
-    <td><img src="screenshots/module_ymaze.png" alt="Y-Maze randomizer" width="240" height="167"><br><strong>Y-Maze Randomizer</strong><br>Balanced schedules and exit-arm exports.</td>
+    <td width="25%" valign="top"><img src="screenshots/readme/module-elisa.png" alt="ELISA analysis" width="240" height="150"><br><strong>ELISA Analysis</strong><br>Plate-reader import, curves, QC, outputs.</td>
+    <td width="25%" valign="top"><img src="screenshots/readme/module-animal-pairing.png" alt="Animal pairing" width="240" height="150"><br><strong>Animal Pairing</strong><br>Cohort balancing, genotype filters, exports.</td>
+    <td width="25%" valign="top"><img src="screenshots/readme/module-breeding.png" alt="Breeding pair selector" width="240" height="150"><br><strong>Breeding Pair Selector</strong><br>Gene targets, probabilities, pair lists.</td>
+    <td width="25%" valign="top"><img src="screenshots/readme/module-ymaze.png" alt="Y-Maze randomizer" width="240" height="150"><br><strong>Y-Maze Randomizer</strong><br>Balanced schedules and exit-arm exports.</td>
   </tr>
 </table>
 
