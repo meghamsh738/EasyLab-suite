@@ -167,6 +167,7 @@ The suite expects the source apps to live next to this repository:
 /mnt/e/coding projects/
   lab note taking app
   cDNA-calculations-app
+  qPCR-calculations-app
   qpcr-calculations-app-git
   qPCR-analysis-app
   elisa-analysis-app

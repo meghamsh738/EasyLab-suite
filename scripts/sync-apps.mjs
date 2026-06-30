@@ -24,6 +24,8 @@ const sourceCandidates = {
   ],
   'qpcr-planner': [
     process.env.EASYLAB_QPCR_PLANNER_PATH,
+    path.join(appsRoot, 'qPCR-calculations-app'),
+    path.join(appsRoot, 'qpcr-calculations-app'),
     path.join(appsRoot, 'qpcr-calculations-app-git'),
     path.join(appsRoot, 'qPCR-calculations-app-git'),
   ],

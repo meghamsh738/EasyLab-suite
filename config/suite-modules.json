@@ -23,7 +23,7 @@
       "name": "qPCR Planner",
       "runtimeType": "fastapi",
       "sourceEnv": "EASYLAB_QPCR_PLANNER_PATH",
-      "sourceHints": ["qpcr-calculations-app-git"],
+      "sourceHints": ["qPCR-calculations-app", "qpcr-calculations-app", "qpcr-calculations-app-git"],
       "targetDir": "apps/qpcr-planner"
     },
     {
