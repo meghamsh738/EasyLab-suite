@@ -67,6 +67,315 @@ body,
   border-radius: 999px;
 }
 
+/* Last cascade word for the accepted ChatGPT Images V2 concept. */
+.suite-shell {
+  background:
+    linear-gradient(90deg, #0b1220 0, #0b1220 252px, #eaf0f6 252px, #eaf0f6 100%) !important;
+  color: #122033 !important;
+}
+
+.suite-rail {
+  background: linear-gradient(180deg, #101827, #0b1220) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+.suite-rail :where(h1, h2, h3, strong, button, .rail-title, .rail-link, .rail-stat-value) {
+  color: rgba(255, 255, 255, 0.96) !important;
+}
+
+.suite-rail :where(p, span, small, .rail-copy, .rail-meta, .module-count) {
+  color: rgba(214, 225, 237, 0.72) !important;
+}
+
+.suite-header,
+.command-surface,
+.suite-banner,
+.module-section,
+.module-card,
+.module-frame-toolbar,
+.module-workbench,
+.search-row,
+.filter-row,
+.suite-summary-card,
+.intake-summary {
+  background: #ffffff !important;
+  border-color: #cbd7e3 !important;
+  border-radius: 8px !important;
+  color: #122033 !important;
+  box-shadow: 0 8px 22px rgba(18, 32, 51, 0.06) !important;
+}
+
+.suite-shell :where(.suite-kicker, .eyebrow, .module-category, .stat-label) {
+  color: #0d8b7b !important;
+}
+
+.suite-shell :where(.launch-button, .open-button, .primary-button, button.primary, .module-card .primary, .module-card .launch-button) {
+  background: linear-gradient(180deg, #376fda, #2857b8) !important;
+  border-color: #244fa8 !important;
+  color: #ffffff !important;
+}
+
+.suite-shell.module-active,
+.suite-shell.module-active .module-workbench {
+  background: #0b1220 !important;
+}
+
+.suite-shell.module-active .module-frame-shell,
+.suite-shell.module-active .module-frame,
+.suite-shell.module-active :where(iframe, .module-iframe) {
+  background: #eaf0f6 !important;
+}
+
+/* Final ChatGPT Images V2 concept lock: dark Suite rail, cool work surface, compact console chrome. */
+.suite,
+.suite-shell {
+  --suite-bg: #0b1220;
+  --suite-rail: #101827;
+  --suite-rail-strong: #0d1524;
+  --suite-work: #eaf0f6;
+  --suite-panel: #f8fbfd;
+  --suite-panel-strong: #ffffff;
+  --suite-line: #cbd7e3;
+  --suite-line-strong: #9fb0c3;
+  --suite-ink: #122033;
+  --suite-muted: #5b6d82;
+  --suite-teal: #0d8b7b;
+  --suite-blue: #315fd1;
+  --suite-blue-strong: #2857b8;
+}
+
+.suite-shell {
+  background:
+    linear-gradient(90deg, var(--suite-bg) 0, var(--suite-bg) 252px, var(--suite-work) 252px, var(--suite-work) 100%) !important;
+  color: var(--suite-ink) !important;
+  gap: 10px !important;
+  padding: 8px !important;
+}
+
+.suite-rail {
+  background: linear-gradient(180deg, var(--suite-rail), var(--suite-bg)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 18px 42px rgba(10, 18, 32, 0.28) !important;
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+.suite-rail :where(h1, h2, h3, strong, button, .rail-title, .rail-link, .rail-stat-value) {
+  color: rgba(255, 255, 255, 0.96) !important;
+}
+
+.suite-rail :where(p, span, small, .rail-copy, .rail-meta, .module-count) {
+  color: rgba(214, 225, 237, 0.72) !important;
+}
+
+.suite-rail :where(button, .rail-card, .rail-status-card, .rail-footer, .local-data-card, .intake-card) {
+  background: rgba(255, 255, 255, 0.075) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: none !important;
+}
+
+.suite-rail :where(button:hover, button.active, .is-active) {
+  background: rgba(255, 255, 255, 0.14) !important;
+  border-color: rgba(58, 125, 221, 0.42) !important;
+}
+
+.suite-header,
+.command-surface,
+.suite-banner,
+.module-section,
+.module-card,
+.module-frame-toolbar,
+.module-workbench,
+.search-row,
+.filter-row,
+.suite-summary-card,
+.intake-summary {
+  background: var(--suite-panel-strong) !important;
+  border: 1px solid var(--suite-line) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 8px 22px rgba(18, 32, 51, 0.06) !important;
+  color: var(--suite-ink) !important;
+}
+
+.suite-shell :where(.suite-kicker, .eyebrow, .module-category, .stat-label) {
+  color: var(--suite-teal) !important;
+  font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Consolas, monospace !important;
+  font-size: 11px !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase;
+}
+
+.suite-shell :where(p, small, .module-copy, .module-meta) {
+  color: var(--suite-muted) !important;
+}
+
+.suite-shell :where(input, select, textarea, .search-input, .filter-input) {
+  background: #ffffff !important;
+  border: 1px solid var(--suite-line) !important;
+  color: var(--suite-ink) !important;
+  box-shadow: none !important;
+}
+
+.suite-shell :where(button, .button, .filter-button, .secondary-button) {
+  background: #f8fbfd !important;
+  border: 1px solid var(--suite-line) !important;
+  color: var(--suite-ink) !important;
+  box-shadow: none !important;
+}
+
+.suite-shell :where(.launch-button, .open-button, .primary-button, button.primary, .module-card .primary, .module-card .launch-button) {
+  background: linear-gradient(180deg, #376fda, var(--suite-blue-strong)) !important;
+  border-color: #244fa8 !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 18px rgba(49, 95, 209, 0.22) !important;
+}
+
+.suite-shell :where(.suite-logo, .module-icon, .module-card-icon) {
+  background: rgba(13, 139, 123, 0.11) !important;
+  border: 1px solid rgba(13, 139, 123, 0.22) !important;
+  color: var(--suite-teal) !important;
+  box-shadow: none !important;
+}
+
+.suite-shell.module-active {
+  grid-template-columns: 236px minmax(0, 1fr) !important;
+  background: var(--suite-bg) !important;
+}
+
+.suite-shell.module-active .suite-rail {
+  display: flex !important;
+  height: calc(100vh - 16px) !important;
+  top: 8px !important;
+}
+
+.suite-shell.module-active .suite-header,
+.suite-shell.module-active .command-surface {
+  display: none !important;
+}
+
+.suite-shell.module-active .suite-workspace {
+  height: calc(100vh - 16px) !important;
+  min-height: 0 !important;
+}
+
+.suite-shell.module-active .module-workbench {
+  height: 100% !important;
+  background: var(--suite-rail) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+.suite-shell.module-active .workbench-bar {
+  min-height: 46px !important;
+  background: linear-gradient(90deg, var(--suite-bg), var(--suite-rail) 60%, #14263c) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: rgba(255, 255, 255, 0.94) !important;
+}
+
+.suite-shell.module-active .module-webview,
+.suite-shell.module-active iframe,
+.module-frame-shell,
+.module-frame {
+  background: var(--suite-work) !important;
+}
+
+/* ChatGPT Images V2 fidelity pass: keep the Suite frame in lab-console mode. */
+.suite {
+  --suite-bg: #0b1220;
+  --suite-rail: #101827;
+  --suite-panel: #f8fbfd;
+  --suite-panel-strong: #ffffff;
+  --suite-line: #cbd7e3;
+  --suite-ink: #122033;
+  --suite-muted: #5b6d82;
+  --suite-teal: #0d8b7b;
+  --suite-blue: #315fd1;
+  background:
+    linear-gradient(90deg, #0b1220 0, #0b1220 252px, #eaf0f6 252px, #eaf0f6 100%) !important;
+}
+
+.suite-shell {
+  gap: 10px !important;
+}
+
+.suite-rail {
+  border-radius: 8px !important;
+  background: linear-gradient(180deg, #101827, #0b1220) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 18px 42px rgba(10, 18, 32, 0.28) !important;
+}
+
+.suite-header,
+.command-surface,
+.suite-banner,
+.module-section,
+.module-card,
+.module-frame-toolbar,
+.module-workbench {
+  border-radius: 8px !important;
+  border: 1px solid var(--suite-line) !important;
+  background: var(--suite-panel-strong) !important;
+  color: var(--suite-ink) !important;
+  box-shadow: 0 8px 22px rgba(18, 32, 51, 0.06) !important;
+}
+
+.suite-shell :where(.eyebrow, .module-category, .stat-label) {
+  color: var(--suite-teal) !important;
+  font-size: 11px !important;
+  letter-spacing: 0.1em !important;
+}
+
+.suite-shell :where(p, small, .module-copy, .module-meta) {
+  color: var(--suite-muted) !important;
+}
+
+.suite-shell :where(button.primary, .module-card .primary, .launch-button, .open-button) {
+  border-color: #244fa8 !important;
+  background: linear-gradient(180deg, #376fda, #2857b8) !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 18px rgba(49, 95, 209, 0.22) !important;
+}
+
+.suite-shell.module-active {
+  grid-template-columns: 236px minmax(0, 1fr) !important;
+  gap: 10px !important;
+  background: #0b1220 !important;
+}
+
+.suite-shell.module-active .suite-rail {
+  display: flex !important;
+  height: calc(100vh - 16px) !important;
+  top: 8px !important;
+}
+
+.suite-shell.module-active .suite-header,
+.suite-shell.module-active .command-surface {
+  display: none !important;
+}
+
+.suite-shell.module-active .suite-workspace {
+  min-height: 0 !important;
+  height: calc(100vh - 16px) !important;
+  align-content: stretch !important;
+}
+
+.suite-shell.module-active .module-workbench {
+  height: 100% !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  background: #101827 !important;
+}
+
+.suite-shell.module-active .workbench-bar {
+  min-height: 46px !important;
+  background: linear-gradient(90deg, #0b1220, #101827 60%, #14263c) !important;
+}
+
+.suite-shell.module-active .module-webview,
+.suite-shell.module-active iframe {
+  background: #eaf0f6 !important;
+}
+
 .suite-rail {
   background: linear-gradient(180deg, var(--el-nav), var(--el-nav-deep)) !important;
   color: rgba(255, 252, 245, 0.92);
@@ -1239,4 +1548,64 @@ iframe.module-frame,
 .suite-shell *::-webkit-scrollbar-thumb {
   background: rgba(7, 92, 73, 0.22);
   border-radius: 999px;
+}
+
+/* Last cascade word for the accepted ChatGPT Images V2 concept. */
+.suite-shell {
+  background:
+    linear-gradient(90deg, #0b1220 0, #0b1220 252px, #eaf0f6 252px, #eaf0f6 100%) !important;
+  color: #122033 !important;
+}
+
+.suite-rail {
+  background: linear-gradient(180deg, #101827, #0b1220) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+.suite-rail :where(h1, h2, h3, strong, button, .rail-title, .rail-link, .rail-stat-value) {
+  color: rgba(255, 255, 255, 0.96) !important;
+}
+
+.suite-rail :where(p, span, small, .rail-copy, .rail-meta, .module-count) {
+  color: rgba(214, 225, 237, 0.72) !important;
+}
+
+.suite-header,
+.command-surface,
+.suite-banner,
+.module-section,
+.module-card,
+.module-frame-toolbar,
+.module-workbench,
+.search-row,
+.filter-row,
+.suite-summary-card,
+.intake-summary {
+  background: #ffffff !important;
+  border-color: #cbd7e3 !important;
+  border-radius: 8px !important;
+  color: #122033 !important;
+  box-shadow: 0 8px 22px rgba(18, 32, 51, 0.06) !important;
+}
+
+.suite-shell :where(.suite-kicker, .eyebrow, .module-category, .stat-label) {
+  color: #0d8b7b !important;
+}
+
+.suite-shell :where(.launch-button, .open-button, .primary-button, button.primary, .module-card .primary, .module-card .launch-button) {
+  background: linear-gradient(180deg, #376fda, #2857b8) !important;
+  border-color: #244fa8 !important;
+  color: #ffffff !important;
+}
+
+.suite-shell.module-active,
+.suite-shell.module-active .module-workbench {
+  background: #0b1220 !important;
+}
+
+.suite-shell.module-active .module-frame-shell,
+.suite-shell.module-active .module-frame,
+.suite-shell.module-active :where(iframe, .module-iframe) {
+  background: #eaf0f6 !important;
 }
