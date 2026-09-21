@@ -7,8 +7,8 @@ fall back to an older copy. The local path values are kept in the ignored
 
 | Suite module | Repository | Revision | Source directory | Bundled/verified state |
 | --- | --- | --- | --- | --- |
-| Lab Notebook | `meghamsh738/labnotebook-app` | `8fa19e6` (`main`) | `/Volumes/Coding Projects/Active/lab-note-taking-app-connected-devices` | source checkout; inactive app, still writable for Suite dependencies |
-| cDNA Calculator | `meghamsh738/cDNA-calculations-app` | `48a3b615` (`main`) | `/Volumes/Coding Projects/Archive/Source-Projects/cdna-calculations` | source checkout; TypeScript/Vite build verified |
+| Lab Notebook | `meghamsh738/labnotebook-app` | `70dc871` (`codex/native-android-recovery`; upstream `main` `8fa19e6`) | `/Volumes/Coding Projects/Active/lab-note-taking-app-connected-devices` | source checkout; inactive app, still writable for Suite dependencies |
+| cDNA Calculator | `meghamsh738/cDNA-calculations-app` | `c5d18cb` (`codex/easylab-grid-stock-dilutions`; upstream `main` `48a3b615`) | `/Volumes/Coding Projects/Archive/Source-Projects/cdna-calculations` | source checkout; TypeScript/Vite build verified |
 | qPCR Planner | `meghamsh738/qPCR-calculations-app` | `70cf4af` (`agent/fix-duplicate-sample-ids`) | `/Volumes/Coding Projects/Active/easylab-modules/qpcr-planner` | duplicate-ID fix branch; TypeScript/Vite build verified; GitHub PR #1 remains open |
 | qPCR Analysis | `meghamsh738/qPCR-analysis-app` | `f897b560` (`master`) | `/Volumes/Coding Projects/Active/easylab-modules/qpcr-analysis` | source checkout |
 | ELISA Analysis | `meghamsh738/ELISA-analysis-app` | `4c5cf24b` (`main`) | `/Volumes/Coding Projects/Active/easylab-modules/elisa-analysis` | source checkout |
