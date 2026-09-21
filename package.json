@@ -14,9 +14,9 @@
     "icons": "node desktop/scripts/generate-icons.mjs && node desktop/scripts/generate-module-icons.mjs",
     "preflight:modules": "node scripts/preflight-modules.mjs --strict",
     "preflight:modules:artifacts": "node scripts/preflight-modules.mjs --strict --require-artifacts",
-    "sync:apps": "node scripts/sync-apps.mjs && npm run preflight:modules:artifacts",
+    "sync:apps": "node scripts/sync-apps.mjs --strict && npm run preflight:modules:artifacts",
     "dev:electron": "concurrently -k \"npm --prefix web run dev -- --host\" \"wait-on http://127.0.0.1:5178 && electron .\"",
-    "build:electron": "npm run preflight:modules && node scripts/sync-apps.mjs --build && npm run preflight:modules:artifacts && npm --prefix web run build && npm run icons && electron-builder --win --x64"
+    "build:electron": "npm run preflight:modules && node scripts/sync-apps.mjs --build --strict && npm run preflight:modules:artifacts && npm --prefix web run build && npm run icons && electron-builder --win --x64"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",

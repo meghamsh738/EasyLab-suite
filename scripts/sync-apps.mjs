@@ -6,6 +6,7 @@ import { spawnSync } from 'node:child_process'
 
 const args = new Set(process.argv.slice(2))
 const shouldBuild = args.has('--build')
+const requireExplicitSources = args.has('--strict') || process.env.EASYLAB_REQUIRE_EXPLICIT_SOURCES === '1'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const suiteRoot = path.resolve(__dirname, '..')
@@ -156,6 +157,17 @@ const ensureExists = async (target, label) => {
 }
 
 const pickSource = (label, candidates) => {
+  if (requireExplicitSources) {
+    const explicitSource = candidates[0]
+    if (!explicitSource || !existsSync(explicitSource)) {
+      throw new Error(
+        `${label} requires its explicit EASYLAB_*_PATH when --strict is used. ` +
+          'Refusing to fall back to neighbouring source folders.',
+      )
+    }
+    return explicitSource
+  }
+
   const found = candidates.find((candidate) => candidate && existsSync(candidate))
   if (!found) {
     throw new Error(`${label} source not found. Tried: ${candidates.filter(Boolean).join(', ')}`)
