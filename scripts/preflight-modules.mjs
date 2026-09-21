@@ -144,12 +144,16 @@ const defaultSourceChecks = manifest.modules.map((module) => {
   const envExists = !!envPath && existsSync(envPath)
   const hintCandidates = module.sourceHints.map((hint) => path.join(appsRoot, hint))
   const resolvedHint = hintCandidates.find((candidate) => existsSync(candidate)) || null
-  const resolved = envExists ? envPath : resolvedHint
+  // Strict/reproducible checks must never silently select a neighbouring copy.
+  // The normal non-strict check retains the legacy hints for local discovery.
+  const resolved = strict ? (envExists ? envPath : null) : (envExists ? envPath : resolvedHint)
   return {
     id: module.id,
     sourceEnv: module.sourceEnv,
     resolved: resolved ?? 'MISSING',
     ok: !!resolved,
+    strictSource: strict,
+    envConfigured: Boolean(fromEnv),
   }
 })
 
@@ -211,7 +215,8 @@ if (requireArtifacts) {
 console.log('')
 console.log('Default source path resolution:')
 for (const check of defaultSourceChecks) {
-  console.log(`- ${check.id}: ${check.ok ? 'OK' : 'FAIL'} -> ${check.resolved}`)
+  const mode = check.strictSource ? 'explicit' : 'hint fallback allowed'
+  console.log(`- ${check.id}: ${check.ok ? 'OK' : 'FAIL'} (${mode}) -> ${check.resolved}`)
 }
 
 console.log('')

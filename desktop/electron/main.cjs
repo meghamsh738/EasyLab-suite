@@ -1991,23 +1991,53 @@ const buildModuleShellOverlayScript = (moduleId, label) => `
   const shell = document.createElement('div');
   shell.id = 'easylab-module-shell';
   shell.style.position = 'fixed';
-  shell.style.top = '10px';
-  shell.style.left = '10px';
-  shell.style.right = '10px';
+  shell.style.top = '8px';
+  shell.style.left = '8px';
+  shell.style.right = '8px';
   shell.style.zIndex = '2147483400';
   shell.style.display = 'flex';
   shell.style.alignItems = 'center';
   shell.style.justifyContent = 'space-between';
-  shell.style.gap = '10px';
-  shell.style.padding = '8px 10px';
-  shell.style.border = '1px solid rgba(255, 255, 255, 0.16)';
-  shell.style.borderRadius = '9px';
-  shell.style.background = 'rgba(15, 23, 42, 0.94)';
-  shell.style.backdropFilter = 'blur(10px)';
-  shell.style.boxShadow = '0 12px 28px rgba(15, 23, 42, 0.22)';
+  shell.style.gap = '12px';
+  shell.style.padding = '7px 9px';
+  shell.style.border = '1px solid rgba(255, 255, 255, 0.14)';
+  shell.style.borderRadius = '8px';
+  shell.style.background = 'linear-gradient(90deg, #0b1220 0%, #101827 58%, #14263c 100%)';
+  shell.style.backdropFilter = 'blur(12px)';
+  shell.style.boxShadow = '0 14px 34px rgba(10, 18, 32, 0.28)';
   shell.style.color = '#f8fafc';
-  shell.style.fontFamily = 'Segoe UI, Inter, system-ui, sans-serif';
-  shell.style.fontSize = '13px';
+  shell.style.fontFamily = 'Inter, Segoe UI, system-ui, sans-serif';
+  shell.style.fontSize = '12px';
+
+  const titleWrap = document.createElement('div');
+  titleWrap.style.display = 'flex';
+  titleWrap.style.alignItems = 'center';
+  titleWrap.style.gap = '9px';
+  titleWrap.style.minWidth = '0';
+
+  const mark = document.createElement('div');
+  mark.textContent = 'EL';
+  mark.style.width = '28px';
+  mark.style.height = '28px';
+  mark.style.borderRadius = '7px';
+  mark.style.display = 'grid';
+  mark.style.placeItems = 'center';
+  mark.style.flex = '0 0 auto';
+  mark.style.background = 'rgba(20, 184, 166, 0.15)';
+  mark.style.border = '1px solid rgba(20, 184, 166, 0.28)';
+  mark.style.color = '#7ee7d8';
+  mark.style.font = '800 11px/1 Inter, Segoe UI, system-ui, sans-serif';
+
+  const titleStack = document.createElement('div');
+  titleStack.style.minWidth = '0';
+
+  const eyebrow = document.createElement('div');
+  eyebrow.textContent = 'Easylab module';
+  eyebrow.style.color = '#7ee7d8';
+  eyebrow.style.font = '700 9px/1 Inter, Segoe UI, system-ui, sans-serif';
+  eyebrow.style.letterSpacing = '0.11em';
+  eyebrow.style.textTransform = 'uppercase';
+  eyebrow.style.marginBottom = '2px';
 
   const title = document.createElement('div');
   title.textContent = ${JSON.stringify(label)};
@@ -2015,23 +2045,49 @@ const buildModuleShellOverlayScript = (moduleId, label) => `
   title.style.overflow = 'hidden';
   title.style.textOverflow = 'ellipsis';
   title.style.whiteSpace = 'nowrap';
+  title.style.fontSize = '13px';
+
+  titleStack.appendChild(eyebrow);
+  titleStack.appendChild(title);
+  titleWrap.appendChild(mark);
+  titleWrap.appendChild(titleStack);
+
+  const actions = document.createElement('div');
+  actions.style.display = 'flex';
+  actions.style.alignItems = 'center';
+  actions.style.gap = '8px';
+  actions.style.flex = '0 0 auto';
+
+  const status = document.createElement('div');
+  status.textContent = 'Local session';
+  status.style.minHeight = '28px';
+  status.style.display = 'inline-flex';
+  status.style.alignItems = 'center';
+  status.style.padding = '0 10px';
+  status.style.border = '1px solid rgba(255, 255, 255, 0.16)';
+  status.style.borderRadius = '999px';
+  status.style.background = 'rgba(255, 255, 255, 0.07)';
+  status.style.color = '#dbeafe';
+  status.style.font = '700 11px/1 Inter, Segoe UI, system-ui, sans-serif';
 
   const back = document.createElement('button');
   back.type = 'button';
   back.textContent = 'Back to modules';
-  back.style.height = '32px';
+  back.style.height = '30px';
   back.style.padding = '0 12px';
-  back.style.border = '1px solid rgba(255, 255, 255, 0.22)';
+  back.style.border = '1px solid rgba(255, 255, 255, 0.28)';
   back.style.borderRadius = '7px';
   back.style.background = '#ffffff';
   back.style.color = '#0f172a';
-  back.style.font = '700 13px/1 Segoe UI, Inter, system-ui, sans-serif';
+  back.style.font = '800 12px/1 Inter, Segoe UI, system-ui, sans-serif';
   back.style.cursor = 'pointer';
   back.addEventListener('click', () => void api.returnToSuite());
 
-  shell.appendChild(title);
-  shell.appendChild(back);
-  document.documentElement.style.setProperty('--easylab-suite-shell-offset', '58px');
+  actions.appendChild(status);
+  actions.appendChild(back);
+  shell.appendChild(titleWrap);
+  shell.appendChild(actions);
+  document.documentElement.style.setProperty('--easylab-suite-shell-offset', '54px');
   if (document.body) {
     document.body.style.paddingTop = 'var(--easylab-suite-shell-offset)';
     document.body.appendChild(shell);
