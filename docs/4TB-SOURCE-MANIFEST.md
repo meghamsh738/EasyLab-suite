@@ -34,6 +34,30 @@ results display the primer concentration used, even if the selector changes
 before another calculation.
 
 The qPCR frontend and backend in this checkout's generated `apps/qpcr-planner/`
-bundle were refreshed from `b13675d`. The installed desktop application was not
-replaced by this source update; a new application build is needed to deliver
-the correction to that copy.
+bundle were refreshed from `b13675d`.
+
+### Installed Mac build: 0.1.19
+
+The native arm64 app at `/Users/meghamsh/Applications/Easylab Suite.app` was
+rebuilt and replaced with version `0.1.19`. The app ID remains
+`com.meghamshteja.easylab.suite`, and native runtime verification confirmed the
+existing user-data directory `/Users/meghamsh/Library/Application Support/easylab-suite`.
+
+The installed qPCR backend SHA-256 is
+`837393b544828483e385b6e09c66bb493e0febeeb884f1328df7153145c973bc`, matching the
+corrected source. Code-signature verification passed. The installed app was
+launched through its own executable; qPCR Planner opened through the Suite
+launcher and computed both primer choices correctly for synthetic sample inputs.
+Native checks covered SYBR/TaqMan primer totals, water compensation, and the
+concentration labels. The app was closed after verification.
+
+The local Mac packaging steps, after building and refreshing module assets, are:
+
+```sh
+node --env-file=.env.4tb scripts/preflight-modules.mjs --strict --require-artifacts
+CSC_IDENTITY_AUTO_DISCOVERY=false node node_modules/electron-builder/cli.js --mac dir --arm64 --publish never -c.mac.hardenedRuntime=false -c.mac.gatekeeperAssess=false -c.mac.notarize=false '-c.mac.icon=/Users/meghamsh/Applications/Easylab Suite.app/Contents/Resources/icon.icns'
+codesign --force --deep --sign - 'desktop/dist/mac-arm64/Easylab Suite.app'
+codesign --verify --deep --strict 'desktop/dist/mac-arm64/Easylab Suite.app'
+```
+
+These steps produce a locally signed app bundle under `desktop/dist/mac-arm64/`.
