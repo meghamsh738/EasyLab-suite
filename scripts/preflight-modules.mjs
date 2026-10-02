@@ -32,7 +32,8 @@ const extractAppModuleIds = (appSource) => {
   const start = appSource.indexOf(startToken)
   if (start < 0) return []
   const tail = appSource.slice(start)
-  const end = tail.indexOf('\n]\n\nconst fallbackInfo')
+  // The module array is the contract; the next unrelated declaration can change.
+  const end = tail.search(/^\]\s*;?\s*$/m)
   if (end < 0) return []
   const body = tail.slice(0, end)
   const ids = []

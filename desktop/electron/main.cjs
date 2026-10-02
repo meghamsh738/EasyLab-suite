@@ -7,6 +7,7 @@ const net = require('net')
 const os = require('os')
 const path = require('path')
 const { pathToFileURL } = require('url')
+const { buildModuleShellOverlayScript } = require('./module-shell.cjs')
 
 const isDev = !app.isPackaged
 const hasAppSwitch = (name) => {
@@ -1943,10 +1944,10 @@ const createSuiteWindow = () => {
   const win = new BrowserWindow({
     width: 1480,
     height: 940,
-    minWidth: 1100,
+    minWidth: 760,
     minHeight: 720,
     resizable: true,
-    backgroundColor: '#F6F2EA',
+    backgroundColor: '#f5f7f8',
     title: app.getName(),
     icon: resolveWindowIcon(),
     webPreferences: {
@@ -1963,6 +1964,7 @@ const createSuiteWindow = () => {
 
 const loadSuiteHome = (win) => {
   if (!win || win.isDestroyed()) return
+  detachModuleShell(win)
   win.setTitle(app.getName())
   win.webContents.setZoomFactor(1)
   if (isDev) {
@@ -1980,120 +1982,26 @@ const appendModuleQuery = (url, moduleId) => {
   return launchUrl.toString()
 }
 
-const buildModuleShellOverlayScript = (moduleId, label) => `
-(() => {
-  const api = window.electronAPI;
-  if (!api || typeof api.returnToSuite !== 'function') return;
-
-  const existing = document.getElementById('easylab-module-shell');
-  if (existing) existing.remove();
-
-  const shell = document.createElement('div');
-  shell.id = 'easylab-module-shell';
-  shell.style.position = 'fixed';
-  shell.style.top = '8px';
-  shell.style.left = '8px';
-  shell.style.right = '8px';
-  shell.style.zIndex = '2147483400';
-  shell.style.display = 'flex';
-  shell.style.alignItems = 'center';
-  shell.style.justifyContent = 'space-between';
-  shell.style.gap = '12px';
-  shell.style.padding = '7px 9px';
-  shell.style.border = '1px solid rgba(255, 255, 255, 0.14)';
-  shell.style.borderRadius = '8px';
-  shell.style.background = 'linear-gradient(90deg, #0b1220 0%, #101827 58%, #14263c 100%)';
-  shell.style.backdropFilter = 'blur(12px)';
-  shell.style.boxShadow = '0 14px 34px rgba(10, 18, 32, 0.28)';
-  shell.style.color = '#f8fafc';
-  shell.style.fontFamily = 'Inter, Segoe UI, system-ui, sans-serif';
-  shell.style.fontSize = '12px';
-
-  const titleWrap = document.createElement('div');
-  titleWrap.style.display = 'flex';
-  titleWrap.style.alignItems = 'center';
-  titleWrap.style.gap = '9px';
-  titleWrap.style.minWidth = '0';
-
-  const mark = document.createElement('div');
-  mark.textContent = 'EL';
-  mark.style.width = '28px';
-  mark.style.height = '28px';
-  mark.style.borderRadius = '7px';
-  mark.style.display = 'grid';
-  mark.style.placeItems = 'center';
-  mark.style.flex = '0 0 auto';
-  mark.style.background = 'rgba(20, 184, 166, 0.15)';
-  mark.style.border = '1px solid rgba(20, 184, 166, 0.28)';
-  mark.style.color = '#7ee7d8';
-  mark.style.font = '800 11px/1 Inter, Segoe UI, system-ui, sans-serif';
-
-  const titleStack = document.createElement('div');
-  titleStack.style.minWidth = '0';
-
-  const eyebrow = document.createElement('div');
-  eyebrow.textContent = 'Easylab module';
-  eyebrow.style.color = '#7ee7d8';
-  eyebrow.style.font = '700 9px/1 Inter, Segoe UI, system-ui, sans-serif';
-  eyebrow.style.letterSpacing = '0.11em';
-  eyebrow.style.textTransform = 'uppercase';
-  eyebrow.style.marginBottom = '2px';
-
-  const title = document.createElement('div');
-  title.textContent = ${JSON.stringify(label)};
-  title.style.fontWeight = '700';
-  title.style.overflow = 'hidden';
-  title.style.textOverflow = 'ellipsis';
-  title.style.whiteSpace = 'nowrap';
-  title.style.fontSize = '13px';
-
-  titleStack.appendChild(eyebrow);
-  titleStack.appendChild(title);
-  titleWrap.appendChild(mark);
-  titleWrap.appendChild(titleStack);
-
-  const actions = document.createElement('div');
-  actions.style.display = 'flex';
-  actions.style.alignItems = 'center';
-  actions.style.gap = '8px';
-  actions.style.flex = '0 0 auto';
-
-  const status = document.createElement('div');
-  status.textContent = 'Local session';
-  status.style.minHeight = '28px';
-  status.style.display = 'inline-flex';
-  status.style.alignItems = 'center';
-  status.style.padding = '0 10px';
-  status.style.border = '1px solid rgba(255, 255, 255, 0.16)';
-  status.style.borderRadius = '999px';
-  status.style.background = 'rgba(255, 255, 255, 0.07)';
-  status.style.color = '#dbeafe';
-  status.style.font = '700 11px/1 Inter, Segoe UI, system-ui, sans-serif';
-
-  const back = document.createElement('button');
-  back.type = 'button';
-  back.textContent = 'Back to modules';
-  back.style.height = '30px';
-  back.style.padding = '0 12px';
-  back.style.border = '1px solid rgba(255, 255, 255, 0.28)';
-  back.style.borderRadius = '7px';
-  back.style.background = '#ffffff';
-  back.style.color = '#0f172a';
-  back.style.font = '800 12px/1 Inter, Segoe UI, system-ui, sans-serif';
-  back.style.cursor = 'pointer';
-  back.addEventListener('click', () => void api.returnToSuite());
-
-  actions.appendChild(status);
-  actions.appendChild(back);
-  shell.appendChild(titleWrap);
-  shell.appendChild(actions);
-  document.documentElement.style.setProperty('--easylab-suite-shell-offset', '54px');
-  if (document.body) {
-    document.body.style.paddingTop = 'var(--easylab-suite-shell-offset)';
-    document.body.appendChild(shell);
+const moduleShellListeners = new WeakMap()
+const detachModuleShell = (win) => {
+  const listener = moduleShellListeners.get(win)
+  if (listener) win.webContents.removeListener('did-finish-load', listener)
+  moduleShellListeners.delete(win)
+}
+const attachModuleShell = (win, moduleId) => {
+  detachModuleShell(win)
+  const inject = () => {
+    if (win.isDestroyed()) return
+    const currentModule = new URL(win.webContents.getURL()).searchParams.get('easylabModule')
+    if (currentModule !== moduleId) return
+    const modules = Object.values(MODULES).map(({ id, label }) => ({ id, label }))
+    win.webContents.executeJavaScript(
+      buildModuleShellOverlayScript(moduleId, MODULES[moduleId].label, modules) + '\n' + buildZoomOverlayScript('module-' + moduleId), true,
+    ).catch(err => console.warn('Module navigation could not load', err))
   }
-})();
-`
+  moduleShellListeners.set(win, inject)
+  win.webContents.on('did-finish-load', inject)
+}
 
 const prepareModuleLaunch = async (moduleId, options = {}) => {
   const config = MODULES[moduleId]
@@ -2150,23 +2058,15 @@ const prewarmModule = async (moduleId) => {
 
 const openModuleInWindow = async (win, moduleId) => {
   const config = MODULES[moduleId]
-  if (!config || !win || win.isDestroyed()) return
+  if (!config || !win || win.isDestroyed()) throw new Error('The requested tool is unavailable.')
   const pendingPrewarm = prewarmPromises.get(moduleId)
   if (pendingPrewarm) await pendingPrewarm.catch(() => false)
-  const launch = await prepareModuleLaunch(moduleId)
-  if (!launch) return
+  const launch = await prepareModuleLaunch(moduleId, { silent: true })
+  if (!launch) throw new Error('Could not start ' + config.label + '. Please try again.')
 
   win.setTitle(`Easylab Suite - ${config.label}`)
   win.webContents.setZoomFactor(1)
-  win.webContents.once('did-finish-load', () => {
-    if (win.isDestroyed()) return
-    win.webContents
-      .executeJavaScript(
-        `${buildModuleShellOverlayScript(moduleId, config.label)}\n${buildZoomOverlayScript(`module-${moduleId}`)}`,
-        true,
-      )
-      .catch((err) => console.warn(`Module shell overlay failed for ${moduleId}`, err))
-  })
+  attachModuleShell(win, moduleId)
   await win.loadURL(launch.url)
 }
 
@@ -2191,7 +2091,7 @@ const createModuleWindow = async (moduleId) => {
     minWidth: 1024,
     minHeight: 640,
     resizable: true,
-    backgroundColor: '#F6F2EA',
+    backgroundColor: '#f5f7f8',
     title: `Easylab Suite · ${config.label}`,
     icon: resolveWindowIcon(moduleId),
     webPreferences: {
@@ -2201,7 +2101,7 @@ const createModuleWindow = async (moduleId) => {
       additionalArguments: [`--easylab-module=${moduleId}`],
     },
   })
-  attachZoomOverlay(win, `module-${moduleId}`)
+  attachModuleShell(win, moduleId)
 
   if (launch.url.startsWith('file:')) {
     win.loadURL(launch.url)

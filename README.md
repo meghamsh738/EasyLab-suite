@@ -1,10 +1,12 @@
 # Easylab Suite
 
-Easylab Suite is a local-first Windows desktop launcher for the Easylab lab workflow apps. It packages Lab Notebook, reagent calculators, qPCR/ELISA tools, animal workflow helpers, and local phone-message intake into one Electron app.
+Easylab Suite is an Electron desktop launcher for the Easylab lab workflow apps, with Windows packaging and a locally verified macOS build. It packages Lab Notebook, reagent calculators, qPCR/ELISA tools, animal workflow helpers, and local phone-message intake into one app.
 
-The suite is designed for laptop use: notebook data, attachments, module outputs, generated exports, and Telegram/WhatsApp intake captures stay on the machine unless the user deliberately points storage at a sync folder.
+Calculators and analysis tools run locally. The bundled Lab Notebook signs in through Google and syncs through the user's Drive, with offline copies after sign-in. Its existing Google sign-in restriction inside Electron remains; signed-in Notebook workflows are not part of the 0.2.0 verification.
 
-The current visual system uses a warm local lab-operations style: IBM Plex Sans/Mono typography, a paper-toned grid background, deep evergreen navigation, compact badges, table-first surfaces, and module-specific pictogram icons.
+Version 0.2.0 introduces a compact tool library with combined search/category filters, a shared module switcher, and a confirmation before leaving edited work. A Suite-scoped theme gives all eight modules consistent teal navigation, white work panels, readable controls, and responsive layouts. Module-specific field names, calculations, and data-driven plate colours are retained. The cDNA example-data loader is fixed in source commit `6c25e0b` of [cDNA-calculations-app](https://github.com/meghamsh738/cDNA-calculations-app/commit/6c25e0b).
+
+Current screenshots and verification: [Lab workspace 0.2.0 build record](docs/BUILD_INDEX.md). Screenshots below predate this refresh and remain as historical feature references.
 
 ## Screenshots
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import labNotebookIcon from './assets/module-icons/labnotebook.svg'
 import cdnaIcon from './assets/module-icons/cdna.svg'
@@ -155,339 +155,185 @@ const MODULES: ModuleDefinition[] = [
 ]
 
 const GROUPS: Array<'All' | ModuleGroup> = ['All', 'Notebook', 'Planning', 'Analysis', 'Colony', 'Behaviour']
-const RAIL_ITEMS: Array<'All' | ModuleGroup> = ['All', 'Notebook', 'Planning', 'Analysis', 'Colony', 'Behaviour']
+const SUMMARIES: Record<ModuleId, string> = {
+  labnotebook: 'Notes, attachments, and experiment records.',
+  cdna: 'RNA dilutions and reaction setup.',
+  'qpcr-planner': 'Plate layouts, controls, and master mixes.',
+  'qpcr-analysis': 'Ct normalization, figures, and reports.',
+  'elisa-analysis': 'Standard curves and concentration analysis.',
+  'animal-pairing': 'Balanced cohorts from your colony data.',
+  breeding: 'Pair selection for target genotypes.',
+  ymaze: 'Balanced schedules and arm assignments.',
+}
+const VIEW_KEY = 'easylab.suite.library-view'
+type LibraryView = { query: string; activeGroup: 'All' | ModuleGroup }
+const readView = (): LibraryView => {
+  try {
+    const view = JSON.parse(sessionStorage.getItem(VIEW_KEY) || 'null')
+    if (view && typeof view.query === 'string' && GROUPS.includes(view.activeGroup)) return view
+  } catch { /* The library also works when storage is unavailable. */ }
+  return { query: '', activeGroup: 'All' }
+}
 
-const INTAKE_STATUS = [
-  { name: 'WhatsApp', detail: 'Text and image intake', state: 'Ready', accent: '#16a34a' },
-  { name: 'Telegram', detail: 'Text and image intake', state: 'Ready', accent: '#0284c7' },
-]
-
-const fallbackInfo: SuiteInfo = {
-  name: 'Easylab Suite',
-  version: 'Web preview',
-  platform: 'web',
+function DesktopNotice({ module, onClose }: { module: ModuleDefinition; onClose: () => void }) {
+  const dialogRef = useRef<HTMLDialogElement>(null)
+  useEffect(() => {
+    const dialog = dialogRef.current
+    const opener = document.activeElement
+    dialog?.showModal()
+    return () => {
+      dialog?.close()
+      if (opener instanceof HTMLElement && opener.isConnected) opener.focus()
+    }
+  }, [])
+  const close = () => { dialogRef.current?.close(); onClose() }
+  return (
+    <dialog ref={dialogRef} className="desktop-notice" aria-labelledby="notice-title" aria-describedby="notice-detail"
+      data-testid="web-modal" onCancel={event => { event.preventDefault(); close() }}
+      onKeyDown={event => { if (event.key === 'Tab') { event.preventDefault(); dialogRef.current?.querySelector('button')?.focus() } }}
+      onClick={event => { if (event.target === event.currentTarget) close() }}>
+      <img src={module.icon} alt="" width="48" height="48" />
+      <h2 id="notice-title">Open in the desktop app</h2>
+      <p id="notice-detail">{module.name} runs inside Easylab Suite. Open the installed app to use this tool with your local files.</p>
+      <button className="primary" onClick={close}>Got it</button>
+    </dialog>
+  )
 }
 
 function App() {
   const electron = getElectronAPI()
-  const [suiteInfo, setSuiteInfo] = useState<SuiteInfo>(fallbackInfo)
-  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>(() => (electron ? 'loading' : 'ready'))
+  const [suiteInfo, setSuiteInfo] = useState<SuiteInfo | null>(null)
   const [errorMessage, setErrorMessage] = useState('')
+  const [failedModule, setFailedModule] = useState<ModuleId | null>(null)
   const [webNotice, setWebNotice] = useState<ModuleId | null>(null)
-  const [query, setQuery] = useState('')
-  const [activeGroup, setActiveGroup] = useState<'All' | ModuleGroup>('All')
+  const [{ query, activeGroup }, setView] = useState<LibraryView>(readView)
   const [launchingModule, setLaunchingModule] = useState<ModuleId | null>(null)
+  const searchRef = useRef<HTMLInputElement>(null)
+  const launchingRef = useRef(false)
 
   const loadSuiteInfo = useCallback(async () => {
     if (!electron) return
-
     try {
       const info = electron.getSuiteInfo ? await electron.getSuiteInfo() : await electron.getAppInfo?.()
       if (info) setSuiteInfo(info)
-      setStatus('ready')
+      setErrorMessage('')
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : 'Unable to load suite information.')
-      setStatus('error')
     }
   }, [electron])
 
+  useEffect(() => { void loadSuiteInfo() }, [loadSuiteInfo])
   useEffect(() => {
-    if (!electron) return
-    loadSuiteInfo()
-  }, [electron, loadSuiteInfo])
+    try { sessionStorage.setItem(VIEW_KEY, JSON.stringify({ query, activeGroup })) } catch { /* Optional UI preference. */ }
+  }, [query, activeGroup])
+  useEffect(() => {
+    const focusSearch = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k' && !webNotice) {
+        event.preventDefault()
+        searchRef.current?.focus()
+      }
+    }
+    window.addEventListener('keydown', focusSearch)
+    return () => window.removeEventListener('keydown', focusSearch)
+  }, [webNotice])
 
   const filteredModules = useMemo(() => {
     const term = query.trim().toLowerCase()
-    return MODULES.filter((module) => {
-      const groupMatch = activeGroup === 'All' || module.group === activeGroup
-      if (!groupMatch) return false
-      if (!term) return true
-      const haystack = [
-        module.name,
-        module.group,
-        module.summary,
-        module.workflow,
-        module.inputs,
-        module.outputs,
-        ...module.tags,
-      ]
-        .join(' ')
-        .toLowerCase()
-      return haystack.includes(term)
-    })
+    return MODULES.filter(module => (activeGroup === 'All' || module.group === activeGroup) &&
+      [module.name, module.group, module.summary, SUMMARIES[module.id], module.workflow, module.inputs, module.outputs, ...module.tags].join(' ').toLowerCase().includes(term))
   }, [activeGroup, query])
 
-  const groupedModules = useMemo(() => {
-    const groups = new Map<ModuleGroup, ModuleDefinition[]>()
-    filteredModules.forEach((module) => {
-      const items = groups.get(module.group) ?? []
-      groups.set(module.group, [...items, module])
-    })
-    return Array.from(groups.entries())
-  }, [filteredModules])
-
-  const statusLabel = useMemo(() => {
-    if (status === 'loading') return 'Loading'
-    if (status === 'error') return 'Needs review'
-    return 'Ready'
-  }, [status])
-
   const handleLaunch = async (moduleId: ModuleId) => {
-    if (!electron) {
-      setWebNotice(moduleId)
-      return
-    }
+    if (launchingRef.current) return
+    if (!electron) { setWebNotice(moduleId); return }
+    launchingRef.current = true
+    setLaunchingModule(moduleId)
+    setErrorMessage('')
+    setFailedModule(null)
     try {
-      setLaunchingModule(moduleId)
-      if (electron.openModuleInSuite) {
-        await electron.openModuleInSuite(moduleId)
-      } else {
-        await electron.launchModule(moduleId)
-      }
+      if (electron.openModuleInSuite) await electron.openModuleInSuite(moduleId)
+      else await electron.launchModule(moduleId)
     } catch (err) {
-      setErrorMessage(err instanceof Error ? err.message : 'Unable to launch module.')
-      setStatus('error')
+      setFailedModule(moduleId)
+      setErrorMessage(err instanceof Error ? err.message : 'Unable to open this tool. Please try again.')
     } finally {
+      launchingRef.current = false
       setLaunchingModule(null)
     }
   }
-
   const handlePrewarm = (moduleId: ModuleId) => {
-    if (!electron?.prewarmModule || launchingModule) return
-    void electron.prewarmModule(moduleId)
+    if (!electron?.prewarmModule || launchingRef.current) return
+    void electron.prewarmModule(moduleId).catch(() => { /* Opening the tool reports startup failures. */ })
   }
-
-  const activeNotice = webNotice ? MODULES.find((module) => module.id === webNotice) : null
+  const activeNotice = MODULES.find(module => module.id === webNotice)
+  const resetView = () => { setView({ query: '', activeGroup: 'All' }); searchRef.current?.focus() }
 
   return (
     <div className="suite" data-testid="suite-root">
-      <div className="suite-shell">
-        <aside className="suite-rail" aria-label="Suite navigation">
-          <div className="brand-lockup rail-brand" aria-label="Easylab Suite">
-            <div className="suite-mark">EL</div>
-            <div>
-              <h1>Easylab Suite</h1>
-              <p>
-                {suiteInfo.version} / {suiteInfo.platform}
-              </p>
-            </div>
-          </div>
-
-          <nav className="rail-nav" aria-label="Module groups">
-            {RAIL_ITEMS.map((group) => {
-              const count = group === 'All' ? MODULES.length : MODULES.filter((module) => module.group === group).length
-              return (
-                <button
-                  key={group}
-                  type="button"
-                  className={group === activeGroup ? 'active' : ''}
-                  onClick={() => setActiveGroup(group)}
-                >
-                  <span>{group === 'All' ? 'Command Center' : group}</span>
-                  <strong>{count}</strong>
-                </button>
-              )
-            })}
-          </nav>
-
-          <section className="rail-card" aria-label="Local data status">
-            <div className="rail-card-head">
-              <span>Local data</span>
-              <strong>Device only</strong>
-            </div>
-            <p>Notebook files, module outputs, and intake captures stay on this laptop.</p>
-            <div className="rail-metric">
-              <span>Database</span>
-              <strong>Ready</strong>
-            </div>
-            <div className="rail-metric">
-              <span>Storage</span>
-              <strong>Local</strong>
-            </div>
-          </section>
-
-          <section className="rail-card" aria-label="Intake status">
-            <div className="rail-card-head">
-              <span>Intake</span>
-              <strong>Live</strong>
-            </div>
-            <div className="intake-list">
-              {INTAKE_STATUS.map((item) => (
-                <div className="intake-row" key={item.name} style={{ ['--accent' as string]: item.accent }}>
-                  <span className="intake-dot" />
-                  <div>
-                    <strong>{item.name}</strong>
-                    <p>{item.detail}</p>
-                  </div>
-                  <em>{item.state}</em>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <footer className="rail-signature" data-testid="suite-signature">
-            <span>Made by Meghamsh Teja Konda</span>
-            <a href="mailto:meghamshteja555@gmail.com">meghamshteja555@gmail.com</a>
-          </footer>
-        </aside>
-
-        <div className="suite-workspace">
-          <header className="suite-header">
-            <div>
-              <p className="eyebrow">Command Center</p>
-              <h2>Overview of lab apps and local intake</h2>
-            </div>
-
-            <div className="suite-status" data-testid="suite-status">
-              <span className={`status-dot status-${status}`} />
-              <span>{statusLabel}</span>
-            </div>
-          </header>
-
-          <section className="command-surface" aria-label="Module command surface">
-            <label className="module-search">
-              <span>Search modules</span>
-              <input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Notebook, qPCR, ELISA, colony..."
-              />
-            </label>
-
-            <div className="group-tabs" aria-label="Module groups">
-              {GROUPS.map((group) => (
-                <button
-                  key={group}
-                  type="button"
-                  className={group === activeGroup ? 'active' : ''}
-                  onClick={() => setActiveGroup(group)}
-                >
-                  {group}
-                </button>
-              ))}
-            </div>
-
-            <div className="ops-strip" aria-label="Workspace summary">
-              <div>
-                <span>Modules</span>
-                <strong>{MODULES.length}</strong>
-              </div>
-              <div>
-                <span>Data</span>
-                <strong>Local</strong>
-              </div>
-              <div>
-                <span>Intake</span>
-                <strong>WhatsApp + Telegram</strong>
-              </div>
-            </div>
-          </section>
-
-          {status === 'loading' && (
-            <div className="suite-banner" data-testid="suite-loading">
-              Loading suite configuration.
-            </div>
-          )}
-
-          {status === 'error' && (
-            <div className="suite-banner error" data-testid="suite-error">
-              <div>
-                <strong>Suite needs attention.</strong> {errorMessage}
-              </div>
-              <button type="button" className="ghost" onClick={loadSuiteInfo}>
-                Retry
-              </button>
-            </div>
-          )}
-
-          <main className="module-console" aria-label="Suite modules">
-            {groupedModules.map(([group, modules]) => (
-              <section className="module-section" key={group} aria-label={`${group} modules`}>
-                <div className="section-head">
-                  <h2>{group}</h2>
-                  <span>{modules.length}</span>
-                </div>
-
-                <div className="module-grid">
-                  {modules.map((module) => (
-                    <article
-                      key={module.id}
-                      className="module-card"
-                      data-testid={`module-card-${module.id}`}
-                      style={{ ['--accent' as string]: module.accent }}
-                    >
-                      <div className="module-card-main">
-                        <div className="module-icon" aria-hidden="true">
-                          <img src={module.icon} alt="" />
-                        </div>
-                        <div className="module-copy">
-                          <h3>{module.name}</h3>
-                          <p>{module.summary}</p>
-                        </div>
-                      </div>
-
-                      <dl className="module-facts">
-                        <div>
-                          <dt>Workflow</dt>
-                          <dd>{module.workflow}</dd>
-                        </div>
-                        <div>
-                          <dt>Input</dt>
-                          <dd>{module.inputs}</dd>
-                        </div>
-                        <div>
-                          <dt>Output</dt>
-                          <dd>{module.outputs}</dd>
-                        </div>
-                      </dl>
-
-                      <div className="module-card-foot">
-                        <div className="tag-row" aria-label={`${module.name} capabilities`}>
-                          {module.tags.map((tag) => (
-                            <span key={tag} className="tag">
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                        <button
-                          type="button"
-                          className="primary"
-                          data-testid={`module-launch-${module.id}`}
-                          onFocus={() => handlePrewarm(module.id)}
-                          onMouseEnter={() => handlePrewarm(module.id)}
-                          onClick={() => handleLaunch(module.id)}
-                          disabled={launchingModule === module.id}
-                        >
-                          {launchingModule === module.id ? 'Opening' : 'Open'}
-                        </button>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              </section>
-            ))}
-          </main>
-
-          {filteredModules.length === 0 && (
-            <section className="empty" data-testid="suite-empty">
-              <h2>No matching modules</h2>
-              <p>Clear search or choose another group.</p>
-            </section>
-          )}
-        </div>
-      </div>
-
-      {activeNotice && (
-        <div className="modal" role="dialog" aria-modal="true" data-testid="web-modal">
-          <div className="modal-card">
-            <h2>Desktop required</h2>
-            <p>{activeNotice.name} launches inside the Easylab desktop app.</p>
-            <button type="button" className="primary" onClick={() => setWebNotice(null)}>
-              Got it
+      <a className="skip-link" href="#tool-library">Skip to tools</a>
+      <aside className="suite-rail" aria-label="Suite navigation">
+        <div className="brand-lockup"><span className="suite-mark" aria-hidden="true">EL</span><h1>Easylab Suite</h1></div>
+        <p className="nav-label">Browse</p>
+        <nav className="rail-nav" aria-label="Tool categories">
+          {GROUPS.map(group => (
+            <button key={group} type="button" aria-pressed={activeGroup === group}
+              onClick={() => setView(view => ({ ...view, activeGroup: group }))}>
+              <span>{group === 'All' ? 'All tools' : group}</span>
+              <span className="nav-count">{group === 'All' ? MODULES.length : MODULES.filter(module => module.group === group).length}</span>
             </button>
-          </div>
+          ))}
+        </nav>
+        <footer className="rail-signature" data-testid="suite-signature">
+          <p className="build-label">{electron ? (suiteInfo ? `Version ${suiteInfo.version}` : 'Desktop app') : 'Web preview'}</p>
+          <span>Made by Meghamsh Teja Konda</span>
+          <a href="mailto:meghamshteja555@gmail.com">Contact</a>
+        </footer>
+      </aside>
+
+      <main className="suite-workspace" id="tool-library" tabIndex={-1}>
+        <header className="suite-header">
+          <h2>Your lab workspace</h2>
+          <p>Plan experiments, work with your data, and keep a clear record.</p>
+        </header>
+        <div className="search-row" role="search">
+          <label htmlFor="module-search" className="sr-only">Search tools or workflows</label>
+          <input id="module-search" ref={searchRef} type="search" value={query} autoComplete="off"
+            placeholder="Search tools or workflows" onChange={event => setView(view => ({ ...view, query: event.target.value }))} />
+          {query ? <button className="clear-search" aria-label="Clear search" onClick={() => { setView(view => ({ ...view, query: '' })); searchRef.current?.focus() }}>Clear</button>
+            : <kbd aria-hidden="true">⌘ / Ctrl K</kbd>}
         </div>
-      )}
+
+        {errorMessage && <div className="suite-banner error" role="alert" data-testid="suite-error">
+          <div><strong>{failedModule ? 'Tool could not open' : 'Suite information unavailable'}</strong><p>{errorMessage}</p></div>
+          <button onClick={() => failedModule ? void handleLaunch(failedModule) : void loadSuiteInfo()}>Try again</button>
+        </div>}
+        {launchingModule && <p className="launch-status" role="status">Opening {MODULES.find(module => module.id === launchingModule)?.name}…</p>}
+
+        <div className="library-heading">
+          <h2>{query.trim() ? 'Search results' : activeGroup === 'All' ? 'All tools' : activeGroup}</h2>
+          <p role="status">{filteredModules.length} {filteredModules.length === 1 ? 'tool' : 'tools'}{query.trim() ? ` matching “${query.trim()}”` : ''}</p>
+        </div>
+        <section className="module-library" aria-label="Suite modules" aria-busy={Boolean(launchingModule)}>
+          {filteredModules.map(module => (
+            <article className="module-row" key={module.id} data-testid={`module-card-${module.id}`}>
+              <img className="module-icon" src={module.icon} alt="" width="44" height="44" />
+              <h3>{module.name}</h3>
+              <p className="module-summary">{SUMMARIES[module.id]}</p>
+              <span className="module-group">{module.group}</span>
+              <button className="primary" data-testid={`module-launch-${module.id}`} aria-label={`Open ${module.name}`}
+                onMouseEnter={() => handlePrewarm(module.id)} onFocus={() => handlePrewarm(module.id)}
+                onClick={() => void handleLaunch(module.id)} disabled={Boolean(launchingModule)}>
+                {launchingModule === module.id ? 'Opening…' : 'Open'}
+              </button>
+            </article>
+          ))}
+          {filteredModules.length === 0 && <div className="empty" data-testid="suite-empty">
+            <h3>No matching tools</h3><p>Try a tool name, a workflow, or another category.</p>
+            <button className="primary" onClick={resetView}>Show all tools</button>
+          </div>}
+        </section>
+      </main>
+      {activeNotice && <DesktopNotice module={activeNotice} onClose={() => setWebNotice(null)} />}
     </div>
   )
 }
