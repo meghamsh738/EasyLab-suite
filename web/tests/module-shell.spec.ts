@@ -68,7 +68,7 @@ test('clean navigation and failed launches retain usable controls', async ({ pag
 test('plate colours follow module data despite older theme overrides', async ({ page }) => {
   const plateScript = buildModuleShellOverlayScript('elisa-analysis', 'ELISA Analysis', [{ id: 'elisa-analysis', label: 'ELISA Analysis' }])
   await page.evaluate(() => {
-    document.body.insertAdjacentHTML('beforeend', '<style>.well-square { background: white !important }</style><div class="well-square" style="background-color: rgb(122, 168, 154)"><span class="well-label">Std1</span></div>')
+    document.body.insertAdjacentHTML('beforeend', '<style>.well-square { background: white !important } .page :is(.card,section.card) :is(span,.muted) { color: #102033 !important }</style><div class="page"><section class="card"><div class="well-square" style="background-color: rgb(122, 168, 154)"><span class="well-label">Std1</span></div></section></div>')
   })
   await page.evaluate(plateScript)
   await expect(page.locator('.well-square')).toHaveCSS('background-color', 'rgb(122, 168, 154)')
