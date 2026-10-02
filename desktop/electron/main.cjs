@@ -1957,22 +1957,22 @@ const createSuiteWindow = () => {
     },
   })
 
-  loadSuiteHome(win)
+  loadSuiteHome(win).catch(err => console.error('Suite library could not load', err))
 
   return win
 }
 
-const loadSuiteHome = (win) => {
+const loadSuiteHome = async (win) => {
   if (!win || win.isDestroyed()) return
   detachModuleShell(win)
   win.setTitle(app.getName())
   win.webContents.setZoomFactor(1)
   if (isDev) {
     const devUrl = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5178'
-    win.loadURL(devUrl)
+    return win.loadURL(devUrl)
   } else {
     const webDist = path.join(rootDir, '.suite-dist', 'web', 'index.html')
-    win.loadFile(webDist)
+    return win.loadFile(webDist)
   }
 }
 
@@ -2189,7 +2189,7 @@ ipcMain.handle('open-module-in-suite', async (event, moduleId) => {
 
 ipcMain.handle('return-to-suite', (event) => {
   const win = BrowserWindow.fromWebContents(event.sender)
-  loadSuiteHome(win)
+  return loadSuiteHome(win)
 })
 
 ipcMain.handle('select-directory', async (_event, options = {}) => {
