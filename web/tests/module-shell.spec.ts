@@ -106,3 +106,14 @@ test('Notebook browser handoff preserves work, fits narrow windows and reports l
   await expect(page.getByRole('alert')).toHaveText('Browser unavailable')
   await expect(page.getByRole('button', { name: 'All tools', exact: true })).toBeEnabled()
 })
+
+test('qPCR empty-well legend stays compact despite the legacy empty-state style', async ({ page }) => {
+  await page.evaluate(() => {
+    document.head.insertAdjacentHTML('beforeend','<style>.empty { min-height: 240px; height: 240px; width: 200px; padding: 32px; }</style>')
+    document.body.insertAdjacentHTML('beforeend','<div class="legend"><span class="swatch empty"></span> Empty</div>')
+  })
+  await page.evaluate(buildModuleShellOverlayScript('qpcr-planner', 'qPCR Planner', [{ id: 'qpcr-planner', label: 'qPCR Planner' }]))
+  await expect(page.locator('.swatch.empty')).toHaveCSS('height','14px')
+  await expect(page.locator('.swatch.empty')).toHaveCSS('width','14px')
+  expect(await page.locator('.legend').evaluate(el=>el.getBoundingClientRect().height)).toBeLessThan(60)
+})

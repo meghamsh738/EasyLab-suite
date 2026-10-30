@@ -78,7 +78,7 @@ html:is([data-easylab-module="animal-pairing"],[data-easylab-module="breeding"],
 html[data-easylab-module="elisa-analysis"] .tabs { border: 1px solid #d9e2e5 !important; border-radius: 7px !important; padding: 5px !important; margin-bottom: 20px; background: #eef3f4 !important; }
 html[data-easylab-module="elisa-analysis"] .tab { background: #fff !important; color: #294750 !important; border: 1px solid #cbd8dc !important; border-radius: 5px !important; box-shadow: none !important; }
 html[data-easylab-module="elisa-analysis"] .tab.active { background: #16766b !important; color: #fff !important; border-color: #16766b !important; }
-html[data-easylab-module="elisa-analysis"] .swatch.empty { display: inline-block !important; width: 14px !important; height: 14px !important; min-height: 0 !important; padding: 0 !important; margin: 0 6px 0 0 !important; background: #f8fafb !important; }
+html:is([data-easylab-module="elisa-analysis"],[data-easylab-module="qpcr-planner"]) .swatch.empty { display: inline-block !important; width: 14px !important; height: 14px !important; min-height: 0 !important; padding: 0 !important; margin: 0 6px 0 0 !important; background: #f8fafb !important; }
 html:is([data-easylab-module="elisa-analysis"],[data-easylab-module="qpcr-planner"]) body .well-square .well-label { color: var(--easylab-well-text, #172e35) !important; text-shadow: none !important; }
 /* Notebook: keep its own navigation and editor structure, and fit the Suite header. */
 html[data-easylab-module="labnotebook"] :is(.app-shell,.auth-gate-shell) { min-height: calc(100dvh - 64px) !important; height: calc(100dvh - 64px); }
