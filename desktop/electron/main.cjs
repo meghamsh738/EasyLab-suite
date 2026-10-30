@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron')
+const { app, BrowserWindow, ipcMain, dialog, shell, session } = require('electron')
 const { spawn, spawnSync } = require('child_process')
 const crypto = require('crypto')
 const fs = require('fs')
@@ -255,6 +255,29 @@ const getDefaultPaths = (moduleId) => {
     exportsPath: path.join(base, 'exports'),
     syncPath: path.join(base, 'sync'),
   }
+}
+
+const configurePreviewDownloads = () => {
+  if (!process.env.EASYLAB_DATA_ROOT) return
+  const pendingPaths = new Set()
+  session.defaultSession.on('will-download', (_event, item, contents) => {
+    let moduleId
+    try { moduleId = new URL(contents.getURL()).searchParams.get('easylabModule') } catch { return }
+    if (!MODULES[moduleId]) return
+    const directory = getDefaultPaths(moduleId).exportsPath
+    fs.mkdirSync(directory, { recursive: true })
+    const rawName = path.basename(item.getFilename())
+    const name = !rawName || rawName === '.' || rawName === '..' ? 'download' : rawName
+    const extension = path.extname(name)
+    const stem = path.basename(name, extension)
+    let target = path.join(directory, name)
+    for (let n = 1; fs.existsSync(target) || pendingPaths.has(target); n += 1) {
+      target = path.join(directory, `${stem} (${n})${extension}`)
+    }
+    pendingPaths.add(target)
+    item.once('done', () => pendingPaths.delete(target))
+    item.setSavePath(target)
+  })
 }
 
 const waitForPort = (port, timeoutMs = 8000) => new Promise((resolve, reject) => {
@@ -2127,6 +2150,7 @@ const createModuleWindow = async (moduleId) => {
 }
 
 app.whenReady().then(async () => {
+  configurePreviewDownloads()
   if (isWhatsappIntakeMode || isTelegramIntakeMode) {
     try {
       if (isWhatsappIntakeMode) {
