@@ -245,7 +245,10 @@ const ensureDirectories = (paths) => {
 
 const getDefaultPaths = (moduleId) => {
   const moduleFolder = MODULES[moduleId]?.storage ?? MODULES[moduleId]?.label ?? 'Suite'
-  const base = path.join(app.getPath('documents'), 'Easylab', moduleFolder)
+  const dataRoot = process.env.EASYLAB_DATA_ROOT
+    ? path.resolve(process.env.EASYLAB_DATA_ROOT)
+    : path.join(app.getPath('documents'), 'Easylab')
+  const base = path.join(dataRoot, moduleFolder)
   return {
     dataPath: path.join(base, 'data'),
     attachmentsPath: path.join(base, 'attachments'),
