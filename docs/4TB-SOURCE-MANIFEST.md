@@ -56,8 +56,18 @@ JavaScript origins include that exact origin. Keep Suite open while using the
 browser client. The standalone source's Android remote-write safety gate is
 unchanged; this candidate does not enable a new OAuth flow or cloud service.
 
-Real Google login/permission, notebook edit/sync and exported-file round trips
-remain pending until a user-controlled browser session completes those checks.
+Packaged source `61be06e` passed all seven calculation-module workflows, qPCR
+sample numbering and primer checks, and cDNA CSV/XLSX save/reopen checks.
+All eight module receipts match the pinned sources. The candidate's separate
+profile and `EASYLAB_DATA_ROOT` keep module test data and Electron downloads in
+scratch folders; normal-browser Notebook downloads remain browser-managed.
+
+Google rejected `http://127.0.0.1:8030` with **Error 400: origin_mismatch** on
+30 October 2026. The existing authorized local origin is needed before another
+authentication attempt. No Google security settings were changed. Real Google
+login/permission and Notebook edit/sync/export round trips remain unverified.
+See [the 0.2.1 build checkpoint](BUILD_INDEX.md#integration-preview-021) for
+the checked candidate and evidence. Installed version 0.2.0 is unchanged.
 The source below retains the earlier 0.1.19 packaging history.
 
 ## qPCR primer correction (30 September 2026)

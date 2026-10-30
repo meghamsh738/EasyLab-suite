@@ -1,0 +1,16 @@
+{
+  "date": "2026-10-30",
+  "suiteVersion": "0.2.1",
+  "suiteSourceCommit": "61be06ecb4edcb55bf2bc05b5a50f4b0e3e3cd6a",
+  "asarSha256": "44bc56775b2d553f2e857ecaaa4f2277f1d4d0696fe2ebafc7d7b51b8510767f",
+  "files": {
+    "launcher.png": "04282a33da32a9ab8c252e296e9464e8fd11aac7a42c5c9fa4f338865ed985ed",
+    "qpcr-repeated-sample-output.png": "8afb25c8254de53ad0ff0e39d397ab3f0304608c1b8ca984b1dbb3ac210fe2b6",
+    "qpcr-repeated-sample-narrow.png": "ddb7c32da3cd6cfaa10dc797d2e1e9dc1d9a3f8a2397678129b65e7c553812bc",
+    "cdna-output.png": "a806e738bf012e6fef11086c4fe4a4e5ed6571d46cde32499cd11e6a61bb62f2",
+    "notebook-header-narrow.png": "a9ebe793097a694a854eb6eccd877aa98470b6a8ebe5bbc7b43034a5165827df",
+    "verification.json": "aa9de9a83de8b3fff167bd7845a4eb1a166cd6295237608fefe76ae5661c523c",
+    "layout-verification.json": "2e2d4b26a6ec464244b5512ecae2c07595bc57ba0b224f3526791f3cf140fc25"
+  },
+  "scope": "Seven calculators and Notebook entry/browser route; authenticated Notebook workflows blocked by origin_mismatch."
+}

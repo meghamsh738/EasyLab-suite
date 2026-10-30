@@ -1,0 +1,872 @@
+{
+  "runtime": {
+    "version": "0.2.1",
+    "packaged": true,
+    "appPath": "/Users/meghamsh/Documents/Codex/2026-09-30/i-wa/work/integration-2026-10-30/Easylab Suite.app/Contents/Resources/app.asar",
+    "userData": "/Users/meghamsh/Documents/Codex/2026-09-30/i-wa/work/integration-2026-10-30/profile",
+    "dataRoot": "/Users/meghamsh/Documents/Codex/2026-09-30/i-wa/work/integration-2026-10-30/data"
+  },
+  "results": [
+    {
+      "id": "qpcr-planner",
+      "passed": true,
+      "detail": {
+        "reloadNavigation": true,
+        "cancelledLeavePreservesInputs": true,
+        "summaries": [
+          {
+            "source": "working",
+            "concentration": 10,
+            "mix": [
+              {
+                "Gene": "Tnf",
+                "Chemistry": "TaqMan",
+                "placed_reactions": 3,
+                "mix_factor": 1,
+                "mix_equiv_rxn": 3,
+                "master_mix_2x": 22.5,
+                "rna_free_h2o": 13.799999999999999,
+                "probe_10uM": 0.8999999999999999,
+                "primer_concentration_uM": 10,
+                "fwd_primer_ul": 0.8999999999999999,
+                "rev_primer_ul": 0.8999999999999999
+              },
+              {
+                "Gene": "Ccl2",
+                "Chemistry": "SYBR",
+                "placed_reactions": 3,
+                "mix_factor": 1,
+                "mix_equiv_rxn": 3,
+                "master_mix_2x": 22.5,
+                "rna_free_h2o": 14.700000000000001,
+                "probe_10uM": 0,
+                "primer_concentration_uM": 10,
+                "fwd_primer_ul": 0.8999999999999999,
+                "rev_primer_ul": 0.8999999999999999
+              },
+              {
+                "Gene": "Il1b",
+                "Chemistry": "SYBR",
+                "placed_reactions": 3,
+                "mix_factor": 1,
+                "mix_equiv_rxn": 3,
+                "master_mix_2x": 22.5,
+                "rna_free_h2o": 14.700000000000001,
+                "probe_10uM": 0,
+                "primer_concentration_uM": 10,
+                "fwd_primer_ul": 0.8999999999999999,
+                "rev_primer_ul": 0.8999999999999999
+              },
+              {
+                "Gene": "Gapdh",
+                "Chemistry": "SYBR",
+                "placed_reactions": 3,
+                "mix_factor": 1,
+                "mix_equiv_rxn": 3,
+                "master_mix_2x": 22.5,
+                "rna_free_h2o": 14.700000000000001,
+                "probe_10uM": 0,
+                "primer_concentration_uM": 10,
+                "fwd_primer_ul": 0.8999999999999999,
+                "rev_primer_ul": 0.8999999999999999
+              }
+            ]
+          },
+          {
+            "source": "stock",
+            "concentration": 100,
+            "mix": [
+              {
+                "Gene": "Tnf",
+                "Chemistry": "TaqMan",
+                "placed_reactions": 3,
+                "mix_factor": 1,
+                "mix_equiv_rxn": 3,
+                "master_mix_2x": 22.5,
+                "rna_free_h2o": 15.419999999999996,
+                "probe_10uM": 0.8999999999999999,
+                "primer_concentration_uM": 100,
+                "fwd_primer_ul": 0.09,
+                "rev_primer_ul": 0.09
+              },
+              {
+                "Gene": "Ccl2",
+                "Chemistry": "SYBR",
+                "placed_reactions": 3,
+                "mix_factor": 1,
+                "mix_equiv_rxn": 3,
+                "master_mix_2x": 22.5,
+                "rna_free_h2o": 16.32,
+                "probe_10uM": 0,
+                "primer_concentration_uM": 100,
+                "fwd_primer_ul": 0.09,
+                "rev_primer_ul": 0.09
+              },
+              {
+                "Gene": "Il1b",
+                "Chemistry": "SYBR",
+                "placed_reactions": 3,
+                "mix_factor": 1,
+                "mix_equiv_rxn": 3,
+                "master_mix_2x": 22.5,
+                "rna_free_h2o": 16.32,
+                "probe_10uM": 0,
+                "primer_concentration_uM": 100,
+                "fwd_primer_ul": 0.09,
+                "rev_primer_ul": 0.09
+              },
+              {
+                "Gene": "Gapdh",
+                "Chemistry": "SYBR",
+                "placed_reactions": 3,
+                "mix_factor": 1,
+                "mix_equiv_rxn": 3,
+                "master_mix_2x": 22.5,
+                "rna_free_h2o": 16.32,
+                "probe_10uM": 0,
+                "primer_concentration_uM": 100,
+                "fwd_primer_ul": 0.09,
+                "rev_primer_ul": 0.09
+              }
+            ]
+          }
+        ],
+        "repeatedPlans": [
+          {
+            "source": "working",
+            "sampleWells": 24
+          },
+          {
+            "source": "stock",
+            "sampleWells": 24
+          }
+        ],
+        "copiedSampleNumbers": [
+          "1",
+          "1",
+          "2",
+          "2",
+          "3",
+          "3"
+        ]
+      }
+    },
+    {
+      "id": "cdna",
+      "passed": true,
+      "detail": {
+        "rows": [
+          {
+            "_order": 0,
+            "Sample": "Sample1",
+            "RNA Conc (ng/\u00b5l)": 178.2,
+            "RNA Volume (\u00b5l)": 1.122,
+            "10x buffer": 2,
+            "dNTPs": 0.8,
+            "Random primers": 2,
+            "Enzyme": 1,
+            "H2O (\u00b5l)": 13.078,
+            "final volume (\u00b5l)": 20,
+            "Achievable RNA (ng)": 200,
+            "Note": ""
+          },
+          {
+            "_order": 1,
+            "Sample": "Sample2",
+            "RNA Conc (ng/\u00b5l)": 129.9,
+            "RNA Volume (\u00b5l)": 1.54,
+            "10x buffer": 2,
+            "dNTPs": 0.8,
+            "Random primers": 2,
+            "Enzyme": 1,
+            "H2O (\u00b5l)": 12.66,
+            "final volume (\u00b5l)": 20,
+            "Achievable RNA (ng)": 200,
+            "Note": ""
+          },
+          {
+            "_order": 2,
+            "Sample": "Sample3",
+            "RNA Conc (ng/\u00b5l)": 59.2,
+            "RNA Volume (\u00b5l)": 3.378,
+            "10x buffer": 2,
+            "dNTPs": 0.8,
+            "Random primers": 2,
+            "Enzyme": 1,
+            "H2O (\u00b5l)": 10.822,
+            "final volume (\u00b5l)": 20,
+            "Achievable RNA (ng)": 200,
+            "Note": ""
+          },
+          {
+            "_order": 1000000000,
+            "Sample": "MASTER MIX (10% overage) \u2014 4 rxns",
+            "RNA Conc (ng/\u00b5l)": "",
+            "RNA Volume (\u00b5l)": "",
+            "10x buffer": 8,
+            "dNTPs": 3.2,
+            "Random primers": 8,
+            "Enzyme": 4,
+            "H2O (\u00b5l)": "",
+            "final volume (\u00b5l)": "",
+            "Achievable RNA (ng)": "",
+            "Note": "Make in one tube; covers 3 samples + 10% overage."
+          }
+        ],
+        "master_mix": {
+          "n_samples": 3,
+          "n_total": 4,
+          "10x buffer": 8,
+          "dNTPs": 3.2,
+          "Random primers": 8,
+          "Enzyme": 4
+        },
+        "settings": {
+          "target_ng": 200,
+          "overage_pct": 10
+        },
+        "downloads": [
+          {
+            "state": "completed",
+            "path": "/Users/meghamsh/Documents/Codex/2026-09-30/i-wa/work/integration-2026-10-30/data/cDNA/exports/cdna_mix (2).csv",
+            "filename": "cdna_mix.csv"
+          },
+          {
+            "state": "completed",
+            "path": "/Users/meghamsh/Documents/Codex/2026-09-30/i-wa/work/integration-2026-10-30/data/cDNA/exports/cdna_mix (3).csv",
+            "filename": "cdna_mix.csv"
+          },
+          {
+            "state": "completed",
+            "path": "/Users/meghamsh/Documents/Codex/2026-09-30/i-wa/work/integration-2026-10-30/data/cDNA/exports/cdna_mix (1).xlsx",
+            "filename": "cdna_mix.xlsx"
+          }
+        ],
+        "workbook": {
+          "sheets": [
+            "RT Mix"
+          ],
+          "samples": [
+            "Sample1",
+            "Sample2",
+            "Sample3"
+          ]
+        },
+        "repeatedCsvPreserved": true
+      }
+    },
+    {
+      "id": "animal-pairing",
+      "passed": true,
+      "detail": {
+        "groups": {
+          "success": true,
+          "groups": [
+            {
+              "group_number": 1,
+              "group_name": "Group 1",
+              "animals": [
+                {
+                  "animal_id": "E204",
+                  "genotype": "CRE",
+                  "sex": "F",
+                  "age": 39
+                },
+                {
+                  "animal_id": "E203",
+                  "genotype": "CRE",
+                  "sex": "M",
+                  "age": 38
+                },
+                {
+                  "animal_id": "E108",
+                  "genotype": "KO",
+                  "sex": "F",
+                  "age": 45
+                },
+                {
+                  "animal_id": "E107",
+                  "genotype": "KO",
+                  "sex": "M",
+                  "age": 47
+                },
+                {
+                  "animal_id": "E102",
+                  "genotype": "WT",
+                  "sex": "F",
+                  "age": 42
+                },
+                {
+                  "animal_id": "E105",
+                  "genotype": "WT",
+                  "sex": "M",
+                  "age": 44
+                }
+              ],
+              "count": 6
+            },
+            {
+              "group_number": 2,
+              "group_name": "Group 2",
+              "animals": [
+                {
+                  "animal_id": "E202",
+                  "genotype": "CRE",
+                  "sex": "F",
+                  "age": 40
+                },
+                {
+                  "animal_id": "E201",
+                  "genotype": "CRE",
+                  "sex": "M",
+                  "age": 41
+                },
+                {
+                  "animal_id": "E104",
+                  "genotype": "KO",
+                  "sex": "F",
+                  "age": 46
+                },
+                {
+                  "animal_id": "E103",
+                  "genotype": "KO",
+                  "sex": "M",
+                  "age": 48
+                },
+                {
+                  "animal_id": "E106",
+                  "genotype": "WT",
+                  "sex": "F",
+                  "age": 43
+                },
+                {
+                  "animal_id": "E101",
+                  "genotype": "WT",
+                  "sex": "M",
+                  "age": 45
+                }
+              ],
+              "count": 6
+            },
+            {
+              "group_number": 3,
+              "group_name": "Group 3",
+              "animals": [
+                {
+                  "animal_id": "E302",
+                  "genotype": "WT",
+                  "sex": "F",
+                  "age": 52
+                },
+                {
+                  "animal_id": "E301",
+                  "genotype": "WT",
+                  "sex": "M",
+                  "age": 50
+                }
+              ],
+              "count": 2
+            }
+          ],
+          "total_animals": 14,
+          "summary": "Total animals: 14 | Genotypes: {'CRE': 4, 'KO': 4, 'WT': 6} | Sex: {'F': 7, 'M': 7} | Group sizes: {1: 6, 2: 6, 3: 2}"
+        },
+        "pairs": {
+          "success": true,
+          "pairs": [
+            {
+              "male": {
+                "animal_id": "E203",
+                "genotype": "CRE",
+                "sex": "M",
+                "age": 38
+              },
+              "female": {
+                "animal_id": "E204",
+                "genotype": "CRE",
+                "sex": "F",
+                "age": 39
+              },
+              "age_difference": 1
+            },
+            {
+              "male": {
+                "animal_id": "E201",
+                "genotype": "CRE",
+                "sex": "M",
+                "age": 41
+              },
+              "female": {
+                "animal_id": "E202",
+                "genotype": "CRE",
+                "sex": "F",
+                "age": 40
+              },
+              "age_difference": 1
+            },
+            {
+              "male": {
+                "animal_id": "E105",
+                "genotype": "WT",
+                "sex": "M",
+                "age": 44
+              },
+              "female": {
+                "animal_id": "E106",
+                "genotype": "WT",
+                "sex": "F",
+                "age": 43
+              },
+              "age_difference": 1
+            },
+            {
+              "male": {
+                "animal_id": "E101",
+                "genotype": "WT",
+                "sex": "M",
+                "age": 45
+              },
+              "female": {
+                "animal_id": "E102",
+                "genotype": "WT",
+                "sex": "F",
+                "age": 42
+              },
+              "age_difference": 3
+            },
+            {
+              "male": {
+                "animal_id": "E107",
+                "genotype": "KO",
+                "sex": "M",
+                "age": 47
+              },
+              "female": {
+                "animal_id": "E104",
+                "genotype": "KO",
+                "sex": "F",
+                "age": 46
+              },
+              "age_difference": 1
+            },
+            {
+              "male": {
+                "animal_id": "E103",
+                "genotype": "KO",
+                "sex": "M",
+                "age": 48
+              },
+              "female": {
+                "animal_id": "E108",
+                "genotype": "KO",
+                "sex": "F",
+                "age": 45
+              },
+              "age_difference": 3
+            },
+            {
+              "male": {
+                "animal_id": "E301",
+                "genotype": "WT",
+                "sex": "M",
+                "age": 50
+              },
+              "female": {
+                "animal_id": "E302",
+                "genotype": "WT",
+                "sex": "F",
+                "age": 52
+              },
+              "age_difference": 2
+            }
+          ],
+          "unpaired": [],
+          "total_pairs": 7,
+          "total_unpaired": 0,
+          "summary": "Total animals: 14 | Genotypes: {'CRE': 4, 'KO': 4, 'WT': 6} | Sex: {'F': 7, 'M': 7} | Group sizes: {1: 7, 2: 7}"
+        }
+      }
+    },
+    {
+      "id": "breeding",
+      "passed": true,
+      "detail": {
+        "direct_pairs": [
+          {
+            "Male": "B101",
+            "Female": "B402",
+            "Male_Sheet": "Sheet1",
+            "Female_Sheet": "Sheet2",
+            "Probability": 25,
+            "Same_Strain": false,
+            "Breeder_Genotypes": {
+              "Male": {
+                "cre": "+/-",
+                "reporter": "+/-"
+              },
+              "Female": {
+                "cre": "+/+",
+                "reporter": "+/+"
+              }
+            }
+          },
+          {
+            "Male": "B401",
+            "Female": "B102",
+            "Male_Sheet": "Sheet2",
+            "Female_Sheet": "Sheet1",
+            "Probability": 25,
+            "Same_Strain": false,
+            "Breeder_Genotypes": {
+              "Male": {
+                "cre": "+/+",
+                "reporter": "+/+"
+              },
+              "Female": {
+                "cre": "+/-",
+                "reporter": "+/-"
+              }
+            }
+          },
+          {
+            "Male": "B101",
+            "Female": "B102",
+            "Male_Sheet": "Sheet1",
+            "Female_Sheet": "Sheet1",
+            "Probability": 12.5,
+            "Same_Strain": true,
+            "Breeder_Genotypes": {
+              "Male": {
+                "cre": "+/-",
+                "reporter": "+/-"
+              },
+              "Female": {
+                "cre": "+/-",
+                "reporter": "+/-"
+              }
+            }
+          },
+          {
+            "Male": "B101",
+            "Female": "B202",
+            "Male_Sheet": "Sheet1",
+            "Female_Sheet": "Sheet1",
+            "Probability": 12.5,
+            "Same_Strain": true,
+            "Breeder_Genotypes": {
+              "Male": {
+                "cre": "+/-",
+                "reporter": "+/-"
+              },
+              "Female": {
+                "cre": "+/+",
+                "reporter": "f/+"
+              }
+            }
+          },
+          {
+            "Male": "B201",
+            "Female": "B102",
+            "Male_Sheet": "Sheet1",
+            "Female_Sheet": "Sheet1",
+            "Probability": 12.5,
+            "Same_Strain": true,
+            "Breeder_Genotypes": {
+              "Male": {
+                "cre": "+/+",
+                "reporter": "f/+"
+              },
+              "Female": {
+                "cre": "+/-",
+                "reporter": "+/-"
+              }
+            }
+          },
+          {
+            "Male": "B101",
+            "Female": "B302",
+            "Male_Sheet": "Sheet1",
+            "Female_Sheet": "Sheet2",
+            "Probability": 6.25,
+            "Same_Strain": false,
+            "Breeder_Genotypes": {
+              "Male": {
+                "cre": "+/-",
+                "reporter": "+/-"
+              },
+              "Female": {
+                "cre": "f/+",
+                "reporter": "+/-"
+              }
+            }
+          },
+          {
+            "Male": "B301",
+            "Female": "B102",
+            "Male_Sheet": "Sheet2",
+            "Female_Sheet": "Sheet1",
+            "Probability": 6.25,
+            "Same_Strain": false,
+            "Breeder_Genotypes": {
+              "Male": {
+                "cre": "f/+",
+                "reporter": "+/-"
+              },
+              "Female": {
+                "cre": "+/-",
+                "reporter": "+/-"
+              }
+            }
+          }
+        ],
+        "indirect_pairs": [
+          {
+            "Male": "B201",
+            "Female": "B402",
+            "Male_Sheet": "Sheet1",
+            "Female_Sheet": "Sheet2",
+            "Probability": 0,
+            "Same_Strain": false,
+            "Breeder_Genotypes": {
+              "Male": {
+                "cre": "+/+",
+                "reporter": "f/+"
+              },
+              "Female": {
+                "cre": "+/+",
+                "reporter": "+/+"
+              }
+            },
+            "Similarity": 50
+          },
+          {
+            "Male": "B301",
+            "Female": "B402",
+            "Male_Sheet": "Sheet2",
+            "Female_Sheet": "Sheet2",
+            "Probability": 0,
+            "Same_Strain": false,
+            "Breeder_Genotypes": {
+              "Male": {
+                "cre": "f/+",
+                "reporter": "+/-"
+              },
+              "Female": {
+                "cre": "+/+",
+                "reporter": "+/+"
+              }
+            },
+            "Similarity": 50
+          },
+          {
+            "Male": "B401",
+            "Female": "B202",
+            "Male_Sheet": "Sheet2",
+            "Female_Sheet": "Sheet1",
+            "Probability": 0,
+            "Same_Strain": false,
+            "Breeder_Genotypes": {
+              "Male": {
+                "cre": "+/+",
+                "reporter": "+/+"
+              },
+              "Female": {
+                "cre": "+/+",
+                "reporter": "f/+"
+              }
+            },
+            "Similarity": 50
+          },
+          {
+            "Male": "B401",
+            "Female": "B302",
+            "Male_Sheet": "Sheet2",
+            "Female_Sheet": "Sheet2",
+            "Probability": 0,
+            "Same_Strain": false,
+            "Breeder_Genotypes": {
+              "Male": {
+                "cre": "+/+",
+                "reporter": "+/+"
+              },
+              "Female": {
+                "cre": "f/+",
+                "reporter": "+/-"
+              }
+            },
+            "Similarity": 50
+          },
+          {
+            "Male": "B401",
+            "Female": "B402",
+            "Male_Sheet": "Sheet2",
+            "Female_Sheet": "Sheet2",
+            "Probability": 0,
+            "Same_Strain": true,
+            "Breeder_Genotypes": {
+              "Male": {
+                "cre": "+/+",
+                "reporter": "+/+"
+              },
+              "Female": {
+                "cre": "+/+",
+                "reporter": "+/+"
+              }
+            },
+            "Similarity": 50
+          },
+          {
+            "Male": "B201",
+            "Female": "B202",
+            "Male_Sheet": "Sheet1",
+            "Female_Sheet": "Sheet1",
+            "Probability": 0,
+            "Same_Strain": true,
+            "Breeder_Genotypes": {
+              "Male": {
+                "cre": "+/+",
+                "reporter": "f/+"
+              },
+              "Female": {
+                "cre": "+/+",
+                "reporter": "f/+"
+              }
+            },
+            "Similarity": 43.75
+          },
+          {
+            "Male": "B201",
+            "Female": "B302",
+            "Male_Sheet": "Sheet1",
+            "Female_Sheet": "Sheet2",
+            "Probability": 0,
+            "Same_Strain": false,
+            "Breeder_Genotypes": {
+              "Male": {
+                "cre": "+/+",
+                "reporter": "f/+"
+              },
+              "Female": {
+                "cre": "f/+",
+                "reporter": "+/-"
+              }
+            },
+            "Similarity": 43.75
+          },
+          {
+            "Male": "B301",
+            "Female": "B202",
+            "Male_Sheet": "Sheet2",
+            "Female_Sheet": "Sheet1",
+            "Probability": 0,
+            "Same_Strain": false,
+            "Breeder_Genotypes": {
+              "Male": {
+                "cre": "f/+",
+                "reporter": "+/-"
+              },
+              "Female": {
+                "cre": "+/+",
+                "reporter": "f/+"
+              }
+            },
+            "Similarity": 43.75
+          },
+          {
+            "Male": "B301",
+            "Female": "B302",
+            "Male_Sheet": "Sheet2",
+            "Female_Sheet": "Sheet2",
+            "Probability": 0,
+            "Same_Strain": true,
+            "Breeder_Genotypes": {
+              "Male": {
+                "cre": "f/+",
+                "reporter": "+/-"
+              },
+              "Female": {
+                "cre": "f/+",
+                "reporter": "+/-"
+              }
+            },
+            "Similarity": 37.5
+          }
+        ]
+      }
+    },
+    {
+      "id": "ymaze",
+      "passed": true,
+      "detail": {
+        "days": 5,
+        "rowsPerDay": [
+          6,
+          6,
+          6,
+          6,
+          6
+        ]
+      }
+    },
+    {
+      "id": "elisa-analysis",
+      "passed": true,
+      "detail": {
+        "samples": 24,
+        "standards": 8,
+        "blanks": 2,
+        "readerWells": 24,
+        "quantifiedSample": "S019"
+      }
+    },
+    {
+      "id": "qpcr-analysis",
+      "passed": true,
+      "detail": {
+        "frames": 6,
+        "sidebarButtons": [
+          {
+            "text": "keyboard_double_arrow_left",
+            "color": "rgb(23, 46, 53)",
+            "p": []
+          },
+          {
+            "text": "Start tutorial",
+            "color": "rgb(255, 253, 247)",
+            "p": [
+              "rgb(255, 255, 255)"
+            ]
+          },
+          {
+            "text": "Save settings",
+            "color": "rgb(23, 46, 53)",
+            "p": [
+              "rgb(88, 105, 113)"
+            ]
+          }
+        ],
+        "exportSectionPresent": true
+      }
+    },
+    {
+      "id": "labnotebook",
+      "passed": true,
+      "detail": {
+        "signInScreen": true,
+        "browserHandoff": "http://127.0.0.1:8030/",
+        "normalBrowserRemovesEmbeddedWarning": true,
+        "googleAuth": {
+          "status": "Not retried: known Google origin_mismatch requires owner configuration",
+          "origin": "http://127.0.0.1:8030"
+        },
+        "signedInWorkflows": "Not tested: user-controlled Google login/permissions required. No credentials, account data or Drive writes used."
+      }
+    }
+  ],
+  "errors": [],
+  "suiteSourceCommit": "61be06ecb4edcb55bf2bc05b5a50f4b0e3e3cd6a",
+  "asarSha256": "44bc56775b2d553f2e857ecaaa4f2277f1d4d0696fe2ebafc7d7b51b8510767f",
+  "knownBlockers": [
+    "Notebook Google authorization: Error 400 origin_mismatch for http://127.0.0.1:8030. Existing authorized local origin required; sign-in/edit/sync/export remain unverified."
+  ]
+}

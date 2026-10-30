@@ -1,0 +1,20 @@
+{
+  "results": [
+    {
+      "id": "qpcr-planner",
+      "width": 780,
+      "pageOverflow": false,
+      "sampleNumberColumn": true
+    },
+    {
+      "id": "labnotebook",
+      "width": 780,
+      "pageOverflow": false,
+      "headerOverflow": false,
+      "browserButton": true
+    }
+  ],
+  "errors": [],
+  "suiteSourceCommit": "61be06ecb4edcb55bf2bc05b5a50f4b0e3e3cd6a",
+  "asarSha256": "44bc56775b2d553f2e857ecaaa4f2277f1d4d0696fe2ebafc7d7b51b8510767f"
+}
