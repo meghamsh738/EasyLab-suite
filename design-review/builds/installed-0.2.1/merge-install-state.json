@@ -1,0 +1,57 @@
+{
+  "date": "2026-10-30",
+  "authorization": "User explicitly approved merging changes and replacing installed EasyLab Suite with 0.2.1.",
+  "phase": "Merges, installed-app replacement and installed native checks complete; final records pending",
+  "repositories": [
+    {
+      "id": "suite",
+      "path": "/Volumes/Coding Projects/Active/easylab-suite",
+      "branch": "codex/suite-integration-0.2.1",
+      "approvedHead": "99dfe7533cea924f2465777dc2110d7a1e7aa062",
+      "previousMain": "391ac3d82b0c08357d2cf542286d1bd2c63a1294",
+      "previousLocalMain": "2b631b5f2ee2faa1b7384c4d1631ada8d5dcfcb0",
+      "ahead": 11,
+      "mergedMain": "99dfe7533cea924f2465777dc2110d7a1e7aa062",
+      "mergeMethod": "fast-forward; reviewed commits retained unchanged"
+    },
+    {
+      "id": "qpcr",
+      "path": "/Volumes/Coding Projects/Active/easylab-modules/qpcr-planner",
+      "branch": "codex/qpcr-integration-0.2.1",
+      "approvedHead": "e200649a2174a2c0001f7ed03e0ab84102e827b8",
+      "previousMain": "eb54615a2bd93b5f7fc0abcb1b3f76a6bc08174e",
+      "previousLocalMain": null,
+      "ahead": 3,
+      "mergedMain": "e200649a2174a2c0001f7ed03e0ab84102e827b8",
+      "mergeMethod": "fast-forward; reviewed commits retained unchanged"
+    },
+    {
+      "id": "cdna",
+      "path": "/Volumes/Coding Projects/Archive/Source-Projects/cdna-calculations",
+      "branch": "codex/fix-example-samples",
+      "approvedHead": "6c25e0bca24553c6e3d4b9e424278b70fd5d0481",
+      "previousMain": "48a3b615047a27c47751eb2bdc4498cd0c6546f6",
+      "previousLocalMain": null,
+      "ahead": 3,
+      "mergedMain": "6c25e0bca24553c6e3d4b9e424278b70fd5d0481",
+      "mergeMethod": "fast-forward; reviewed commits retained unchanged"
+    }
+  ],
+  "installation": {
+    "path": "/Users/meghamsh/Applications/Easylab Suite.app",
+    "version": "0.2.1",
+    "previousVersion": "0.2.0",
+    "rollback": "/Users/meghamsh/Documents/Codex/2026-09-30/i-wa/work/integration-2026-10-30/Archive/Easylab Suite-0.2.0-installed-rollback.app",
+    "rollbackAsarSha256": "9969a5fd76846fe9361487c740a8777020503fe19779754e9a63ca0a4b8e66a1",
+    "asarSha256": "44bc56775b2d553f2e857ecaaa4f2277f1d4d0696fe2ebafc7d7b51b8510767f",
+    "signatures": "Installed and rollback bundles verified",
+    "nativeCheck": "Passed installed launcher, qPCR both primer sources/duplicate metadata/TSV, cDNA CSV/XLSX save/reopen and repeat-file protection, Notebook entry/browser route. No page errors.",
+    "postLaunchSignature": "Installed and rollback signatures valid; installed ASAR unchanged; all eight module digests and 27 source/renderer files verified against merged source."
+  },
+  "previousCurrentHashes": {
+    "release-review.md": "83cab75f3f5dccb653f82680fcf4c12bae4f00b8acd66a7d9f15d9e17c76f65b",
+    "candidate-manifest.json": "92f21d35d84170635cc7ba975aac9c2c06d449652713764a3335c5ed029e70ec",
+    "pull-request-drafts.md": "924270e7a5abe3f98c6284675458c91ad0cf94221bcb5abb0c8b7ff3d5a6014b",
+    "Open EasyLab Preview.command": "02fdaad2391b84773efb08827a290dce15e518ce6123144c8f16d6fcdeb1fb90"
+  }
+}

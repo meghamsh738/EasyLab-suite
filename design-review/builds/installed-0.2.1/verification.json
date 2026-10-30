@@ -1,0 +1,277 @@
+{
+  "runtime": {
+    "version": "0.2.1",
+    "packaged": true,
+    "appPath": "/Users/meghamsh/Applications/Easylab Suite.app/Contents/Resources/app.asar",
+    "userData": "/Users/meghamsh/Documents/Codex/2026-09-30/i-wa/work/integration-2026-10-30/installed-qa/profile",
+    "dataRoot": "/Users/meghamsh/Documents/Codex/2026-09-30/i-wa/work/integration-2026-10-30/installed-qa/data"
+  },
+  "results": [
+    {
+      "id": "qpcr-planner",
+      "passed": true,
+      "detail": {
+        "reloadNavigation": true,
+        "cancelledLeavePreservesInputs": true,
+        "summaries": [
+          {
+            "source": "working",
+            "concentration": 10,
+            "mix": [
+              {
+                "Gene": "Tnf",
+                "Chemistry": "TaqMan",
+                "placed_reactions": 3,
+                "mix_factor": 1,
+                "mix_equiv_rxn": 3,
+                "master_mix_2x": 22.5,
+                "rna_free_h2o": 13.799999999999999,
+                "probe_10uM": 0.8999999999999999,
+                "primer_concentration_uM": 10,
+                "fwd_primer_ul": 0.8999999999999999,
+                "rev_primer_ul": 0.8999999999999999
+              },
+              {
+                "Gene": "Ccl2",
+                "Chemistry": "SYBR",
+                "placed_reactions": 3,
+                "mix_factor": 1,
+                "mix_equiv_rxn": 3,
+                "master_mix_2x": 22.5,
+                "rna_free_h2o": 14.700000000000001,
+                "probe_10uM": 0,
+                "primer_concentration_uM": 10,
+                "fwd_primer_ul": 0.8999999999999999,
+                "rev_primer_ul": 0.8999999999999999
+              },
+              {
+                "Gene": "Il1b",
+                "Chemistry": "SYBR",
+                "placed_reactions": 3,
+                "mix_factor": 1,
+                "mix_equiv_rxn": 3,
+                "master_mix_2x": 22.5,
+                "rna_free_h2o": 14.700000000000001,
+                "probe_10uM": 0,
+                "primer_concentration_uM": 10,
+                "fwd_primer_ul": 0.8999999999999999,
+                "rev_primer_ul": 0.8999999999999999
+              },
+              {
+                "Gene": "Gapdh",
+                "Chemistry": "SYBR",
+                "placed_reactions": 3,
+                "mix_factor": 1,
+                "mix_equiv_rxn": 3,
+                "master_mix_2x": 22.5,
+                "rna_free_h2o": 14.700000000000001,
+                "probe_10uM": 0,
+                "primer_concentration_uM": 10,
+                "fwd_primer_ul": 0.8999999999999999,
+                "rev_primer_ul": 0.8999999999999999
+              }
+            ]
+          },
+          {
+            "source": "stock",
+            "concentration": 100,
+            "mix": [
+              {
+                "Gene": "Tnf",
+                "Chemistry": "TaqMan",
+                "placed_reactions": 3,
+                "mix_factor": 1,
+                "mix_equiv_rxn": 3,
+                "master_mix_2x": 22.5,
+                "rna_free_h2o": 15.419999999999996,
+                "probe_10uM": 0.8999999999999999,
+                "primer_concentration_uM": 100,
+                "fwd_primer_ul": 0.09,
+                "rev_primer_ul": 0.09
+              },
+              {
+                "Gene": "Ccl2",
+                "Chemistry": "SYBR",
+                "placed_reactions": 3,
+                "mix_factor": 1,
+                "mix_equiv_rxn": 3,
+                "master_mix_2x": 22.5,
+                "rna_free_h2o": 16.32,
+                "probe_10uM": 0,
+                "primer_concentration_uM": 100,
+                "fwd_primer_ul": 0.09,
+                "rev_primer_ul": 0.09
+              },
+              {
+                "Gene": "Il1b",
+                "Chemistry": "SYBR",
+                "placed_reactions": 3,
+                "mix_factor": 1,
+                "mix_equiv_rxn": 3,
+                "master_mix_2x": 22.5,
+                "rna_free_h2o": 16.32,
+                "probe_10uM": 0,
+                "primer_concentration_uM": 100,
+                "fwd_primer_ul": 0.09,
+                "rev_primer_ul": 0.09
+              },
+              {
+                "Gene": "Gapdh",
+                "Chemistry": "SYBR",
+                "placed_reactions": 3,
+                "mix_factor": 1,
+                "mix_equiv_rxn": 3,
+                "master_mix_2x": 22.5,
+                "rna_free_h2o": 16.32,
+                "probe_10uM": 0,
+                "primer_concentration_uM": 100,
+                "fwd_primer_ul": 0.09,
+                "rev_primer_ul": 0.09
+              }
+            ]
+          }
+        ],
+        "repeatedPlans": [
+          {
+            "source": "working",
+            "sampleWells": 24
+          },
+          {
+            "source": "stock",
+            "sampleWells": 24
+          }
+        ],
+        "copiedSampleNumbers": [
+          "1",
+          "1",
+          "2",
+          "2",
+          "3",
+          "3"
+        ]
+      }
+    },
+    {
+      "id": "cdna",
+      "passed": true,
+      "detail": {
+        "rows": [
+          {
+            "_order": 0,
+            "Sample": "Sample1",
+            "RNA Conc (ng/\u00b5l)": 178.2,
+            "RNA Volume (\u00b5l)": 1.122,
+            "10x buffer": 2,
+            "dNTPs": 0.8,
+            "Random primers": 2,
+            "Enzyme": 1,
+            "H2O (\u00b5l)": 13.078,
+            "final volume (\u00b5l)": 20,
+            "Achievable RNA (ng)": 200,
+            "Note": ""
+          },
+          {
+            "_order": 1,
+            "Sample": "Sample2",
+            "RNA Conc (ng/\u00b5l)": 129.9,
+            "RNA Volume (\u00b5l)": 1.54,
+            "10x buffer": 2,
+            "dNTPs": 0.8,
+            "Random primers": 2,
+            "Enzyme": 1,
+            "H2O (\u00b5l)": 12.66,
+            "final volume (\u00b5l)": 20,
+            "Achievable RNA (ng)": 200,
+            "Note": ""
+          },
+          {
+            "_order": 2,
+            "Sample": "Sample3",
+            "RNA Conc (ng/\u00b5l)": 59.2,
+            "RNA Volume (\u00b5l)": 3.378,
+            "10x buffer": 2,
+            "dNTPs": 0.8,
+            "Random primers": 2,
+            "Enzyme": 1,
+            "H2O (\u00b5l)": 10.822,
+            "final volume (\u00b5l)": 20,
+            "Achievable RNA (ng)": 200,
+            "Note": ""
+          },
+          {
+            "_order": 1000000000,
+            "Sample": "MASTER MIX (10% overage) \u2014 4 rxns",
+            "RNA Conc (ng/\u00b5l)": "",
+            "RNA Volume (\u00b5l)": "",
+            "10x buffer": 8,
+            "dNTPs": 3.2,
+            "Random primers": 8,
+            "Enzyme": 4,
+            "H2O (\u00b5l)": "",
+            "final volume (\u00b5l)": "",
+            "Achievable RNA (ng)": "",
+            "Note": "Make in one tube; covers 3 samples + 10% overage."
+          }
+        ],
+        "master_mix": {
+          "n_samples": 3,
+          "n_total": 4,
+          "10x buffer": 8,
+          "dNTPs": 3.2,
+          "Random primers": 8,
+          "Enzyme": 4
+        },
+        "settings": {
+          "target_ng": 200,
+          "overage_pct": 10
+        },
+        "downloads": [
+          {
+            "state": "completed",
+            "path": "/Users/meghamsh/Documents/Codex/2026-09-30/i-wa/work/integration-2026-10-30/installed-qa/data/cDNA/exports/cdna_mix.csv",
+            "filename": "cdna_mix.csv"
+          },
+          {
+            "state": "completed",
+            "path": "/Users/meghamsh/Documents/Codex/2026-09-30/i-wa/work/integration-2026-10-30/installed-qa/data/cDNA/exports/cdna_mix (1).csv",
+            "filename": "cdna_mix.csv"
+          },
+          {
+            "state": "completed",
+            "path": "/Users/meghamsh/Documents/Codex/2026-09-30/i-wa/work/integration-2026-10-30/installed-qa/data/cDNA/exports/cdna_mix.xlsx",
+            "filename": "cdna_mix.xlsx"
+          }
+        ],
+        "workbook": {
+          "sheets": [
+            "RT Mix"
+          ],
+          "samples": [
+            "Sample1",
+            "Sample2",
+            "Sample3"
+          ]
+        },
+        "repeatedCsvPreserved": true
+      }
+    },
+    {
+      "id": "labnotebook",
+      "passed": true,
+      "detail": {
+        "signInScreen": true,
+        "browserHandoff": "http://127.0.0.1:8030/",
+        "normalBrowserRemovesEmbeddedWarning": true,
+        "googleAuth": {
+          "status": "Not retried: known Google origin_mismatch requires owner configuration",
+          "origin": "http://127.0.0.1:8030"
+        },
+        "signedInWorkflows": "Not tested: user-controlled Google login/permissions required. No credentials, account data or Drive writes used."
+      }
+    }
+  ],
+  "errors": [],
+  "installedAsarSha256": "44bc56775b2d553f2e857ecaaa4f2277f1d4d0696fe2ebafc7d7b51b8510767f",
+  "mergedSuiteCommit": "99dfe7533cea924f2465777dc2110d7a1e7aa062",
+  "scope": "Installed-app smoke test: launcher, qPCR stock/working/duplicates/TSV, cDNA CSV/XLSX save/reopen, Notebook entry/browser route; Google authorization not retried."
+}

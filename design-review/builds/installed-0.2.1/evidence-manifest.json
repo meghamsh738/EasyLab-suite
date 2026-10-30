@@ -1,0 +1,13 @@
+{
+  "date": "2026-10-30",
+  "installedVersion": "0.2.1",
+  "mergedSuiteCode": "99dfe7533cea924f2465777dc2110d7a1e7aa062",
+  "packagedCode": "61be06ecb4edcb55bf2bc05b5a50f4b0e3e3cd6a",
+  "files": {
+    "merge-install-state.json": "fa6508ad2a0995d2de239208a769bcba52dbb1a135bb23028e24b580c450be84",
+    "launcher.png": "04282a33da32a9ab8c252e296e9464e8fd11aac7a42c5c9fa4f338865ed985ed",
+    "artifact-verification.json": "5bff4a52a88687729c151ee60da10f643833ea51397fceea41952fc665faf9f3",
+    "qpcr-repeated-sample-output.png": "8afb25c8254de53ad0ff0e39d397ab3f0304608c1b8ca984b1dbb3ac210fe2b6",
+    "verification.json": "75e3e425af937cdc35ca1bcc166d9bc5db6bcf1ced0e96f2658622a92cc8e691"
+  }
+}
