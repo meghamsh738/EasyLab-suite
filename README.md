@@ -2,11 +2,13 @@
 
 Easylab Suite is an Electron desktop launcher for the Easylab lab workflow apps, with Windows packaging and a locally verified macOS build. It packages Lab Notebook, reagent calculators, qPCR/ELISA tools, animal workflow helpers, and local phone-message intake into one app.
 
-Calculators and analysis tools run locally. The bundled Lab Notebook signs in through Google and syncs through the user's Drive, with offline copies after sign-in. Its existing Google sign-in restriction inside Electron remains; signed-in Notebook workflows are not part of the 0.2.0 verification.
+Calculators and analysis tools run locally. The bundled Lab Notebook signs in through Google and syncs through the user's Drive, with offline copies after sign-in. Google authentication runs in a supported normal browser: open Lab Notebook and choose **Open in browser** in the Suite header, then keep Suite running while using the notebook. The browser origin is `http://127.0.0.1:8030`; it must be an authorized JavaScript origin for the configured Google Web application client. This uses the Notebook's existing browser client and does not bypass Google's embedded-browser restriction. Real account login, editing, sync and export require a separate user-controlled check.
+
+The **0.2.1 integration candidate** combines the existing UI refresh and calculator fixes. qPCR's table and copied TSV now include **Sample #**, the position in the input sample list, so repeated labels keep separate identities. The 100 µM stock and 10 µM working choices retain the existing primer dose. Builds verify all eight pinned source revisions, require clean source trees, rebuild frontend assets, and record bundled-file hashes in `apps/module-sources.json`.
 
 Version 0.2.0 introduces a compact tool library with combined search/category filters, a shared module switcher, and a confirmation before leaving edited work. A Suite-scoped theme gives all eight modules consistent teal navigation, white work panels, readable controls, and responsive layouts. Module-specific field names, calculations, and data-driven plate colours are retained. The cDNA example-data loader is fixed in source commit `6c25e0b` of [cDNA-calculations-app](https://github.com/meghamsh738/cDNA-calculations-app/commit/6c25e0b).
 
-Current screenshots and verification: [Lab workspace 0.2.0 build record](docs/BUILD_INDEX.md). Screenshots below predate this refresh and remain as historical feature references.
+Current candidate status and earlier 0.2.0 verification: [build records](docs/BUILD_INDEX.md). Screenshots below predate this refresh and remain as historical feature references.
 
 ## Screenshots
 
@@ -148,22 +150,27 @@ git clone https://github.com/meghamsh738/EasyLab-suite.git
 cd EasyLab-suite
 npm install
 npm --prefix web install
+# Configure .env.4tb with the exact source checkout paths described below.
 npm run build:electron
 ```
 
 The installer is generated under:
 
 ```text
-desktop/dist/Easylab Suite Setup 0.1.18.exe
+desktop/dist/Easylab Suite Setup <version>.exe
 ```
 
 ## Build Requirements
 
-- Node.js 20+ for build/development.
+- Node.js 24 LTS is the checked build/test runtime.
 - Python 3.10+ for FastAPI/Streamlit modules during development.
 - Optional bundled Python runtime for fully offline Windows installs.
 
-The suite expects the source apps to live next to this repository:
+Release builds use the explicit source paths in the ignored `.env.4tb` file and the full revisions pinned in [`config/suite-modules.json`](config/suite-modules.json). Follow [`docs/4TB-SOURCE-MANIFEST.md`](docs/4TB-SOURCE-MANIFEST.md); checkout each source revision before building. The npm preflight and sync commands load `.env.4tb` automatically. `EASYLAB_GIT_BINARY` may select an existing Git executable if needed.
+
+`npm run sync:apps` now rebuilds the modules and writes the source/hash receipt. `npm run preflight:modules:artifacts` checks the receipt as well as the source revisions. It fails if a source is missing, has edits, is at another revision, or if generated bundled files changed. Direct strict sync without `--build` is rejected to avoid recording stale assets.
+
+The old neighbouring-folder hints below are only for non-strict local discovery; they are never selected by a release build:
 
 ```text
 /mnt/e/coding projects/

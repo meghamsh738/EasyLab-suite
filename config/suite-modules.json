@@ -1,70 +1,108 @@
 {
   "schemaVersion": 1,
-  "generatedOn": "2026-02-18",
+  "generatedOn": "2026-10-30",
   "modules": [
     {
       "id": "labnotebook",
       "name": "Lab Notebook",
       "runtimeType": "static",
       "sourceEnv": "EASYLAB_LABNOTE_PATH",
-      "sourceHints": ["lab note taking app", "lab-note-taking-app"],
-      "targetDir": "apps/labnotebook"
+      "sourceHints": [
+        "lab note taking app",
+        "lab-note-taking-app"
+      ],
+      "targetDir": "apps/labnotebook",
+      "sourceRevision": "70dc8718c356565e8b4fcf320a054c5dd41a0f6c",
+      "repository": "https://github.com/meghamsh738/labnotebook-app"
     },
     {
       "id": "cdna",
       "name": "cDNA Calculator",
       "runtimeType": "fastapi",
       "sourceEnv": "EASYLAB_CDNA_PATH",
-      "sourceHints": ["cDNA-calculations-app", "cdna-calculations-app"],
-      "targetDir": "apps/cdna"
+      "sourceHints": [
+        "cDNA-calculations-app",
+        "cdna-calculations-app"
+      ],
+      "targetDir": "apps/cdna",
+      "sourceRevision": "6c25e0bca24553c6e3d4b9e424278b70fd5d0481",
+      "repository": "https://github.com/meghamsh738/cDNA-calculations-app"
     },
     {
       "id": "qpcr-planner",
       "name": "qPCR Planner",
       "runtimeType": "fastapi",
       "sourceEnv": "EASYLAB_QPCR_PLANNER_PATH",
-      "sourceHints": ["qPCR-calculations-app", "qpcr-calculations-app", "qpcr-calculations-app-git"],
-      "targetDir": "apps/qpcr-planner"
+      "sourceHints": [
+        "qPCR-calculations-app",
+        "qpcr-calculations-app",
+        "qpcr-calculations-app-git"
+      ],
+      "targetDir": "apps/qpcr-planner",
+      "sourceRevision": "e200649a2174a2c0001f7ed03e0ab84102e827b8",
+      "repository": "https://github.com/meghamsh738/qPCR-calculations-app"
     },
     {
       "id": "qpcr-analysis",
       "name": "qPCR Analysis",
       "runtimeType": "streamlit",
       "sourceEnv": "EASYLAB_QPCR_ANALYSIS_PATH",
-      "sourceHints": ["qPCR-analysis-app", "qpcr-analysis-app"],
-      "targetDir": "apps/qpcr-analysis"
+      "sourceHints": [
+        "qPCR-analysis-app",
+        "qpcr-analysis-app"
+      ],
+      "targetDir": "apps/qpcr-analysis",
+      "sourceRevision": "f897b56078bd370a82c0997e7440e129831dbb27",
+      "repository": "https://github.com/meghamsh738/qPCR-analysis-app"
     },
     {
       "id": "elisa-analysis",
       "name": "ELISA Analysis",
       "runtimeType": "static",
       "sourceEnv": "EASYLAB_ELISA_ANALYSIS_PATH",
-      "sourceHints": ["elisa-analysis-app", "ELISA-analysis-app"],
-      "targetDir": "apps/elisa-analysis"
+      "sourceHints": [
+        "elisa-analysis-app",
+        "ELISA-analysis-app"
+      ],
+      "targetDir": "apps/elisa-analysis",
+      "sourceRevision": "4c5cf24b721d495ea7c6a0603273c8944403ec39",
+      "repository": "https://github.com/meghamsh738/ELISA-analysis-app"
     },
     {
       "id": "animal-pairing",
       "name": "Animal Pairing",
       "runtimeType": "fastapi",
       "sourceEnv": "EASYLAB_ANIMAL_PAIRING_PATH",
-      "sourceHints": ["Experiment-pairing-app"],
-      "targetDir": "apps/animal-pairing"
+      "sourceHints": [
+        "Experiment-pairing-app"
+      ],
+      "targetDir": "apps/animal-pairing",
+      "sourceRevision": "f119042c3875e5f5655fe1a79dbe186106876d10",
+      "repository": "https://github.com/meghamsh738/Experiment-pairing-app"
     },
     {
       "id": "breeding",
       "name": "Breeding Pair Selector",
       "runtimeType": "fastapi",
       "sourceEnv": "EASYLAB_BREEDING_PATH",
-      "sourceHints": ["Mice-breeding-pair-selector"],
-      "targetDir": "apps/breeding"
+      "sourceHints": [
+        "Mice-breeding-pair-selector"
+      ],
+      "targetDir": "apps/breeding",
+      "sourceRevision": "bd27cca8ef8bfba9ea0247c30a50679a7b8d8605",
+      "repository": "https://github.com/meghamsh738/Mice-breeding-pair-selector"
     },
     {
       "id": "ymaze",
       "name": "Y-Maze Randomizer",
       "runtimeType": "fastapi",
       "sourceEnv": "EASYLAB_YMAZE_PATH",
-      "sourceHints": ["Y-maze-randomizer"],
-      "targetDir": "apps/ymaze"
+      "sourceHints": [
+        "Y-maze-randomizer"
+      ],
+      "targetDir": "apps/ymaze",
+      "sourceRevision": "7f87274a9b39d320fc42e6523f5b740edabd4e50",
+      "repository": "https://github.com/meghamsh738/Y-maze-randomizer"
     }
   ]
 }

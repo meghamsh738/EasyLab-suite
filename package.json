@@ -1,6 +1,6 @@
 {
   "name": "easylab-suite",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Easylab Suite launcher for lab notebook, cDNA, qPCR planning, and analysis",
   "author": "Meghamsh Teja",
   "private": true,
@@ -10,13 +10,15 @@
     "build": "npm --prefix web run build",
     "lint": "npm --prefix web run lint",
     "test:e2e": "npm --prefix web run test:e2e",
+    "test:module-sources": "node --test scripts/module-sources.test.mjs",
+    "test:notebook-browser": "node --test scripts/notebook-browser.test.cjs",
     "screenshots": "npm --prefix web run test:e2e",
     "icons": "node desktop/scripts/generate-icons.mjs && node desktop/scripts/generate-module-icons.mjs",
-    "preflight:modules": "node scripts/preflight-modules.mjs --strict",
-    "preflight:modules:artifacts": "node scripts/preflight-modules.mjs --strict --require-artifacts",
-    "sync:apps": "node scripts/sync-apps.mjs --strict && npm run preflight:modules:artifacts",
+    "preflight:modules": "node --env-file-if-exists=.env.4tb scripts/preflight-modules.mjs --strict",
+    "preflight:modules:artifacts": "node --env-file-if-exists=.env.4tb scripts/preflight-modules.mjs --strict --require-artifacts",
+    "sync:apps": "node --env-file-if-exists=.env.4tb scripts/sync-apps.mjs --build --strict && npm run preflight:modules:artifacts",
     "dev:electron": "concurrently -k \"npm --prefix web run dev -- --host\" \"wait-on http://127.0.0.1:5178 && electron .\"",
-    "build:electron": "npm run preflight:modules && node scripts/sync-apps.mjs --build --strict && npm run preflight:modules:artifacts && npm --prefix web run build && npm run icons && electron-builder --win --x64"
+    "build:electron": "npm run preflight:modules && node --env-file-if-exists=.env.4tb scripts/sync-apps.mjs --build --strict && npm run preflight:modules:artifacts && npm --prefix web run build && npm run icons && electron-builder --win --x64"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",

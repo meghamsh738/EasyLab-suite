@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { inspectModuleSources, verifyModuleReceipt } from './module-sources.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const suiteRoot = path.resolve(__dirname, '..')
@@ -174,6 +175,16 @@ const sourceIssues = defaultSourceChecks.filter((m) => !m.ok)
 const iconIssues = iconChecks.filter((c) => !c.exists)
 
 const errors = []
+let sourceRevisionError = null
+let receiptError = null
+if (strict) {
+  try { inspectModuleSources(manifest) } catch (error) { sourceRevisionError = error.message }
+  if (sourceRevisionError) errors.push('pinned source verification failed')
+}
+if (requireArtifacts) {
+  try { verifyModuleReceipt(suiteRoot, manifest) } catch (error) { receiptError = error.message }
+  if (receiptError) errors.push('module build receipt failed')
+}
 if (mismatches.length) errors.push('manifest/surface mismatch')
 if (requireArtifacts && artifactIssues.length) errors.push('packaged apps missing artifacts')
 if (sourceIssues.length) errors.push('default source path resolution failed')
@@ -225,6 +236,9 @@ console.log('Suite icon assets:')
 for (const check of iconChecks) {
   console.log(`- ${check.relPath}: ${check.exists ? 'OK' : 'MISSING'}`)
 }
+console.log('')
+console.log(`Pinned source revisions: ${strict ? (sourceRevisionError || 'OK') : 'skipped (non-strict discovery)'}`)
+console.log(`Module build receipt: ${requireArtifacts ? (receiptError || 'OK') : 'skipped (artifacts not requested)'}`)
 
 if (errors.length) {
   console.log('')

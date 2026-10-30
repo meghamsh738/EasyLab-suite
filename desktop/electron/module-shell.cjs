@@ -36,7 +36,8 @@ function mountModuleShell({ moduleId, label, modules, theme }) {
     button:disabled, select:disabled { opacity: .65; cursor: wait; }
     .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
     .error { margin: 0; padding: 12px 28px; background: #fff1ed; color: #8b3026; border-bottom: 1px solid #e4b3ab; }
-    .error[hidden] { display: none; }
+    .error[hidden], .message[hidden], button[hidden], .browser-short { display: none; }
+    .message { margin: 0; padding: 10px 28px; background: #e8f4ef; color: #214f45; border-bottom: 1px solid #bbd8cc; }
     dialog { width: min(430px, calc(100vw - 36px)); border: 1px solid #d9e2e5; border-radius: 12px; padding: 26px; color: #172e35; background: #fff; box-shadow: 0 20px 80px #153b3b33; }
     dialog::backdrop { background: #142e3766; backdrop-filter: blur(3px); }
     dialog h2 { margin: 0 0 12px; font-size: 22px; font-weight: 600; }
@@ -45,7 +46,8 @@ function mountModuleShell({ moduleId, label, modules, theme }) {
     .leave { background: #16766b; color: #fff; border-color: #16766b; }
     @media (max-width: 760px) { header { padding: 0 16px; gap: 12px; } .brand { display: none; } .title { padding: 0; border: 0; font-size: 14px; font-weight: 600; } select { width: 160px; } }
     @media (max-width: 480px) { .identity { display: none; } .actions { width: 100%; justify-content: space-between; } select { width: min(220px, 65vw); } }
-    </style><header aria-label="Suite navigation"><div class="identity"><span class="brand">Easylab Suite</span><span class="title"></span></div><div class="actions"><label class="sr-only" for="tool-switcher">Switch tool</label><select id="tool-switcher"></select><button class="home" type="button">All tools</button></div></header><p class="error" role="alert" hidden></p><dialog aria-labelledby="leave-heading"><h2 id="leave-heading">Leave this tool?</h2><p>Changes in this tool may be lost. Export any results you want to keep before leaving.</p><div class="dialog-actions"><button class="stay" type="button">Keep working</button><button class="leave" type="button">Leave tool</button></div></dialog>`
+    @media (max-width: 600px) { .browser-long { display: none; } .browser-short { display: inline; } .actions:has(.browser:not([hidden])) select { width: 140px; } .actions:has(.browser:not([hidden])) button { font-size: 12px; padding: 7px 9px; } }
+    </style><header aria-label="Suite navigation"><div class="identity"><span class="brand">Easylab Suite</span><span class="title"></span></div><div class="actions"><label class="sr-only" for="tool-switcher">Switch tool</label><select id="tool-switcher"></select><button class="browser" type="button" aria-label="Open Notebook in browser" hidden><span class="browser-long">Open in browser</span><span class="browser-short">Browser</span></button><button class="home" type="button">All tools</button></div></header><p class="error" role="alert" hidden></p><p class="message" role="status" hidden></p><dialog aria-labelledby="leave-heading"><h2 id="leave-heading">Leave this tool?</h2><p>Changes in this tool may be lost. Export any results you want to keep before leaving.</p><div class="dialog-actions"><button class="stay" type="button">Keep working</button><button class="leave" type="button">Leave tool</button></div></dialog>`
   root.querySelector('.title').textContent = label
   const select = root.querySelector('select')
   for (const module of modules) {
@@ -56,8 +58,11 @@ function mountModuleShell({ moduleId, label, modules, theme }) {
   }
   select.value = moduleId
   const home = root.querySelector('.home')
+  const browserButton = root.querySelector('.browser')
+  browserButton.hidden = moduleId !== 'labnotebook' || typeof api.openNotebookInBrowser !== 'function'
   const dialog = root.querySelector('dialog')
   const error = root.querySelector('.error')
+  const message = root.querySelector('.message')
   let edited = false
   let busy = false
   let destination = null
@@ -99,12 +104,31 @@ function mountModuleShell({ moduleId, label, modules, theme }) {
     if (event.target instanceof HTMLElement && event.target.closest('input,textarea,select,[contenteditable="true"],button')) edited = true
   }
   for (const event of ['input', 'change', 'click']) document.addEventListener(event, markEdited, { signal: controller.signal })
+  const setBusy = value => {
+    busy = value
+    select.disabled = value
+    home.disabled = value
+    browserButton.disabled = value
+  }
+  browserButton.addEventListener('click', async () => {
+    if (busy) return
+    setBusy(true)
+    error.hidden = true
+    message.hidden = true
+    try {
+      await api.openNotebookInBrowser()
+      message.textContent = 'Notebook opened in your browser. Keep EasyLab Suite open while you work.'
+      message.hidden = false
+    } catch (reason) {
+      error.textContent = reason instanceof Error ? reason.message : 'The browser could not open. Please try again.'
+      error.hidden = false
+    } finally { setBusy(false) }
+  })
   const navigate = async target => {
     if (busy) return
-    busy = true
-    select.disabled = true
-    home.disabled = true
+    setBusy(true)
     error.hidden = true
+    message.hidden = true
     try {
       if (target === 'home') await api.returnToSuite()
       else await api.openModuleInSuite(target)
@@ -112,9 +136,7 @@ function mountModuleShell({ moduleId, label, modules, theme }) {
       error.textContent = reason instanceof Error ? reason.message : 'This tool could not open. Please try again.'
       error.hidden = false
     } finally {
-      busy = false
-      select.disabled = false
-      home.disabled = false
+      setBusy(false)
       select.value = moduleId
     }
   }

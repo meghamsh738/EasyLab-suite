@@ -78,3 +78,31 @@ test('plate colours follow module data despite older theme overrides', async ({ 
   await page.locator('.well-square').evaluate(el => { (el as HTMLElement).style.backgroundColor = 'rgb(31, 91, 255)' })
   await expect(page.locator('.well-label')).toHaveCSS('color', 'rgb(255, 255, 255)')
 })
+
+test('Notebook browser handoff preserves work, fits narrow windows and reports launch failures', async ({ page }) => {
+  const notebookScript = buildModuleShellOverlayScript('labnotebook', 'Lab Notebook', [{ id: 'labnotebook', label: 'Lab Notebook' }])
+  await page.evaluate(() => Object.assign(window, { electronAPI: {
+    returnToSuite: async () => {},
+    openNotebookInBrowser: async () => { document.documentElement.dataset.browserOpened = 'true'; return 'http://127.0.0.1:8030/' },
+  } }))
+  await page.evaluate(notebookScript)
+  await page.getByRole('textbox', { name: 'Sample' }).fill('Keep this note')
+  await page.getByRole('button', { name: 'Open Notebook in browser' }).click()
+  await expect(page.locator('html')).toHaveAttribute('data-browser-opened', 'true')
+  await expect(page.getByRole('status')).toHaveText('Notebook opened in your browser. Keep EasyLab Suite open while you work.')
+  await expect(page.getByRole('textbox', { name: 'Sample' })).toHaveValue('Keep this note')
+  await expect(page.getByRole('dialog')).not.toBeVisible()
+  await page.setViewportSize({ width: 390, height: 844 })
+  expect(await page.locator('#easylab-module-shell').evaluate(el => {
+    const header = el.shadowRoot!.querySelector('header')!
+    return header.scrollWidth <= header.clientWidth
+  })).toBe(true)
+  await page.evaluate(() => Object.assign(window, { electronAPI: {
+    returnToSuite: async () => {},
+    openNotebookInBrowser: async () => { throw new Error('Browser unavailable') },
+  } }))
+  await page.evaluate(notebookScript)
+  await page.getByRole('button', { name: 'Open Notebook in browser' }).click()
+  await expect(page.getByRole('alert')).toHaveText('Browser unavailable')
+  await expect(page.getByRole('button', { name: 'All tools', exact: true })).toBeEnabled()
+})

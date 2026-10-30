@@ -1,8 +1,9 @@
 import { cp, mkdir, rm, access, stat } from 'node:fs/promises'
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
+import { inspectModuleSources, writeModuleReceipt } from './module-sources.mjs'
 
 const args = new Set(process.argv.slice(2))
 const shouldBuild = args.has('--build')
@@ -321,6 +322,12 @@ const syncElisaAnalysis = async () => {
 }
 
 const main = async () => {
+  const manifest = JSON.parse(readFileSync(path.join(suiteRoot, 'config', 'suite-modules.json'), 'utf8'))
+  if (requireExplicitSources) {
+    if (!shouldBuild) throw new Error('Pinned source sync requires --build so stale frontend assets cannot be recorded as current.')
+    // Check every source before changing any generated module directory.
+    inspectModuleSources(manifest)
+  }
   await syncLabNotebook()
   await syncCdna()
   await syncQpcrPlanner()
@@ -341,6 +348,7 @@ const main = async () => {
     label: 'Y-Maze Randomizer',
     sourceCandidates: sourceCandidates.ymaze,
   })
+  if (requireExplicitSources) writeModuleReceipt(suiteRoot, manifest, inspectModuleSources(manifest))
   console.log('Easylab suite modules synced.')
 }
 

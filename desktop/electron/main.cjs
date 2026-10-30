@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron')
+const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron')
 const { spawn, spawnSync } = require('child_process')
 const crypto = require('crypto')
 const fs = require('fs')
@@ -8,6 +8,7 @@ const os = require('os')
 const path = require('path')
 const { pathToFileURL } = require('url')
 const { buildModuleShellOverlayScript } = require('./module-shell.cjs')
+const { notebookBrowserUrl } = require('./notebook-browser.cjs')
 
 const isDev = !app.isPackaged
 const hasAppSwitch = (name) => {
@@ -2190,6 +2191,16 @@ ipcMain.handle('open-module-in-suite', async (event, moduleId) => {
 ipcMain.handle('return-to-suite', (event) => {
   const win = BrowserWindow.fromWebContents(event.sender)
   return loadSuiteHome(win)
+})
+
+ipcMain.handle('open-notebook-in-browser', async (event) => {
+  const url = notebookBrowserUrl({
+    frameUrl: event.senderFrame?.url,
+    port: MODULES.labnotebook.webPort,
+    serverOwned: staticServers.has('labnotebook'),
+  })
+  await shell.openExternal(url)
+  return url
 })
 
 ipcMain.handle('select-directory', async (_event, options = {}) => {

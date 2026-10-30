@@ -15,6 +15,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   launchModule: (target) => ipcRenderer.invoke('launch-module', target),
   openModuleInSuite: (target) => ipcRenderer.invoke('open-module-in-suite', target),
   returnToSuite: () => ipcRenderer.invoke('return-to-suite'),
+  openNotebookInBrowser: () => ipcRenderer.invoke('open-notebook-in-browser'),
   prewarmModule: (target) => ipcRenderer.invoke('prewarm-module', target),
   prepareModuleLaunch: (target) => ipcRenderer.invoke('prepare-module-launch', target),
   getSuiteInfo: () => ipcRenderer.invoke('get-suite-info'),
