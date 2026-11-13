@@ -47,7 +47,7 @@ function mountModuleShell({ moduleId, label, modules, theme }) {
     @media (max-width: 760px) { header { padding: 0 16px; gap: 12px; } .brand { display: none; } .title { padding: 0; border: 0; font-size: 14px; font-weight: 600; } select { width: 160px; } }
     @media (max-width: 480px) { .identity { display: none; } .actions { width: 100%; justify-content: space-between; } select { width: min(220px, 65vw); } }
     @media (max-width: 600px) { .browser-long { display: none; } .browser-short { display: inline; } .actions:has(.browser:not([hidden])) select { width: 140px; } .actions:has(.browser:not([hidden])) button { font-size: 12px; padding: 7px 9px; } }
-    </style><header aria-label="Suite navigation"><div class="identity"><span class="brand">Easylab Suite</span><span class="title"></span></div><div class="actions"><label class="sr-only" for="tool-switcher">Switch tool</label><select id="tool-switcher"></select><button class="browser" type="button" aria-label="Open Notebook in browser" hidden><span class="browser-long">Open in browser</span><span class="browser-short">Browser</span></button><button class="home" type="button">All tools</button></div></header><p class="error" role="alert" hidden></p><p class="message" role="status" hidden></p><dialog aria-labelledby="leave-heading"><h2 id="leave-heading">Leave this tool?</h2><p>Changes in this tool may be lost. Export any results you want to keep before leaving.</p><div class="dialog-actions"><button class="stay" type="button">Keep working</button><button class="leave" type="button">Leave tool</button></div></dialog>`
+    </style><header aria-label="Suite navigation"><div class="identity"><span class="brand">Easylab Suite Next</span><span class="title"></span></div><div class="actions"><label class="sr-only" for="tool-switcher">Switch tool</label><select id="tool-switcher"></select><button class="browser" type="button" aria-label="Open Notebook in browser" hidden><span class="browser-long">Open in browser</span><span class="browser-short">Browser</span></button><button class="home" type="button">All tools</button></div></header><p class="error" role="alert" hidden></p><p class="message" role="status" hidden></p><dialog aria-labelledby="leave-heading"><h2 id="leave-heading">Leave this tool?</h2><p>Changes in this tool may be lost. Export any results you want to keep before leaving.</p><div class="dialog-actions"><button class="stay" type="button">Keep working</button><button class="leave" type="button">Leave tool</button></div></dialog>`
   root.querySelector('.title').textContent = label
   const select = root.querySelector('select')
   for (const module of modules) {
@@ -117,7 +117,7 @@ function mountModuleShell({ moduleId, label, modules, theme }) {
     message.hidden = true
     try {
       await api.openNotebookInBrowser()
-      message.textContent = 'Notebook opened in your browser. Keep EasyLab Suite open while you work.'
+      message.textContent = 'Notebook opened in your browser. Keep Easylab Suite Next open while you work.'
       message.hidden = false
     } catch (reason) {
       error.textContent = reason instanceof Error ? reason.message : 'The browser could not open. Please try again.'

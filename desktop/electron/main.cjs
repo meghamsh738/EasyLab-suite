@@ -3,14 +3,33 @@ const { spawn, spawnSync } = require('child_process')
 const crypto = require('crypto')
 const fs = require('fs')
 const http = require('http')
-const net = require('net')
 const os = require('os')
 const path = require('path')
 const { pathToFileURL } = require('url')
 const { buildModuleShellOverlayScript } = require('./module-shell.cjs')
 const { notebookBrowserUrl } = require('./notebook-browser.cjs')
+const {
+  MODULE_DEV_PORTS,
+  SUITE_DEV_PORT,
+  assertModuleArtifacts,
+  assertIsolatedFilePath,
+  assertNoSymlinkPathComponents,
+  assertSafePythonEnvironment,
+  buildModuleEnvironment,
+  ensureRuntimeLayout,
+  isOwnedBackendProcess,
+  isOwnedStaticServer,
+  isListenerOwnedByProcess,
+  isPathInside,
+  isTcpPortOpen,
+  resolveRuntimeLayout,
+  sanitizeEnvironment,
+  waitForOwnedServer,
+} = require('../../scripts/runtime-isolation.cjs')
 
 const isDev = !app.isPackaged
+const NEXT_PRODUCT_NAME = 'Easylab Suite Next (Dev)'
+app.setName(NEXT_PRODUCT_NAME)
 const hasAppSwitch = (name) => {
   const normalized = String(name || '').replace(/^--/, '')
   return process.argv.includes(`--${normalized}`) || app.commandLine.hasSwitch(normalized)
@@ -19,6 +38,20 @@ const hasAppSwitch = (name) => {
 const isWhatsappIntakeMode = hasAppSwitch('labnote-whatsapp-intake')
 const isTelegramIntakeMode = hasAppSwitch('labnote-telegram-intake')
 const rootDir = path.join(__dirname, '..', '..')
+const runtimeLayout = resolveRuntimeLayout({
+  suiteRoot: rootDir,
+  runtimeRootOverride: process.env.EASYLAB_RUNTIME_ROOT,
+  packaged: !isDev,
+  appDataRoot: app.getPath('appData'),
+})
+ensureRuntimeLayout(runtimeLayout)
+app.setPath('userData', runtimeLayout.userDataPath)
+app.setPath('sessionData', runtimeLayout.sessionDataPath)
+const isolatedMainEnvironment = sanitizeEnvironment(process.env, runtimeLayout.runtimeRoot)
+Object.keys(process.env).forEach((key) => {
+  if (!(key in isolatedMainEnvironment)) delete process.env[key]
+})
+Object.assign(process.env, isolatedMainEnvironment)
 const fallbackIconPath = path.join(__dirname, '..', 'build', 'icon.png')
 const suiteIconPath = path.join(__dirname, 'icons', 'suite.png')
 
@@ -28,28 +61,28 @@ const MODULES = {
     label: 'Lab Notebook',
     storage: 'Lab Notebook',
     type: 'static',
-    webPort: 8030,
+    webPort: MODULE_DEV_PORTS.labnotebook,
   },
   cdna: {
     id: 'cdna',
     label: 'cDNA Calculator',
     storage: 'cDNA',
     type: 'fastapi',
-    port: 8011,
+    port: MODULE_DEV_PORTS.cdna,
   },
   'qpcr-planner': {
     id: 'qpcr-planner',
     label: 'qPCR Planner',
     storage: 'qPCR Planner',
     type: 'fastapi',
-    port: 8012,
+    port: MODULE_DEV_PORTS['qpcr-planner'],
   },
   'qpcr-analysis': {
     id: 'qpcr-analysis',
     label: 'qPCR Analysis',
     storage: 'qPCR Analysis',
     type: 'streamlit',
-    port: 8501,
+    port: MODULE_DEV_PORTS['qpcr-analysis'],
   },
   'elisa-analysis': {
     id: 'elisa-analysis',
@@ -62,21 +95,21 @@ const MODULES = {
     label: 'Animal Pairing',
     storage: 'Animal Pairing',
     type: 'fastapi',
-    port: 8021,
+    port: MODULE_DEV_PORTS['animal-pairing'],
   },
   breeding: {
     id: 'breeding',
     label: 'Breeding Pair Selector',
     storage: 'Breeding',
     type: 'fastapi',
-    port: 8022,
+    port: MODULE_DEV_PORTS.breeding,
   },
   ymaze: {
     id: 'ymaze',
     label: 'Y-Maze Randomizer',
     storage: 'Y-Maze',
     type: 'fastapi',
-    port: 8023,
+    port: MODULE_DEV_PORTS.ymaze,
   },
 }
 
@@ -237,18 +270,23 @@ const pythonResolutionCache = new Map()
 const prewarmPromises = new Map()
 let whatsappIntakeServer = null
 let telegramIntakePoller = null
+const backendPorts = new Map()
 
 const ensureDirectories = (paths) => {
   const targets = Object.values(paths || {}).filter((val) => typeof val === 'string' && val.trim())
-  targets.forEach((target) => fs.mkdirSync(target, { recursive: true }))
+  targets.forEach((target) => {
+    if (!isPathInside(runtimeLayout.runtimeRoot, target)) {
+      throw new Error(`Next runtime directories must stay under ${runtimeLayout.runtimeRoot}: ${target}`)
+    }
+    assertNoSymlinkPathComponents(runtimeLayout.runtimeRoot, target)
+    fs.mkdirSync(target, { recursive: true })
+    assertNoSymlinkPathComponents(runtimeLayout.runtimeRoot, target)
+  })
 }
 
 const getDefaultPaths = (moduleId) => {
   const moduleFolder = MODULES[moduleId]?.storage ?? MODULES[moduleId]?.label ?? 'Suite'
-  const dataRoot = process.env.EASYLAB_DATA_ROOT
-    ? path.resolve(process.env.EASYLAB_DATA_ROOT)
-    : path.join(app.getPath('documents'), 'Easylab')
-  const base = path.join(dataRoot, moduleFolder)
+  const base = path.join(runtimeLayout.dataRoot, moduleFolder)
   return {
     dataPath: path.join(base, 'data'),
     attachmentsPath: path.join(base, 'attachments'),
@@ -257,15 +295,24 @@ const getDefaultPaths = (moduleId) => {
   }
 }
 
+const getModuleSettingsPath = (moduleId) => {
+  const moduleFolder = MODULES[moduleId]?.storage ?? MODULES[moduleId]?.label ?? 'Suite'
+  return path.join(runtimeLayout.dataRoot, moduleFolder, 'settings.json')
+}
+
+const assertSafeModuleSettingsPath = (moduleId) => {
+  const settingsPath = getModuleSettingsPath(moduleId)
+  assertIsolatedFilePath(runtimeLayout.runtimeRoot, settingsPath)
+}
+
 const configurePreviewDownloads = () => {
-  if (!process.env.EASYLAB_DATA_ROOT) return
   const pendingPaths = new Set()
   session.defaultSession.on('will-download', (_event, item, contents) => {
     let moduleId
     try { moduleId = new URL(contents.getURL()).searchParams.get('easylabModule') } catch { return }
     if (!MODULES[moduleId]) return
     const directory = getDefaultPaths(moduleId).exportsPath
-    fs.mkdirSync(directory, { recursive: true })
+    ensureDirectories({ exportsPath: directory })
     const rawName = path.basename(item.getFilename())
     const name = !rawName || rawName === '.' || rawName === '..' ? 'download' : rawName
     const extension = path.extname(name)
@@ -280,32 +327,18 @@ const configurePreviewDownloads = () => {
   })
 }
 
-const waitForPort = (port, timeoutMs = 8000) => new Promise((resolve, reject) => {
-  const start = Date.now()
-  const check = () => {
-    const socket = net.createConnection({ port }, () => {
-      socket.end()
-      resolve(true)
-    })
-    socket.on('error', () => {
-      socket.destroy()
-      if (Date.now() - start > timeoutMs) reject(new Error('timeout'))
-      else setTimeout(check, 300)
+const showOccupiedPort = async (moduleId, port, options = {}) => {
+  if (!options.silent) {
+    const label = MODULES[moduleId]?.label ?? moduleId
+    await dialog.showMessageBox({
+      type: 'warning',
+      title: 'Preview port is already in use',
+      message: `${label} could not start because port ${port} is occupied by another process.`,
+      detail: 'EasyLab Next will not connect to an unknown server. Close the other process and try again.',
     })
   }
-  check()
-})
-
-const isPortOpen = (port) => new Promise((resolve) => {
-  const socket = net.createConnection({ port }, () => {
-    socket.end()
-    resolve(true)
-  })
-  socket.on('error', () => {
-    socket.destroy()
-    resolve(false)
-  })
-})
+  return false
+}
 
 const STATIC_CONTENT_TYPES = {
   '.css': 'text/css; charset=utf-8',
@@ -403,14 +436,14 @@ const getLabnoteStorage = () => {
 }
 
 const ensureLabnoteStorage = () => {
-  const { dataDir, uploadsDir } = getLabnoteStorage()
-  fs.mkdirSync(dataDir, { recursive: true })
-  fs.mkdirSync(uploadsDir, { recursive: true })
+  const { dataPath, attachmentsPath } = getDefaultPaths('labnotebook')
+  ensureDirectories({ dataPath, attachmentsPath })
 }
 
 const readLabnoteState = () => {
   const { stateFile } = getLabnoteStorage()
   try {
+    assertIsolatedFilePath(runtimeLayout.runtimeRoot, stateFile)
     if (!fs.existsSync(stateFile)) return null
     const raw = fs.readFileSync(stateFile, 'utf-8')
     return JSON.parse(raw)
@@ -422,6 +455,7 @@ const readLabnoteState = () => {
 const writeLabnoteState = (payload) => {
   ensureLabnoteStorage()
   const { stateFile } = getLabnoteStorage()
+  assertIsolatedFilePath(runtimeLayout.runtimeRoot, stateFile)
   const tempFile = `${stateFile}.${process.pid}.${Date.now()}.tmp`
   fs.writeFileSync(tempFile, `${JSON.stringify(payload, null, 2)}\n`, 'utf-8')
   fs.renameSync(tempFile, stateFile)
@@ -1037,7 +1071,7 @@ const handleWhatsappWebhookRequest = async (req, res) => {
 const startWhatsappIntakeServer = async () => {
   const config = readWhatsappConfig()
   if (!config.enabled) return null
-  if (await isPortOpen(config.port)) return null
+  if (await isTcpPortOpen(config.port)) return null
 
   const server = http.createServer((req, res) => {
     void handleWhatsappWebhookRequest(req, res)
@@ -1446,6 +1480,7 @@ const handleLabnoteApiRequest = async (req, res) => {
       const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
       const finalName = `${stem}-${suffix}${ext}`
       const fullPath = path.join(uploadsDir, finalName)
+      assertIsolatedFilePath(runtimeLayout.runtimeRoot, fullPath)
       fs.writeFileSync(fullPath, parsed.buffer)
 
       sendJson(res, 200, { ok: true, url: `${LABNOTE_UPLOADS_PREFIX}${finalName}` })
@@ -1488,8 +1523,10 @@ const sendStaticFile = (res, filePath) => {
 }
 
 const spawnStaticServer = async (moduleId, port, options = {}) => {
-  if (staticServers.has(moduleId)) return true
-  if (await isPortOpen(port)) return true
+  const ownedServer = staticServers.get(moduleId)
+  if (isOwnedStaticServer(ownedServer, port)) return true
+  if (ownedServer) staticServers.delete(moduleId)
+  if (await isTcpPortOpen(port)) return showOccupiedPort(moduleId, port, options)
 
   const moduleRoot = getModuleRoot(moduleId)
   const webRoot = path.join(moduleRoot, 'web')
@@ -1506,6 +1543,14 @@ const spawnStaticServer = async (moduleId, port, options = {}) => {
     return false
   }
 
+  try {
+    ensureDirectories(getDefaultPaths(moduleId))
+    assertSafeModuleSettingsPath(moduleId)
+  } catch (err) {
+    await showModuleStartFailure(moduleId, 'Module unavailable', 'could not create isolated storage paths.', err instanceof Error ? err.message : String(err), options)
+    return false
+  }
+
   const server = http.createServer((req, res) => {
     const requestUrl = String(req.url || '/')
     if (moduleId === 'labnotebook') {
@@ -1518,6 +1563,13 @@ const spawnStaticServer = async (moduleId, port, options = {}) => {
         const { uploadsDir } = getLabnoteStorage()
         const uploadPath = toSafeUploadPath(uploadsDir, requestUrl)
         if (!uploadPath) {
+          res.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8' })
+          res.end('Invalid upload path')
+          return
+        }
+        try {
+          assertIsolatedFilePath(runtimeLayout.runtimeRoot, uploadPath)
+        } catch {
           res.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8' })
           res.end('Invalid upload path')
           return
@@ -1553,7 +1605,7 @@ const spawnStaticServer = async (moduleId, port, options = {}) => {
   try {
     await new Promise((resolve, reject) => {
       server.once('error', reject)
-      server.listen(port, '0.0.0.0', resolve)
+      server.listen(port, '127.0.0.1', resolve)
     })
     staticServers.set(moduleId, server)
     return true
@@ -1611,6 +1663,14 @@ const pickLanIpv4 = () => {
 }
 
 const getPairingLink = (moduleId) => {
+  if (moduleId === 'labnotebook') {
+    return {
+      url: '',
+      candidates: [],
+      tailscaleConnected: false,
+      source: 'none',
+    }
+  }
   const config = MODULES[moduleId]
   const port = config?.webPort
   if (!config || !port) {
@@ -1690,7 +1750,7 @@ const getModuleRequirementsPath = (moduleRoot, moduleType) => {
   return path.join(moduleRoot, 'backend', 'requirements.txt')
 }
 
-const getBootstrapVenvRoot = (moduleId) => path.join(app.getPath('userData'), 'python-envs', moduleId)
+const getBootstrapVenvRoot = (moduleId) => path.join(runtimeLayout.pythonEnvRoot, moduleId)
 
 const getBootstrapVenvPython = (moduleId) => {
   const venvRoot = getBootstrapVenvRoot(moduleId)
@@ -1731,6 +1791,19 @@ const ensureModulePython = (moduleId, moduleType, moduleRoot) => {
     : ['fastapi', 'uvicorn']
   const requirementsPath = getModuleRequirementsPath(moduleRoot, moduleType)
   const venvPython = getBootstrapVenvPython(moduleId)
+  const assertVenvSafe = () => {
+    try {
+      assertSafePythonEnvironment(runtimeLayout.runtimeRoot, getBootstrapVenvRoot(moduleId))
+      return null
+    } catch (error) {
+      return error instanceof Error ? error.message : String(error)
+    }
+  }
+  const unsafeVenvReason = (detail) => `Unsafe Next Python environment: ${detail}`
+  const initialSafetyError = assertVenvSafe()
+  if (initialSafetyError) {
+    return { python: null, usedBootstrap: false, reason: unsafeVenvReason(initialSafetyError) }
+  }
   const cacheKey = `${moduleId}:${moduleType}:${requirementsPath}`
   const cached = pythonResolutionCache.get(cacheKey)
 
@@ -1764,20 +1837,36 @@ const ensureModulePython = (moduleId, moduleType, moduleRoot) => {
     try {
       const venvRoot = getBootstrapVenvRoot(moduleId)
       fs.mkdirSync(venvRoot, { recursive: true })
-      const createVenv = runPythonSync(candidate, ['-m', 'venv', venvRoot], { cwd: moduleRoot, timeoutMs: 300000 })
+      const beforeCreateError = assertVenvSafe()
+      if (beforeCreateError) {
+        return { python: null, usedBootstrap: false, reason: unsafeVenvReason(beforeCreateError) }
+      }
+      const createVenv = runPythonSync(candidate, ['-m', 'venv', '--copies', venvRoot], { cwd: moduleRoot, timeoutMs: 300000 })
       if (createVenv.status !== 0 || !fs.existsSync(venvPython)) continue
+      const beforeInstallError = assertVenvSafe()
+      if (beforeInstallError) {
+        return { python: null, usedBootstrap: false, reason: unsafeVenvReason(beforeInstallError) }
+      }
 
       runPythonSync(venvPython, ['-m', 'pip', 'install', '--upgrade', 'pip', 'setuptools', 'wheel'], {
         cwd: moduleRoot,
         timeoutMs: 600000,
         env: { ...process.env, PIP_DISABLE_PIP_VERSION_CHECK: '1' },
       })
+      const afterBootstrapInstallError = assertVenvSafe()
+      if (afterBootstrapInstallError) {
+        return { python: null, usedBootstrap: false, reason: unsafeVenvReason(afterBootstrapInstallError) }
+      }
       const installReq = runPythonSync(venvPython, ['-m', 'pip', 'install', '-r', requirementsPath], {
         cwd: moduleRoot,
         timeoutMs: 900000,
         env: { ...process.env, PIP_DISABLE_PIP_VERSION_CHECK: '1' },
       })
       if (installReq.status !== 0) continue
+      const afterInstallError = assertVenvSafe()
+      if (afterInstallError) {
+        return { python: null, usedBootstrap: false, reason: unsafeVenvReason(afterInstallError) }
+      }
       if (hasRequiredImports(venvPython, requiredImports)) {
         return remember({ python: venvPython, usedBootstrap: true, reason: '' })
       }
@@ -1819,100 +1908,167 @@ const getModuleRoot = (moduleId) => {
   return path.join(baseRoot, 'apps', moduleId)
 }
 
-const spawnFastApi = async (moduleId, port, options = {}) => {
-  if (backendProcesses.has(moduleId)) return true
-  if (await isPortOpen(port)) return true
+const getRequiredModuleArtifacts = (moduleId) => {
+  const config = MODULES[moduleId]
+  if (!config) throw new Error(`Unknown Easylab module: ${moduleId}`)
+  if (config.type === 'fastapi') return ['backend/main.py', 'backend/requirements.txt']
+  if (config.type === 'streamlit') {
+    return [
+      'app.py', 'requirements.txt', 'qpcr_core.py', 'qpcr_workflow.py', 'qpcr_statistics.py',
+      'qpcr_io.py', 'qpcr_graphs.py', 'qpcr_storage.py', 'qpcr_session.py', 'qpcr_example.py',
+      'qpcr_review_export.py',
+    ]
+  }
+  return ['web/index.html']
+}
 
+const validateModuleArtifacts = (moduleId) => {
   const moduleRoot = getModuleRoot(moduleId)
+  const baseRoot = isDev ? rootDir : process.resourcesPath
+  assertModuleArtifacts(moduleId, moduleRoot, baseRoot, getRequiredModuleArtifacts(moduleId))
+  return moduleRoot
+}
+
+const reuseOrRejectBackendPort = async (moduleId, port, options = {}) => {
+  const proc = backendProcesses.get(moduleId)
+  if (
+    isOwnedBackendProcess(proc, backendPorts.get(moduleId), port)
+    && await isTcpPortOpen(port)
+    && await isListenerOwnedByProcess(port, proc.pid)
+  ) return true
+  if (proc) stopBackend(moduleId)
+  if (await isTcpPortOpen(port)) return showOccupiedPort(moduleId, port, options)
+  return null
+}
+
+const showModuleStartFailure = async (moduleId, title, message, detail, options = {}) => {
+  if (options.silent) return
+  await dialog.showMessageBox({
+    type: 'warning',
+    title,
+    message: `${MODULES[moduleId]?.label ?? moduleId} ${message}`,
+    detail,
+  })
+}
+
+const verifyModuleLaunchOwnership = async (moduleId, options = {}) => {
+  const config = MODULES[moduleId]
+  if (config.type === 'fastapi' || config.type === 'streamlit') {
+    const proc = backendProcesses.get(moduleId)
+    const port = backendPorts.get(moduleId)
+    const owned = isOwnedBackendProcess(proc, port, config.port)
+      && await isTcpPortOpen(config.port)
+      && await isListenerOwnedByProcess(config.port, proc.pid)
+    if (owned) return true
+    if (proc) stopBackend(moduleId)
+    await showModuleStartFailure(moduleId, 'Module unavailable', 'no longer owns its isolated preview server.', `Expected ${config.label} to own loopback port ${config.port}.`, options)
+    return false
+  }
+  if (config.webPort) {
+    const server = staticServers.get(moduleId)
+    const owned = isOwnedStaticServer(server, config.webPort) && await isTcpPortOpen(config.webPort)
+    if (owned) return true
+    if (server) stopStaticServer(moduleId)
+    await showOccupiedPort(moduleId, config.webPort, options)
+    return false
+  }
+  return true
+}
+
+const spawnFastApi = async (moduleId, port, options = {}) => {
+  const reuseResult = await reuseOrRejectBackendPort(moduleId, port, options)
+  if (reuseResult !== null) return reuseResult
+
+  let moduleRoot
+  try {
+    moduleRoot = validateModuleArtifacts(moduleId)
+  } catch (err) {
+    await showModuleStartFailure(moduleId, 'Module unavailable', 'could not start from an isolated source.', err instanceof Error ? err.message : String(err), options)
+    return false
+  }
   const pythonResolution = ensureModulePython(moduleId, 'fastapi', moduleRoot)
   if (!pythonResolution.python) {
-    if (!options.silent) {
-      dialog.showMessageBox({
-        type: 'warning',
-        title: 'Backend not started',
-        message: `The ${MODULES[moduleId]?.label ?? 'module'} backend could not start.`,
-        detail: `${pythonResolution.reason}\n\nInstall Python 3.10+ or set APP_PYTHON_PATH, then restart.\nIf Python is installed, ensure pip can install:\n${getModuleRequirementsPath(moduleRoot, 'fastapi')}`,
-      })
-    }
+    await showModuleStartFailure(
+      moduleId,
+      'Backend not started',
+      'backend could not start.',
+      `${pythonResolution.reason}\n\nA Next-only virtual environment can be created under ${runtimeLayout.pythonEnvRoot}.\nRequirements: ${getModuleRequirementsPath(moduleRoot, 'fastapi')}`,
+      options,
+    )
     return false
   }
 
   const defaultPaths = getDefaultPaths(moduleId)
   ensureDirectories(defaultPaths)
-  const env = {
-    ...process.env,
-    PYTHONPATH: moduleRoot,
-    EASYLAB_MODULE_ID: moduleId,
-    EASYLAB_DATA_PATH: defaultPaths.dataPath,
-    EASYLAB_ATTACHMENTS_PATH: defaultPaths.attachmentsPath,
-    EASYLAB_EXPORTS_PATH: defaultPaths.exportsPath,
-    EASYLAB_SYNC_PATH: defaultPaths.syncPath,
-  }
+  fs.mkdirSync(path.dirname(getModuleSettingsPath(moduleId)), { recursive: true })
+  assertSafeModuleSettingsPath(moduleId)
+  const env = { ...buildModuleEnvironment(process.env, runtimeLayout, moduleId), PYTHONPATH: moduleRoot }
+  let proc
 
   try {
-    const launch = withPythonLauncherArgs(pythonResolution.python, ['-m', 'uvicorn', 'backend.main:app', '--port', String(port)])
-    const proc = spawn(launch.command, launch.args, {
+    const launch = withPythonLauncherArgs(pythonResolution.python, [
+      '-m', 'uvicorn', 'backend.main:app', '--host', '127.0.0.1', '--port', String(port),
+    ])
+    proc = spawn(launch.command, launch.args, {
       cwd: moduleRoot,
       env,
-      stdio: 'ignore',
+      stdio: ['ignore', 'pipe', 'pipe'],
       windowsHide: true,
     })
 
-    const ready = await Promise.race([
-      waitForPort(port, 8000),
-      new Promise((_, reject) => proc.once('error', reject)),
-    ])
-
-    if (ready) {
-      backendProcesses.set(moduleId, proc)
-      proc.on('exit', () => backendProcesses.delete(moduleId))
-      return true
-    }
-  } catch (err) {
-    // fall through to dialog below
-  }
-
-  if (!options.silent) {
-    dialog.showMessageBox({
-      type: 'warning',
-      title: 'Backend not started',
-      message: `The ${MODULES[moduleId]?.label ?? 'module'} backend could not start.`,
-      detail: `Python used: ${pythonResolution.python}\n\nIf this is the first launch, wait for dependency install to complete and retry.\nOtherwise reinstall dependencies from:\n${getModuleRequirementsPath(moduleRoot, 'fastapi')}`,
+    await waitForOwnedServer({ proc, port, serverType: 'fastapi', timeoutMs: 12000 })
+    backendProcesses.set(moduleId, proc)
+    backendPorts.set(moduleId, port)
+    proc.on('exit', () => {
+      if (backendProcesses.get(moduleId) === proc) {
+        backendProcesses.delete(moduleId)
+        backendPorts.delete(moduleId)
+      }
     })
+    return true
+  } catch (err) {
+    if (proc && proc.exitCode === null && !proc.killed) proc.kill()
+    await showModuleStartFailure(
+      moduleId,
+      'Backend not started',
+      'backend did not confirm ownership of its preview port.',
+      `${err instanceof Error ? err.message : String(err)}\n\nPython used: ${pythonResolution.python}`,
+      options,
+    )
   }
   return false
 }
 
 const spawnStreamlit = async (moduleId, port, options = {}) => {
-  if (backendProcesses.has(moduleId)) return true
-  if (await isPortOpen(port)) return true
+  const reuseResult = await reuseOrRejectBackendPort(moduleId, port, options)
+  if (reuseResult !== null) return reuseResult
 
-  const moduleRoot = getModuleRoot(moduleId)
+  let moduleRoot
+  try {
+    moduleRoot = validateModuleArtifacts(moduleId)
+  } catch (err) {
+    await showModuleStartFailure(moduleId, 'Module unavailable', 'could not start from an isolated source.', err instanceof Error ? err.message : String(err), options)
+    return false
+  }
   const pythonResolution = ensureModulePython(moduleId, 'streamlit', moduleRoot)
   if (!pythonResolution.python) {
-    if (!options.silent) {
-      dialog.showMessageBox({
-        type: 'warning',
-        title: 'Server not started',
-        message: `The ${MODULES[moduleId]?.label ?? 'module'} server could not start.`,
-        detail: `${pythonResolution.reason}\n\nInstall Python 3.10+ or set APP_PYTHON_PATH, then restart.\nIf Python is installed, ensure pip can install:\n${getModuleRequirementsPath(moduleRoot, 'streamlit')}`,
-      })
-    }
+    await showModuleStartFailure(
+      moduleId,
+      'Server not started',
+      'server could not start.',
+      `${pythonResolution.reason}\n\nA Next-only virtual environment can be created under ${runtimeLayout.pythonEnvRoot}.\nRequirements: ${getModuleRequirementsPath(moduleRoot, 'streamlit')}`,
+      options,
+    )
     return false
   }
 
   const appPath = path.join(moduleRoot, 'app.py')
   const defaultPaths = getDefaultPaths(moduleId)
   ensureDirectories(defaultPaths)
-  const env = {
-    ...process.env,
-    PYTHONPATH: moduleRoot,
-    EASYLAB_MODULE_ID: moduleId,
-    EASYLAB_DATA_PATH: defaultPaths.dataPath,
-    EASYLAB_ATTACHMENTS_PATH: defaultPaths.attachmentsPath,
-    EASYLAB_EXPORTS_PATH: defaultPaths.exportsPath,
-    EASYLAB_SYNC_PATH: defaultPaths.syncPath,
-  }
+  fs.mkdirSync(path.dirname(getModuleSettingsPath(moduleId)), { recursive: true })
+  assertSafeModuleSettingsPath(moduleId)
+  const env = { ...buildModuleEnvironment(process.env, runtimeLayout, moduleId), PYTHONPATH: moduleRoot }
+  let proc
 
   try {
     const launch = withPythonLauncherArgs(pythonResolution.python, [
@@ -1927,34 +2083,32 @@ const spawnStreamlit = async (moduleId, port, options = {}) => {
       '--server.address',
       '127.0.0.1',
     ])
-    const proc = spawn(launch.command, launch.args, {
+    proc = spawn(launch.command, launch.args, {
       cwd: moduleRoot,
       env,
-      stdio: 'ignore',
+      stdio: ['ignore', 'pipe', 'pipe'],
       windowsHide: true,
     })
 
-    const ready = await Promise.race([
-      waitForPort(port, 12000),
-      new Promise((_, reject) => proc.once('error', reject)),
-    ])
-
-    if (ready) {
-      backendProcesses.set(moduleId, proc)
-      proc.on('exit', () => backendProcesses.delete(moduleId))
-      return true
-    }
-  } catch (err) {
-    // fall through to dialog below
-  }
-
-  if (!options.silent) {
-    dialog.showMessageBox({
-      type: 'warning',
-      title: 'Server not started',
-      message: `The ${MODULES[moduleId]?.label ?? 'module'} server could not start.`,
-      detail: `Python used: ${pythonResolution.python}\n\nIf this is the first launch, wait for dependency install to complete and retry.\nOtherwise reinstall dependencies from:\n${getModuleRequirementsPath(moduleRoot, 'streamlit')}`,
+    await waitForOwnedServer({ proc, port, serverType: 'streamlit', timeoutMs: 20000 })
+    backendProcesses.set(moduleId, proc)
+    backendPorts.set(moduleId, port)
+    proc.on('exit', () => {
+      if (backendProcesses.get(moduleId) === proc) {
+        backendProcesses.delete(moduleId)
+        backendPorts.delete(moduleId)
+      }
     })
+    return true
+  } catch (err) {
+    if (proc && proc.exitCode === null && !proc.killed) proc.kill()
+    await showModuleStartFailure(
+      moduleId,
+      'Server not started',
+      'server did not confirm ownership of its preview port.',
+      `${err instanceof Error ? err.message : String(err)}\n\nPython used: ${pythonResolution.python}`,
+      options,
+    )
   }
   return false
 }
@@ -1964,6 +2118,7 @@ const stopBackend = (moduleId) => {
   if (proc) {
     proc.kill()
     backendProcesses.delete(moduleId)
+    backendPorts.delete(moduleId)
   }
 }
 
@@ -1995,7 +2150,7 @@ const loadSuiteHome = async (win) => {
   win.setTitle(app.getName())
   win.webContents.setZoomFactor(1)
   if (isDev) {
-    const devUrl = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5178'
+    const devUrl = `http://127.0.0.1:${SUITE_DEV_PORT}`
     return win.loadURL(devUrl)
   } else {
     const webDist = path.join(rootDir, '.suite-dist', 'web', 'index.html')
@@ -2033,6 +2188,13 @@ const attachModuleShell = (win, moduleId) => {
 const prepareModuleLaunch = async (moduleId, options = {}) => {
   const config = MODULES[moduleId]
   if (!config) return null
+  let moduleRoot
+  try {
+    moduleRoot = validateModuleArtifacts(moduleId)
+  } catch (err) {
+    await showModuleStartFailure(moduleId, 'Module unavailable', 'could not launch because its isolated artifact is missing.', err instanceof Error ? err.message : String(err), options)
+    return null
+  }
 
   if (config.type === 'fastapi') {
     const started = await spawnFastApi(moduleId, config.port, options)
@@ -2049,13 +2211,14 @@ const prepareModuleLaunch = async (moduleId, options = {}) => {
     if (!started) return null
   }
 
+  if (!(await verifyModuleLaunchOwnership(moduleId, options))) return null
+
   let url
   if (config.type === 'streamlit') {
     url = appendModuleQuery(`http://127.0.0.1:${config.port}`, moduleId)
   } else if (config.type === 'static' && config.webPort) {
     url = appendModuleQuery(`http://127.0.0.1:${config.webPort}`, moduleId)
   } else {
-    const moduleRoot = getModuleRoot(moduleId)
     const indexPath = path.join(moduleRoot, 'web', 'index.html')
     const launchUrl = new URL(pathToFileURL(indexPath).toString())
     launchUrl.searchParams.set('easylabModule', moduleId)
@@ -2091,7 +2254,7 @@ const openModuleInWindow = async (win, moduleId) => {
   const launch = await prepareModuleLaunch(moduleId, { silent: true })
   if (!launch) throw new Error('Could not start ' + config.label + '. Please try again.')
 
-  win.setTitle(`Easylab Suite - ${config.label}`)
+  win.setTitle(`Easylab Suite Next - ${config.label}`)
   win.webContents.setZoomFactor(1)
   attachModuleShell(win, moduleId)
   await win.loadURL(launch.url)
@@ -2119,7 +2282,7 @@ const createModuleWindow = async (moduleId) => {
     minHeight: 640,
     resizable: true,
     backgroundColor: '#f5f7f8',
-    title: `Easylab Suite · ${config.label}`,
+    title: `Easylab Suite Next · ${config.label}`,
     icon: resolveWindowIcon(moduleId),
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),

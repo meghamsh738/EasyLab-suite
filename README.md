@@ -1,5 +1,17 @@
 # Easylab Suite
 
+## EasyLab Next — development line (not installed)
+
+The current development branch is `codex/easylab-next-20261113`. qPCR Analysis phase 1 is committed and pushed as `4d76175dff4ca801551a2572e8439c20cb8a0fde`; the Suite source pin matches it and strict module preflight passed. This is development source only: no Next package has been built or installed, and the Next branch has not been merged into the stable release or published as a release. The installed Suite 0.2.1 and all nine original checkouts are preserved.
+
+The Next runtime root is `/Volumes/Coding Projects/Active/easylab-next/runtime`. Strict loopback ports are Suite **18578**, Lab Notebook **18530**, cDNA **18511**, qPCR Planner **18512**, qPCR Analysis **18501**, Animal Pairing **18521**, Breeding **18522**, and Y-Maze **18523**. ELISA opens its bundled static page without a listener. Suite build, lint and 12 browser tests passed. The final Next title, desktop and narrow layouts were visually checked without overflow or console errors/warnings. All task-owned browser and preview-server sessions are closed. Native Excel, packaged macOS/installed behavior and Windows checks remain unverified. Next Notebook scope excludes cloud and mobile support.
+
+For the approved scope, current verification, runtime paths and next steps, see [the EasyLab Next checkpoint](docs/EASYLAB_NEXT.md) and [build index](docs/BUILD_INDEX.md). qPCR phase-1 review evidence is in the [committed qPCR review record](https://github.com/meghamsh738/qPCR-analysis-app/blob/4d76175dff4ca801551a2572e8439c20cb8a0fde/design-review/next-qpcr-phase-1/README.md).
+
+## Historical stable release information — 0.2.1 and earlier
+
+Everything below describes the stable 0.2.1 release or earlier historical versions; it is not a setup guide for EasyLab Next.
+
 Easylab Suite is an Electron desktop launcher for the Easylab lab workflow apps, with Windows packaging and a locally verified macOS build. It packages Lab Notebook, reagent calculators, qPCR/ELISA tools, animal workflow helpers, and local phone-message intake into one app.
 
 Calculators and analysis tools run locally. The bundled Lab Notebook signs in through Google and syncs through the user's Drive, with offline copies after sign-in. Google authentication runs in a supported normal browser: open Lab Notebook and choose **Open in browser** in the Suite header, then keep Suite running while using the notebook. The browser origin is `http://127.0.0.1:8030`; it must be an authorized JavaScript origin for the configured Google Web application client. This uses the Notebook's existing browser client and does not bypass Google's embedded-browser restriction. Real account login, editing, sync and export require a separate user-controlled check.
@@ -12,7 +24,7 @@ Version 0.2.0 introduces a compact tool library with combined search/category fi
 
 Installed 0.2.1 checks and earlier 0.2.0 verification: [build records](docs/BUILD_INDEX.md). Notebook authenticated workflows remain blocked by Google's `origin_mismatch` for the local URL. Screenshots below predate this refresh and remain as historical feature references.
 
-## Screenshots
+### Screenshots
 
 <table>
   <tr>
@@ -21,7 +33,7 @@ Installed 0.2.1 checks and earlier 0.2.0 verification: [build records](docs/BUIL
   </tr>
 </table>
 
-## Modules
+### Modules
 
 | Module | What it does | Runtime |
 | --- | --- | --- |
@@ -34,7 +46,7 @@ Installed 0.2.1 checks and earlier 0.2.0 verification: [build records](docs/BUIL
 | Breeding Pair Selector | Breeder matching from gene targets and probability thresholds. | Vite + FastAPI |
 | Y-Maze Randomizer | Balanced learning/reversal schedules and exit-arm assignments. | Vite + FastAPI |
 
-## Lab Notebook Deep Dive
+### Lab Notebook Deep Dive
 
 Lab Notebook is the main capture surface in Easylab Suite. It is built for daily experiment records, local-first attachments, optional Excel-like workbook data, and laptop-only Telegram/WhatsApp capture.
 
@@ -58,7 +70,7 @@ Lab Notebook is the main capture surface in Easylab Suite. It is built for daily
 
 Additional views: [details tab](screenshots/labnotebook_details_tab.png), [sidebar calendar and filters](screenshots/labnotebook_sidebar_calendar.png).
 
-## Module Screenshots
+### Module Screenshots
 
 Each module opens from the Suite launcher and keeps its own workflow intact while sharing the refreshed Easylab visual system.
 
@@ -77,11 +89,11 @@ Each module opens from the Suite launcher and keeps its own workflow intact whil
   </tr>
 </table>
 
-## Local Phone Intake
+### Local Phone Intake
 
 The suite can run hidden local receivers that write phone messages into Lab Notebook. These modes are laptop-only and do not provide a paid cloud queue.
 
-### Telegram Intake
+#### Telegram Intake
 
 Telegram is the simpler local intake path. It uses a bot token and polling, so no public webhook URL is needed.
 
@@ -104,7 +116,7 @@ Telegram is the simpler local intake path. It uses a bot token and polling, so n
 
 Limitation: Telegram Bot API polling does not send delete events to the bot, so deleting a Telegram message does not remove an already imported Lab Notebook block.
 
-### WhatsApp Intake
+#### WhatsApp Intake
 
 WhatsApp intake uses WhatsApp Cloud API webhooks exposed through Tailscale Funnel to a local receiver.
 
@@ -133,9 +145,9 @@ WhatsApp intake uses WhatsApp Cloud API webhooks exposed through Tailscale Funne
 
 Limitation: if the laptop or Funnel URL is unavailable, Meta may retry delivery for a limited period, but capture is not guaranteed after longer downtime.
 
-## Install Easylab Suite
+### Install Easylab Suite
 
-### Option 1: Download an installer
+#### Option 1: Download an installer
 
 Use the latest Windows installer from the repository releases page when one is published:
 
@@ -143,7 +155,7 @@ Use the latest Windows installer from the repository releases page when one is p
 
 If the installer is too large for GitHub releases, host the `.exe` on Google Drive and link it from the release notes or README. Do not commit installers, tokens, local configs, or personal data files into the repository.
 
-### Option 2: Build locally
+#### Option 2: Build locally
 
 Clone the repo, install dependencies, sync the module builds, and package the Windows app:
 
@@ -162,7 +174,7 @@ The installer is generated under:
 desktop/dist/Easylab Suite Setup <version>.exe
 ```
 
-## Build Requirements
+### Build Requirements
 
 - Node.js 24 LTS is the checked build/test runtime.
 - Python 3.10+ for FastAPI/Streamlit modules during development.
@@ -201,7 +213,7 @@ EASYLAB_BREEDING_PATH
 EASYLAB_YMAZE_PATH
 ```
 
-## Development
+### Development
 
 ```bash
 npm install
@@ -209,7 +221,7 @@ npm --prefix web install
 npm --prefix web run dev
 ```
 
-## Build The Windows App
+### Build The Windows App
 
 ```bash
 npm install
@@ -229,7 +241,7 @@ For a fully offline Python runtime, run this on the Windows build machine before
 .\desktop\scripts\prepare-python-runtime.ps1
 ```
 
-## Verification
+### Verification
 
 Useful release checks:
 
@@ -240,7 +252,7 @@ npm --prefix web run build
 npm run build:electron
 ```
 
-## Security And Secrets
+### Security And Secrets
 
 No real Telegram bot tokens, WhatsApp access tokens, Meta app secrets, webhook verify tokens, phone-number allowlists, or local user config files should be committed. The repo includes only example config files:
 

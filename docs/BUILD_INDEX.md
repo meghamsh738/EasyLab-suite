@@ -1,5 +1,35 @@
 # EasyLab Suite build checkpoints
 
+> Latest development milestone: [EasyLab Next qPCR Analysis phase 1](#easylab-next-qpcr-analysis-phase-1-13-november-2026). The 0.2.1 and 0.2.0 entries below are historical installed-release records.
+
+## EasyLab Next qPCR Analysis phase 1 (13 November 2026)
+
+**qPCR source:** commit `4d76175dff4ca801551a2572e8439c20cb8a0fde` on `codex/easylab-next-20261113`, pushed to the Next branch. The Suite's qPCR source pin matches this commit, and strict module source preflight passed. **Suite checkpoint commit:** the commit containing this entry; use `git log -1 -- docs/BUILD_INDEX.md` to identify it.
+
+**Status:** qPCR phase 1 is implemented and tested on the separate Next line. It includes the guided review workflow, biological-sample analysis engine, saved experiments, graphs, basic statistics and the accepted XLSX review export. The installed stable Suite 0.2.1 and original checkouts remain preserved. No Next package is built or installed; the qPCR preview server is closed.
+
+The accepted review workbook was recalculated using a separate headless LibreOffice profile; all three printed pages were rendered and inspected after the final chart fix. Background browser checks used fictional practice data and were closed after review. The native Excel application was not used.
+
+| Check | Result |
+| --- | --- |
+| qPCR Analysis pytest | 60 passed; 14 third-party Matplotlib/Pyparsing deprecation warnings |
+| qPCR automated browser checks | 2 passed; isolated Next preview and fictional data; server closed |
+| XLSX review workbook | Recalculated and all three printed pages inspected with headless LibreOffice |
+| Suite runtime isolation tests | 12 passed |
+| Suite module source/receipt tests | 5 passed |
+| Suite Notebook route tests | 2 passed |
+| Strict source preflight | Passed against the updated qPCR pin |
+| Original-version preservation | All nine original heads/branches/status checks and five protected hashes matched |
+| Suite production renderer build/lint | Passed, including the final browser-tab title correction |
+| Suite Playwright browser tests | 12 passed under Node 24.22.1, isolated browser cache and strict port 18578 |
+| Suite desktop/narrow screenshot inspection | Passed at desktop/narrow widths; Next title verified; no module app launched; server closed |
+| Native Excel; packaged macOS/installed behavior; Windows | Unverified |
+| Merge, stable installation or public release | Not performed |
+
+Suite evidence: [Next launcher](../design-review/builds/next-qpcr-phase-1/launcher.png) and [review notes](../design-review/builds/next-qpcr-phase-1/README.md).
+
+Review evidence and scope notes: [qPCR phase 1 README](https://github.com/meghamsh738/qPCR-analysis-app/blob/4d76175dff4ca801551a2572e8439c20cb8a0fde/design-review/next-qpcr-phase-1/README.md), [desktop workflow](https://github.com/meghamsh738/qPCR-analysis-app/blob/4d76175dff4ca801551a2572e8439c20cb8a0fde/design-review/next-qpcr-phase-1/qpcr-practice-desktop.png), and [narrow workflow](https://github.com/meghamsh738/qPCR-analysis-app/blob/4d76175dff4ca801551a2572e8439c20cb8a0fde/design-review/next-qpcr-phase-1/qpcr-practice-narrow.png). The screenshots use fictional data and are not evidence of a packaged or installed app.
+
 ## Integration preview 0.2.1
 
 **Packaged source:** `61be06e`, merged with its review records into `main` at `99dfe75` · **Status:** merged and installed as 0.2.1 on 30 October 2026; Notebook authentication blocked.
@@ -67,11 +97,10 @@ Screenshots are kept under [`design-review/builds/lab-workspace-0.2.0`](../desig
 Use branch `codex/suite-ui-refresh`, source commit `d2a02ec`, to recover this build. The preceding installed version, 0.1.19, is retained locally for rollback. The source history separates the shared UI (`01a86d4`), home-navigation fix (`e0ddffc`) and plate contrast fix (`d2a02ec`) so individual changes can be reused later.
 
 
-## EasyLab Next — separate development line (13 November 2026)
+## EasyLab Next — branch separation record (13 November 2026)
 
 - Branch: `codex/easylab-next-20261113` in Suite and all eight module worktrees.
 - Preserved baseline tag: `preserved/easylab-before-next-20261113`.
-- Status: source/worktree separation only; no new runnable build, no feature implementation and no new screenshot evidence.
-- Current installed 0.2.1 and original checkouts remain unchanged.
-- Source pins refer to documentation-only Next module commits.
-- Setup, scope and first-preview runtime requirements: [Next checkpoint](EASYLAB_NEXT.md).
+- This records the original branch/worktree setup; see the current phase-1 status at the top of this index.
+- Original checkouts and the installed stable 0.2.1 remain preserved.
+- Runtime paths, strict ports, approved future phases and remaining checks: [Next checkpoint](EASYLAB_NEXT.md).

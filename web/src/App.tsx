@@ -194,7 +194,7 @@ function DesktopNotice({ module, onClose }: { module: ModuleDefinition; onClose:
       onClick={event => { if (event.target === event.currentTarget) close() }}>
       <img src={module.icon} alt="" width="48" height="48" />
       <h2 id="notice-title">Open in the desktop app</h2>
-      <p id="notice-detail">{module.name} runs inside Easylab Suite. Open the installed app to use this tool with your local files.</p>
+      <p id="notice-detail">{module.name} runs inside Easylab Suite Next. Open the desktop app to use this tool with your local files.</p>
       <button className="primary" onClick={close}>Got it</button>
     </dialog>
   )
@@ -272,7 +272,7 @@ function App() {
     <div className="suite" data-testid="suite-root">
       <a className="skip-link" href="#tool-library">Skip to tools</a>
       <aside className="suite-rail" aria-label="Suite navigation">
-        <div className="brand-lockup"><span className="suite-mark" aria-hidden="true">EL</span><h1>Easylab Suite</h1></div>
+        <div className="brand-lockup"><span className="suite-mark" aria-hidden="true">EL</span><h1>Easylab Suite Next</h1></div>
         <p className="nav-label">Browse</p>
         <nav className="rail-nav" aria-label="Tool categories">
           {GROUPS.map(group => (

@@ -52,7 +52,7 @@
         "qpcr-analysis-app"
       ],
       "targetDir": "apps/qpcr-analysis",
-      "sourceRevision": "6d7274128bcc97a18e98abe7b2af1db7d5a61201",
+      "sourceRevision": "4d76175dff4ca801551a2572e8439c20cb8a0fde",
       "repository": "https://github.com/meghamsh738/qPCR-analysis-app"
     },
     {

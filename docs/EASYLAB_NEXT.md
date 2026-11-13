@@ -4,7 +4,11 @@ Updated: 13 November 2026.
 
 ## Current state
 
-The user approved the full improvement plan, then required all development to be separated before implementation. That separation milestone is complete: nine Git worktrees use `codex/easylab-next-20261113`, each rooted at its preserved current revision. Only development-boundary documentation and Suite source pins have changed. No scientific/application feature code, installed app, source data, or existing app profile was changed.
+The user authorized implementation after the separate-branch milestone. qPCR Analysis phase 1 is implemented and committed on the Next module branch as `4d76175dff4ca801551a2572e8439c20cb8a0fde`; that commit has been pushed, and the Suite source pin now matches it. The guided review workflow, biological-sample calculation engine, saved experiments, graphs, basic statistics and accepted XLSX review export are implemented.
+
+The qPCR module's final Python test run passed **60 tests**, with **14 third-party Matplotlib/Pyparsing deprecation warnings**. Background browser checks used fictional practice data. The accepted review workbook was recalculated with a separate headless LibreOffice profile; all three printed pages were rendered and inspected after the final chart fix. The desktop and narrow-window review screenshots and verification notes are in the [qPCR phase-1 review record](https://github.com/meghamsh738/qPCR-analysis-app/blob/4d76175dff4ca801551a2572e8439c20cb8a0fde/design-review/next-qpcr-phase-1/README.md). The qPCR preview was closed after testing.
+
+Suite runtime isolation, source-receipt, Notebook route and browser tests pass. The production renderer build and lint passed after the browser-tab title correction. The final desktop and narrow browser layouts passed visual inspection at 1400 × 900 and 768 × 900; the Next title and branding were visible, the Analysis filter showed two tools, there was no overflow, and no console errors or warnings appeared. The task-owned browser and server were stopped. No module was launched. No packaged desktop app has been built or installed. Native Excel, packaged macOS/installed-app behavior and Windows checks remain unverified. Suite launcher evidence is in [`design-review/builds/next-qpcr-phase-1`](../design-review/builds/next-qpcr-phase-1/README.md).
 
 The original checkouts remain the stable versions. For the approved improvement work, the active Suite is `/Volumes/Coding Projects/Active/easylab-next/suite`; its ignored `.env.4tb` maps all eight modules to sibling Next worktrees. Do not use the old source directories for build or implementation. Each Next module has its own tracked AGENTS.md.
 
@@ -24,7 +28,7 @@ Baseline tag in every repository: `preserved/easylab-before-next-20261113`. The 
 
 ## Approved implementation sequence
 
-1. qPCR Analysis: guided review; sample/plate identities; biological rather than technical-well weighting; the user's 8-point 4-fold standard series as a named preset; side-by-side suitable standard-curve and DeltaDeltaCq methods; explicit exclusions/range review; sample-level graphs; basic two-group/one-way tests with adjusted P values; saved experiments.
+1. qPCR Analysis — phase 1 complete in Next commit `4d76175dff4ca801551a2572e8439c20cb8a0fde`: guided review; sample/plate identities; biological rather than technical-well weighting; the user's 8-point 4-fold standard series as a named preset; side-by-side suitable standard-curve and DeltaDeltaCq methods; explicit exclusions/range review; sample-level graphs; basic two-group/one-way tests with adjusted P values; saved experiments and reviewed XLSX output.
 2. ELISA: one-plate guided standard/blank/replicate review; prevent polynomial boundary clamping; consistent corrections/dilution; custom and legacy presets; graphs and exports.
 3. cDNA and qPCR Planner: editable named recipes, kit constraints distinct from preferences, stock/working concentration handling, pipetting feasibility, overage, 96/384-well planning and analysis handoff.
 4. Animal tools: configurable balance goals and strict constraints; seeded reproducible grouping/pairing, locks, explanatory breeding candidates with unknown genotype retained, reproducible Y-maze schedules and exports.
@@ -32,20 +36,42 @@ Baseline tag in every repository: `preserved/easylab-before-next-20261113`. The 
 
 Audience: user and similar-lab researchers. Keep current architecture/local processing, originals and existing apps. New experiments carry presets/display choices but require experimental mappings, references, calibrators and review decisions to be confirmed. Use sample dots/mean lines, optional error bars; changing linear/log display does not change statistics. No new cloud/mobile scope. No merge, installed-app replacement, publishing or outreach is authorized.
 
-## Runtime isolation required before the first preview
+## Runtime isolation
 
-No Next app/server was launched in this milestone. The current source defaults still share ports/settings with the stable version; code isolation is complete but runtime isolation is not yet implemented or certified. Before a preview:
+The default Next runtime root is `/Volumes/Coding Projects/Active/easylab-next/runtime`. The qPCR standalone launcher uses strict loopback port 18501 and its own data, settings and exports under this root; it refuses an existing listener. Suite runtime paths separate Electron `userData` and `sessionData`, module data/settings/attachments/exports, Python environments and caches. The Suite package identity is `Easylab Suite Next (Dev)`, version `0.3.0-dev.1`; it has not been packaged or installed.
 
-- Give Next a separate Electron userData/profile and packaging identity/name. Keep all module data, attachments, exports, settings, writable Python environments and generated builds inside Next-specific locations. Do not copy existing user sessions.
-- Set a Next-specific EASYLAB_DATA_ROOT. qPCR Analysis separately writes under Documents/Easylab and .easylab in the user's home; change it to honor explicit isolated paths before use. Do not repurpose HOME.
-- Allocate explicit, distinct strict ports for the launcher and every ported module. Stable defaults are 5178, 8030, 8011, 8012, 8501, 8021, 8022 and 8023. Existing launch code accepts any open listener; reject unowned listeners instead. Keep Notebook state/attachment APIs off stable 8030.
-- Generate apps/ and .suite-dist/ only in the Next Suite, using its .env.4tb. Do not inherit APP_DIST_DIR pointing elsewhere or share writable dependencies/build directories.
-- Inspect synthetic workflows through a background browser. Native UI still needs a safe time from the user unless they ask to operate it immediately.
+| App | Strict loopback port |
+| --- | ---: |
+| Suite launcher | 18578 |
+| Lab Notebook | 18530 |
+| cDNA Calculator | 18511 |
+| qPCR Planner | 18512 |
+| qPCR Analysis | 18501 |
+| ELISA Analysis | bundled static page; no listener |
+| Animal Pairing | 18521 |
+| Breeding Pair Selector | 18522 |
+| Y-Maze Randomizer | 18523 |
+
+No native app was launched, no real user data or session was copied, and no preview server remains running. Preservation verification passed: all nine original repositories retained their recorded HEADs, branches and clean statuses; all five protected installed/configuration-file hashes matched.
 
 ## Verification and next action
 
-Run `node --env-file=.env.4tb scripts/preflight-modules.mjs --strict` from this Suite. It must resolve every module inside the Next root and match committed module pins. Artifact checks are deferred until branch-local apps have actually been built.
+| Check | Result |
+| --- | --- |
+| qPCR Analysis pytest | 60 passed; 14 third-party Matplotlib/Pyparsing deprecation warnings |
+| qPCR background browser review | Passed with fictional practice data; qPCR preview server closed |
+| Accepted XLSX review workbook | Recalculated with isolated headless LibreOffice; all three printed pages rendered and inspected |
+| Suite runtime isolation tests | 12 passed |
+| Suite module source/receipt tests | 5 passed |
+| Suite Notebook route tests | 2 passed |
+| Suite production renderer build and lint | Passed after the browser-tab title correction |
+| Suite Playwright browser tests | 12 passed under Node 24.22.1, isolated browser cache and strict port 18578 |
+| Suite desktop/narrow screenshot inspection | Passed at 1400 × 900 and 768 × 900; correct Next title/branding, two Analysis tools, no overflow or console errors/warnings |
+| Strict Suite module source preflight | Passed after pinning qPCR to `4d76175dff4ca801551a2572e8439c20cb8a0fde` |
+| Original-version preservation | All nine original HEAD/branch/status checks and five protected hashes matched |
+| Native Excel; packaged macOS/installed app; Windows | Not checked |
+| Next package and installation | Not built or installed |
 
-The isolation verifier checks all original heads/branches/clean states, baseline tags, new branch ancestry, allowed documentation-only changes, distinct file inodes and protected installed/configuration file hashes. GitHub branches/tags and final verification status are recorded in the task handoff and Obsidian EasyLab Suite progress note.
+Module artifact sync and packaged-app checks remain unverified.
 
-Next concrete action: implement and test the runtime boundary in the Next branch before starting the qPCR preview, then continue phase 1. The full agreed behaviour and acceptance examples are in Codex chat `01a1d572-e4c8-7563-a17a-23876692ed82`, “Plan EasyLab Suite improvements”.
+Next concrete action: finalize the Suite checkpoint commit and record its source/preflight state. Suite checkpoint commit: the commit containing this checkpoint; see `git log -1 -- docs/EASYLAB_NEXT.md`. Do not merge into stable branches, install a Next package or publish a release as part of this checkpoint. The approved later phases and full acceptance examples are in Codex chat `01a1d572-e4c8-7563-a17a-23876692ed82`, “Plan EasyLab Suite improvements”.

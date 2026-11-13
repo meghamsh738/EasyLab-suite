@@ -1,6 +1,7 @@
 {
-  "name": "easylab-suite",
-  "version": "0.2.1",
+  "name": "easylab-suite-next",
+  "version": "0.3.0-dev.1",
+  "productName": "Easylab Suite Next (Dev)",
   "description": "Easylab Suite launcher for lab notebook, cDNA, qPCR planning, and analysis",
   "author": "Meghamsh Teja",
   "private": true,
@@ -12,12 +13,13 @@
     "test:e2e": "npm --prefix web run test:e2e",
     "test:module-sources": "node --test scripts/module-sources.test.mjs",
     "test:notebook-browser": "node --test scripts/notebook-browser.test.cjs",
+    "test:runtime-isolation": "node --test scripts/runtime-isolation.test.cjs",
     "screenshots": "npm --prefix web run test:e2e",
     "icons": "node desktop/scripts/generate-icons.mjs && node desktop/scripts/generate-module-icons.mjs",
     "preflight:modules": "node --env-file-if-exists=.env.4tb scripts/preflight-modules.mjs --strict",
     "preflight:modules:artifacts": "node --env-file-if-exists=.env.4tb scripts/preflight-modules.mjs --strict --require-artifacts",
     "sync:apps": "node --env-file-if-exists=.env.4tb scripts/sync-apps.mjs --build --strict && npm run preflight:modules:artifacts",
-    "dev:electron": "concurrently -k \"npm --prefix web run dev -- --host\" \"wait-on http://127.0.0.1:5178 && electron .\"",
+    "dev:electron": "node scripts/dev-electron.cjs",
     "build:electron": "npm run preflight:modules && node --env-file-if-exists=.env.4tb scripts/sync-apps.mjs --build --strict && npm run preflight:modules:artifacts && npm --prefix web run build && npm run icons && electron-builder --win --x64"
   },
   "devDependencies": {
@@ -29,8 +31,8 @@
     "wait-on": "^7.2.0"
   },
   "build": {
-    "appId": "com.meghamshteja.easylab.suite",
-    "productName": "Easylab Suite",
+    "appId": "com.meghamshteja.easylab.suite.nextdev",
+    "productName": "Easylab Suite Next (Dev)",
     "copyright": "Copyright © 2026 Meghamsh Teja. All Rights Reserved.",
     "directories": {
       "buildResources": "desktop/build",
@@ -38,6 +40,7 @@
     },
     "files": [
       "desktop/electron/**/*",
+      "scripts/runtime-isolation.cjs",
       ".suite-dist/web/**/*"
     ],
     "extraResources": [

@@ -1,9 +1,18 @@
-import { cp, mkdir, rm, access, stat } from 'node:fs/promises'
+import { cp, mkdir, rm, access, lstat, readdir } from 'node:fs/promises'
 import { existsSync, readFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
 import { inspectModuleSources, writeModuleReceipt } from './module-sources.mjs'
+
+const require = createRequire(import.meta.url)
+const {
+  assertNoSymlinkPathComponents,
+  isPathInside,
+  resolveIsolatedSource,
+  sanitizeEnvironment,
+} = require('./runtime-isolation.cjs')
 
 const args = new Set(process.argv.slice(2))
 const shouldBuild = args.has('--build')
@@ -11,52 +20,40 @@ const requireExplicitSources = args.has('--strict') || process.env.EASYLAB_REQUI
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const suiteRoot = path.resolve(__dirname, '..')
-const appsRoot = process.env.EASYLAB_APPS_ROOT || path.resolve(suiteRoot, '..')
+const appsRoot = path.resolve(suiteRoot, '..', 'modules')
 
 const sourceCandidates = {
   labnotebook: [
     process.env.EASYLAB_LABNOTE_PATH,
-    path.join(appsRoot, 'lab-note-taking-app'),
-    path.join(appsRoot, 'lab note taking app'),
+    path.join(appsRoot, 'labnotebook'),
   ],
   cdna: [
     process.env.EASYLAB_CDNA_PATH,
-    path.join(appsRoot, 'cDNA-calculations-app'),
-    path.join(appsRoot, 'cdna-calculations-app'),
+    path.join(appsRoot, 'cdna'),
   ],
   'qpcr-planner': [
     process.env.EASYLAB_QPCR_PLANNER_PATH,
-    path.join(appsRoot, 'qPCR-calculations-app'),
-    path.join(appsRoot, 'qpcr-calculations-app'),
-    path.join(appsRoot, 'qpcr-calculations-app-git'),
-    path.join(appsRoot, 'qPCR-calculations-app-git'),
+    path.join(appsRoot, 'qpcr-planner'),
   ],
   'qpcr-analysis': [
     process.env.EASYLAB_QPCR_ANALYSIS_PATH,
-    path.join(appsRoot, 'qPCR-analysis-app'),
-    path.join(appsRoot, 'qpcr-analysis-app'),
+    path.join(appsRoot, 'qpcr-analysis'),
   ],
   'elisa-analysis': [
     process.env.EASYLAB_ELISA_ANALYSIS_PATH,
-    path.join(appsRoot, 'ELISA-analysis-app'),
-    path.join(appsRoot, 'elisa-analysis-app'),
+    path.join(appsRoot, 'elisa-analysis'),
   ],
   'animal-pairing': [
     process.env.EASYLAB_ANIMAL_PAIRING_PATH,
-    path.join(appsRoot, 'Experiment-pairing-app'),
-    path.join(appsRoot, 'experiment-pairing-app'),
+    path.join(appsRoot, 'animal-pairing'),
   ],
   breeding: [
     process.env.EASYLAB_BREEDING_PATH,
-    path.join(appsRoot, 'Mice-breeding-pair-selector'),
-    path.join(appsRoot, 'mice-breeding-pair-selector'),
-    path.join(appsRoot, 'Breeding-pair-selector'),
-    path.join(appsRoot, 'breeding-pair-selector'),
+    path.join(appsRoot, 'breeding'),
   ],
   ymaze: [
     process.env.EASYLAB_YMAZE_PATH,
-    path.join(appsRoot, 'Y-maze-randomizer'),
-    path.join(appsRoot, 'y-maze-randomizer'),
+    path.join(appsRoot, 'ymaze'),
   ],
 }
 
@@ -71,12 +68,25 @@ const targets = {
   ymaze: path.join(suiteRoot, 'apps', 'ymaze'),
 }
 
+const excludeMatchers = [
+  /(^|\/)__pycache__(\/|$)/,
+  /(^|\/)venv(\/|$)/,
+  /(^|\/)\.venv(\/|$)/,
+  /(^|\/)node_modules(\/|$)/,
+  /(^|\/)\.pytest_cache(\/|$)/,
+  /(^|\/)\.mypy_cache(\/|$)/,
+  /(^|\/)\.ruff_cache(\/|$)/,
+  /\.pyc$/,
+  /\.pyo$/,
+  /(^|\/)\.DS_Store$/,
+]
+
 const run = (command, cwd) => {
   const result = spawnSync(command, {
     cwd,
     shell: true,
     stdio: 'inherit',
-    env: process.env,
+    env: sanitizeEnvironment(process.env),
   })
   if (result.status !== 0) {
     throw new Error(`Command failed: ${command}`)
@@ -84,27 +94,25 @@ const run = (command, cwd) => {
 }
 
 const shQuote = (value) => `'${String(value).replace(/'/g, `'\\''`)}'`
-const hasRsync = spawnSync('rsync --version', { shell: true, stdio: 'ignore' }).status === 0
+const hasRsync = spawnSync('rsync --version', { shell: true, stdio: 'ignore', env: sanitizeEnvironment(process.env) }).status === 0
 
 const resetDir = async (dir) => {
+  if (!isPathInside(suiteRoot, dir)) throw new Error(`Generated module target escapes the Suite worktree: ${dir}`)
+  assertNoSymlinkPathComponents(suiteRoot, dir)
   await rm(dir, { recursive: true, force: true })
   await mkdir(dir, { recursive: true })
+  assertNoSymlinkPathComponents(suiteRoot, dir)
+}
+
+const assertLocalBuildOutput = (sourceRoot, relativeOutputPath) => {
+  const outputPath = path.resolve(sourceRoot, relativeOutputPath)
+  if (!isPathInside(sourceRoot, outputPath)) throw new Error(`Module build output escapes its source worktree: ${outputPath}`)
+  assertNoSymlinkPathComponents(sourceRoot, outputPath)
 }
 
 const copyDir = async (from, to) => {
-  const fromStat = await stat(from)
-  const excludeMatchers = [
-    /(^|\/)__pycache__(\/|$)/,
-    /(^|\/)venv(\/|$)/,
-    /(^|\/)\.venv(\/|$)/,
-    /(^|\/)node_modules(\/|$)/,
-    /(^|\/)\.pytest_cache(\/|$)/,
-    /(^|\/)\.mypy_cache(\/|$)/,
-    /(^|\/)\.ruff_cache(\/|$)/,
-    /\.pyc$/,
-    /\.pyo$/,
-    /(^|\/)\.DS_Store$/,
-  ]
+  await assertNoSymlinkTree(from)
+  const fromStat = await lstat(from)
 
   const shouldUseRsync = hasRsync && process.platform !== 'win32'
   if (!shouldUseRsync) {
@@ -151,13 +159,33 @@ const copyDir = async (from, to) => {
 
 const ensureExists = async (target, label) => {
   try {
-    await access(target)
-  } catch {
-    throw new Error(`${label} not found at ${target}`)
+    const stat = await lstat(target)
+    if (stat.isSymbolicLink()) throw new Error(`${label} must not be a symlink: ${target}`)
+  } catch (error) {
+    if (error && error.code === 'ENOENT') throw new Error(`${label} not found at ${target}`)
+    throw error
   }
 }
 
+const isExcludedPath = (relativePath) => excludeMatchers.some((matcher) => matcher.test(relativePath))
+
+const assertNoSymlinkTree = async (root) => {
+  const visit = async (target, relative = '') => {
+    const stat = await lstat(target)
+    if (stat.isSymbolicLink()) throw new Error(`Refusing to copy a symlinked module artifact: ${target}`)
+    if (!stat.isDirectory()) return
+    for (const entry of await readdir(target, { withFileTypes: true })) {
+      const nextRelative = path.posix.join(relative, entry.name)
+      if (isExcludedPath(nextRelative)) continue
+      if (entry.isSymbolicLink()) throw new Error(`Refusing to copy a symlinked module artifact: ${path.join(target, entry.name)}`)
+      if (entry.isDirectory()) await visit(path.join(target, entry.name), nextRelative)
+    }
+  }
+  await visit(root)
+}
+
 const pickSource = (label, candidates) => {
+  let selected
   if (requireExplicitSources) {
     const explicitSource = candidates[0]
     if (!explicitSource || !existsSync(explicitSource)) {
@@ -166,14 +194,12 @@ const pickSource = (label, candidates) => {
           'Refusing to fall back to neighbouring source folders.',
       )
     }
-    return explicitSource
+    selected = explicitSource
+  } else {
+    selected = candidates.find((candidate) => candidate && existsSync(candidate))
+    if (!selected) throw new Error(`${label} source not found under ${appsRoot}.`)
   }
-
-  const found = candidates.find((candidate) => candidate && existsSync(candidate))
-  if (!found) {
-    throw new Error(`${label} source not found. Tried: ${candidates.filter(Boolean).join(', ')}`)
-  }
-  return found
+  return resolveIsolatedSource(selected, appsRoot)
 }
 
 const syncLabNotebook = async () => {
@@ -181,6 +207,7 @@ const syncLabNotebook = async () => {
 
   if (shouldBuild) {
     // Ensure file:// safe assets in Electron packaged mode.
+    assertLocalBuildOutput(sourceRoot, '.labnote-dist/web')
     run('npm --prefix web run build -- --base ./', sourceRoot)
   }
 
@@ -197,6 +224,7 @@ const syncCdna = async () => {
 
   if (shouldBuild) {
     // Ensure the build is file:// safe inside Electron.
+    assertLocalBuildOutput(sourceRoot, '.app-dist/web')
     run('npm --prefix modern-app run build -- --base ./', sourceRoot)
   }
 
@@ -225,6 +253,7 @@ const syncQpcrPlanner = async () => {
 
   if (shouldBuild) {
     // Ensure the build is file:// safe inside Electron.
+    assertLocalBuildOutput(sourceRoot, '.app-dist/web')
     run('npm --prefix modern-app run build -- --base ./', sourceRoot)
   }
 
@@ -247,6 +276,7 @@ const syncFastApiModernApp = async ({ id, label, sourceCandidates: candidates })
   if (shouldBuild) {
     // Ensure the build is file:// safe inside Electron.
     // Vite defaults to base "/" which breaks asset paths when loaded from disk.
+    assertLocalBuildOutput(sourceRoot, '.app-dist/web')
     run('npm --prefix modern-app run build -- --base ./', sourceRoot)
   }
 
@@ -277,15 +307,24 @@ const syncQpcrAnalysis = async () => {
   const targetRoot = targets['qpcr-analysis']
   await resetDir(targetRoot)
 
-  const filesToCopy = ['app.py', 'qpcr_core.py', 'mock_wells.csv', 'requirements.txt']
+  const filesToCopy = [
+    'app.py',
+    'qpcr_core.py',
+    'qpcr_workflow.py',
+    'qpcr_statistics.py',
+    'qpcr_io.py',
+    'qpcr_graphs.py',
+    'qpcr_storage.py',
+    'qpcr_session.py',
+    'qpcr_example.py',
+    'qpcr_review_export.py',
+    'mock_wells.csv',
+    'requirements.txt',
+  ]
   for (const file of filesToCopy) {
     const sourceFile = path.join(sourceRoot, file)
-    try {
-      await access(sourceFile)
-      await copyDir(sourceFile, path.join(targetRoot, file))
-    } catch {
-      // Ignore missing optional files
-    }
+    await ensureExists(sourceFile, `qPCR analysis file ${file}`)
+    await copyDir(sourceFile, path.join(targetRoot, file))
   }
 
   const sampleData = path.join(sourceRoot, 'sample-data')
@@ -310,6 +349,7 @@ const syncElisaAnalysis = async () => {
 
   if (shouldBuild) {
     // Ensure file:// safe assets in Electron
+    assertLocalBuildOutput(sourceRoot, 'dist')
     run('npm run build -- --base ./', sourceRoot)
   }
 
