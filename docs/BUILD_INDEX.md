@@ -65,3 +65,13 @@ Screenshots are kept under [`design-review/builds/lab-workspace-0.2.0`](../desig
 ### Recovery
 
 Use branch `codex/suite-ui-refresh`, source commit `d2a02ec`, to recover this build. The preceding installed version, 0.1.19, is retained locally for rollback. The source history separates the shared UI (`01a86d4`), home-navigation fix (`e0ddffc`) and plate contrast fix (`d2a02ec`) so individual changes can be reused later.
+
+
+## EasyLab Next — separate development line (13 November 2026)
+
+- Branch: `codex/easylab-next-20261113` in Suite and all eight module worktrees.
+- Preserved baseline tag: `preserved/easylab-before-next-20261113`.
+- Status: source/worktree separation only; no new runnable build, no feature implementation and no new screenshot evidence.
+- Current installed 0.2.1 and original checkouts remain unchanged.
+- Source pins refer to documentation-only Next module commits.
+- Setup, scope and first-preview runtime requirements: [Next checkpoint](EASYLAB_NEXT.md).

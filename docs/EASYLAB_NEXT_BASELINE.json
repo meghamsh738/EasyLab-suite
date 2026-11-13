@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-13",
+  "branch": "codex/easylab-next-20261113",
+  "baselineTag": "preserved/easylab-before-next-20261113",
+  "root": "/Volumes/Coding Projects/Active/easylab-next",
+  "repositories": [
+    {
+      "id": "suite",
+      "source": "/Volumes/Coding Projects/Active/easylab-suite",
+      "destination": "/Volumes/Coding Projects/Active/easylab-next/suite",
+      "head": "e6246ba7bf287d3a4587de38b827808d68b71069",
+      "originalBranch": "main",
+      "originalStatus": "",
+      "origin": "https://github.com/meghamsh738/EasyLab-suite.git",
+      "remoteOriginalRefs": "e6246ba7bf287d3a4587de38b827808d68b71069\trefs/heads/main"
+    },
+    {
+      "id": "labnotebook",
+      "source": "/Volumes/Coding Projects/Active/lab-note-taking-app-connected-devices",
+      "destination": "/Volumes/Coding Projects/Active/easylab-next/modules/labnotebook",
+      "sourceEnv": "EASYLAB_LABNOTE_PATH",
+      "manifestPin": "70dc8718c356565e8b4fcf320a054c5dd41a0f6c",
+      "head": "70dc8718c356565e8b4fcf320a054c5dd41a0f6c",
+      "originalBranch": "codex/native-android-recovery",
+      "originalStatus": "",
+      "origin": "https://github.com/meghamsh738/labnotebook-app.git",
+      "remoteOriginalRefs": "70dc8718c356565e8b4fcf320a054c5dd41a0f6c\trefs/heads/codex/native-android-recovery",
+      "developmentHead": "fa22abe891f1b3eae38664e1aeeaed2b18b1a3ab"
+    },
+    {
+      "id": "cdna",
+      "source": "/Volumes/Coding Projects/Archive/Source-Projects/cdna-calculations",
+      "destination": "/Volumes/Coding Projects/Active/easylab-next/modules/cdna",
+      "sourceEnv": "EASYLAB_CDNA_PATH",
+      "manifestPin": "6c25e0bca24553c6e3d4b9e424278b70fd5d0481",
+      "head": "6c25e0bca24553c6e3d4b9e424278b70fd5d0481",
+      "originalBranch": "main",
+      "originalStatus": "",
+      "origin": "https://github.com/meghamsh738/cDNA-calculations-app.git",
+      "remoteOriginalRefs": "6c25e0bca24553c6e3d4b9e424278b70fd5d0481\trefs/heads/main",
+      "developmentHead": "9b01837c5f9e8974c544b17057c57b0d1be60719"
+    },
+    {
+      "id": "qpcr-planner",
+      "source": "/Volumes/Coding Projects/Active/easylab-modules/qpcr-planner",
+      "destination": "/Volumes/Coding Projects/Active/easylab-next/modules/qpcr-planner",
+      "sourceEnv": "EASYLAB_QPCR_PLANNER_PATH",
+      "manifestPin": "e200649a2174a2c0001f7ed03e0ab84102e827b8",
+      "head": "e200649a2174a2c0001f7ed03e0ab84102e827b8",
+      "originalBranch": "main",
+      "originalStatus": "",
+      "origin": "https://github.com/meghamsh738/qPCR-calculations-app.git",
+      "remoteOriginalRefs": "e200649a2174a2c0001f7ed03e0ab84102e827b8\trefs/heads/main",
+      "developmentHead": "bac2fa635363fcfa8e03bf69bc3890707b14f92d"
+    },
+    {
+      "id": "qpcr-analysis",
+      "source": "/Volumes/Coding Projects/Active/easylab-modules/qpcr-analysis",
+      "destination": "/Volumes/Coding Projects/Active/easylab-next/modules/qpcr-analysis",
+      "sourceEnv": "EASYLAB_QPCR_ANALYSIS_PATH",
+      "manifestPin": "f897b56078bd370a82c0997e7440e129831dbb27",
+      "head": "f897b56078bd370a82c0997e7440e129831dbb27",
+      "originalBranch": "master",
+      "originalStatus": "",
+      "origin": "https://github.com/meghamsh738/qPCR-analysis-app.git",
+      "remoteOriginalRefs": "f897b56078bd370a82c0997e7440e129831dbb27\trefs/heads/master",
+      "developmentHead": "6d7274128bcc97a18e98abe7b2af1db7d5a61201"
+    },
+    {
+      "id": "elisa-analysis",
+      "source": "/Volumes/Coding Projects/Active/easylab-modules/elisa-analysis",
+      "destination": "/Volumes/Coding Projects/Active/easylab-next/modules/elisa-analysis",
+      "sourceEnv": "EASYLAB_ELISA_ANALYSIS_PATH",
+      "manifestPin": "4c5cf24b721d495ea7c6a0603273c8944403ec39",
+      "head": "4c5cf24b721d495ea7c6a0603273c8944403ec39",
+      "originalBranch": "main",
+      "originalStatus": "",
+      "origin": "https://github.com/meghamsh738/ELISA-analysis-app.git",
+      "remoteOriginalRefs": "4c5cf24b721d495ea7c6a0603273c8944403ec39\trefs/heads/main",
+      "developmentHead": "78a7561794c76d4cfd2c128124b1500af173f4de"
+    },
+    {
+      "id": "animal-pairing",
+      "source": "/Volumes/Coding Projects/Active/easylab-modules/animal-pairing",
+      "destination": "/Volumes/Coding Projects/Active/easylab-next/modules/animal-pairing",
+      "sourceEnv": "EASYLAB_ANIMAL_PAIRING_PATH",
+      "manifestPin": "f119042c3875e5f5655fe1a79dbe186106876d10",
+      "head": "f119042c3875e5f5655fe1a79dbe186106876d10",
+      "originalBranch": "main",
+      "originalStatus": "",
+      "origin": "https://github.com/meghamsh738/Experiment-pairing-app.git",
+      "remoteOriginalRefs": "f119042c3875e5f5655fe1a79dbe186106876d10\trefs/heads/main",
+      "developmentHead": "298666fbf9800d417ce65caba32b920d86413178"
+    },
+    {
+      "id": "breeding",
+      "source": "/Volumes/Coding Projects/Active/easylab-modules/breeding",
+      "destination": "/Volumes/Coding Projects/Active/easylab-next/modules/breeding",
+      "sourceEnv": "EASYLAB_BREEDING_PATH",
+      "manifestPin": "bd27cca8ef8bfba9ea0247c30a50679a7b8d8605",
+      "head": "bd27cca8ef8bfba9ea0247c30a50679a7b8d8605",
+      "originalBranch": "main",
+      "originalStatus": "",
+      "origin": "https://github.com/meghamsh738/Mice-breeding-pair-selector.git",
+      "remoteOriginalRefs": "bd27cca8ef8bfba9ea0247c30a50679a7b8d8605\trefs/heads/main",
+      "developmentHead": "84aeb12cefbdf4ffaee349247b02759b2b99fc0c"
+    },
+    {
+      "id": "ymaze",
+      "source": "/Volumes/Coding Projects/Active/easylab-modules/ymaze",
+      "destination": "/Volumes/Coding Projects/Active/easylab-next/modules/ymaze",
+      "sourceEnv": "EASYLAB_YMAZE_PATH",
+      "manifestPin": "7f87274a9b39d320fc42e6523f5b740edabd4e50",
+      "head": "7f87274a9b39d320fc42e6523f5b740edabd4e50",
+      "originalBranch": "main",
+      "originalStatus": "",
+      "origin": "https://github.com/meghamsh738/Y-maze-randomizer.git",
+      "remoteOriginalRefs": "7f87274a9b39d320fc42e6523f5b740edabd4e50\trefs/heads/main",
+      "developmentHead": "387eff618aa9e75038f0778c9a40473fc3f10d21"
+    }
+  ],
+  "protectedFileSha256": {
+    "/Volumes/Coding Projects/Active/easylab-suite/.env.4tb": "be748ac76b2607fc686a6d02083cf3a03e344c7f25e716ddd746549feef98ada",
+    "/Volumes/Coding Projects/Active/easylab-suite/config/suite-modules.json": "c4d37f0fd9e39abdb21555f98f06c21f40c7440bed05d9c6d0db706fdfe3e30b",
+    "/Users/meghamsh/Applications/Easylab Suite.app/Contents/Info.plist": "8cd408f343ed9944560d937a977bd76eab22852aa76deba13c19b28237428511",
+    "/Users/meghamsh/Applications/Easylab Suite.app/Contents/Resources/app.asar": "44bc56775b2d553f2e857ecaaa4f2277f1d4d0696fe2ebafc7d7b51b8510767f",
+    "/Users/meghamsh/Applications/Easylab Suite.app/Contents/Resources/apps/module-sources.json": "e51c7a9f8e5d0154852de8d128a7126092487e8cda62ccccf8f535e74f2af513"
+  }
+}

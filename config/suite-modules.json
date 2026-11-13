@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedOn": "2026-10-30",
+  "generatedOn": "2026-11-13",
   "modules": [
     {
       "id": "labnotebook",
@@ -12,7 +12,7 @@
         "lab-note-taking-app"
       ],
       "targetDir": "apps/labnotebook",
-      "sourceRevision": "70dc8718c356565e8b4fcf320a054c5dd41a0f6c",
+      "sourceRevision": "fa22abe891f1b3eae38664e1aeeaed2b18b1a3ab",
       "repository": "https://github.com/meghamsh738/labnotebook-app"
     },
     {
@@ -25,7 +25,7 @@
         "cdna-calculations-app"
       ],
       "targetDir": "apps/cdna",
-      "sourceRevision": "6c25e0bca24553c6e3d4b9e424278b70fd5d0481",
+      "sourceRevision": "9b01837c5f9e8974c544b17057c57b0d1be60719",
       "repository": "https://github.com/meghamsh738/cDNA-calculations-app"
     },
     {
@@ -39,7 +39,7 @@
         "qpcr-calculations-app-git"
       ],
       "targetDir": "apps/qpcr-planner",
-      "sourceRevision": "e200649a2174a2c0001f7ed03e0ab84102e827b8",
+      "sourceRevision": "bac2fa635363fcfa8e03bf69bc3890707b14f92d",
       "repository": "https://github.com/meghamsh738/qPCR-calculations-app"
     },
     {
@@ -52,7 +52,7 @@
         "qpcr-analysis-app"
       ],
       "targetDir": "apps/qpcr-analysis",
-      "sourceRevision": "f897b56078bd370a82c0997e7440e129831dbb27",
+      "sourceRevision": "6d7274128bcc97a18e98abe7b2af1db7d5a61201",
       "repository": "https://github.com/meghamsh738/qPCR-analysis-app"
     },
     {
@@ -65,7 +65,7 @@
         "ELISA-analysis-app"
       ],
       "targetDir": "apps/elisa-analysis",
-      "sourceRevision": "4c5cf24b721d495ea7c6a0603273c8944403ec39",
+      "sourceRevision": "78a7561794c76d4cfd2c128124b1500af173f4de",
       "repository": "https://github.com/meghamsh738/ELISA-analysis-app"
     },
     {
@@ -77,7 +77,7 @@
         "Experiment-pairing-app"
       ],
       "targetDir": "apps/animal-pairing",
-      "sourceRevision": "f119042c3875e5f5655fe1a79dbe186106876d10",
+      "sourceRevision": "298666fbf9800d417ce65caba32b920d86413178",
       "repository": "https://github.com/meghamsh738/Experiment-pairing-app"
     },
     {
@@ -89,7 +89,7 @@
         "Mice-breeding-pair-selector"
       ],
       "targetDir": "apps/breeding",
-      "sourceRevision": "bd27cca8ef8bfba9ea0247c30a50679a7b8d8605",
+      "sourceRevision": "84aeb12cefbdf4ffaee349247b02759b2b99fc0c",
       "repository": "https://github.com/meghamsh738/Mice-breeding-pair-selector"
     },
     {
@@ -101,7 +101,7 @@
         "Y-maze-randomizer"
       ],
       "targetDir": "apps/ymaze",
-      "sourceRevision": "7f87274a9b39d320fc42e6523f5b740edabd4e50",
+      "sourceRevision": "387eff618aa9e75038f0778c9a40473fc3f10d21",
       "repository": "https://github.com/meghamsh738/Y-maze-randomizer"
     }
   ]
