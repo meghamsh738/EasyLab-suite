@@ -84,10 +84,10 @@ const MODULES: ModuleDefinition[] = [
     id: 'qpcr-planner',
     name: 'qPCR Planner',
     group: 'Planning',
-    summary: '384-well layout planning with controls and gene overrides.',
+    summary: '96- and 384-well layouts, controls, recipes and template checks.',
     workflow: 'Build plate map',
     inputs: 'Sample list',
-    outputs: 'Plate layout',
+    outputs: 'Reviewed plate layout, master mix and Analysis handoff',
     accent: '#088B74',
     icon: qpcrPlannerIcon,
     tags: ['Layout', 'Controls', 'Overrides'],
@@ -157,8 +157,8 @@ const MODULES: ModuleDefinition[] = [
 const GROUPS: Array<'All' | ModuleGroup> = ['All', 'Notebook', 'Planning', 'Analysis', 'Colony', 'Behaviour']
 const SUMMARIES: Record<ModuleId, string> = {
   labnotebook: 'Notes, attachments, and experiment records.',
-  cdna: 'RNA dilutions and reaction setup.',
-  'qpcr-planner': 'Plate layouts, controls, and master mixes.',
+  cdna: 'RNA input, dilution and reaction recipes.',
+  'qpcr-planner': '96- and 384-well layouts and master mixes.',
   'qpcr-analysis': 'Ct normalization, figures, and reports.',
   'elisa-analysis': 'Standard curves and concentration analysis.',
   'animal-pairing': 'Balanced cohorts from your colony data.',
@@ -166,11 +166,15 @@ const SUMMARIES: Record<ModuleId, string> = {
   ymaze: 'Balanced schedules and arm assignments.',
 }
 const VIEW_KEY = 'easylab.suite.library-view'
+const CATEGORY_KEY = 'easylab.next.library-category'
 type LibraryView = { query: string; activeGroup: 'All' | ModuleGroup }
 const readView = (): LibraryView => {
   try {
     const view = JSON.parse(sessionStorage.getItem(VIEW_KEY) || 'null')
     if (view && typeof view.query === 'string' && GROUPS.includes(view.activeGroup)) return view
+    const category = localStorage.getItem(CATEGORY_KEY)
+    const activeGroup = GROUPS.find(group => group === category)
+    if (activeGroup) return { query: '', activeGroup }
   } catch { /* The library also works when storage is unavailable. */ }
   return { query: '', activeGroup: 'All' }
 }
@@ -224,7 +228,8 @@ function App() {
 
   useEffect(() => { void loadSuiteInfo() }, [loadSuiteInfo])
   useEffect(() => {
-    try { sessionStorage.setItem(VIEW_KEY, JSON.stringify({ query, activeGroup })) } catch { /* Optional UI preference. */ }
+    try { sessionStorage.setItem(VIEW_KEY, JSON.stringify({ query, activeGroup })) } catch { /* Optional session state. */ }
+    try { localStorage.setItem(CATEGORY_KEY, activeGroup) } catch { /* Optional display preference. */ }
   }, [query, activeGroup])
   useEffect(() => {
     const focusSearch = (event: KeyboardEvent) => {

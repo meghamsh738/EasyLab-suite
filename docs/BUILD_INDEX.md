@@ -1,6 +1,14 @@
 # EasyLab Suite build checkpoints
 
-> Latest development milestone: [EasyLab Next calculators phase 3](#easylab-next-calculators-phase-3-17-november-2026).
+> Latest development milestone: [Independent qPCR reference sets](#independent-qpcr-reference-sets).
+
+## Independent qPCR reference sets
+
+**Source:** qPCR Analysis `041fdb434a5d4ad3f904cff95f81caf34e5f6092` on `codex/easylab-next-20261113`. The Suite pins this revision. The separate calculator checkpoint below keeps its original source pins.
+
+The same target and calibrator can be used with two separately named references. A fictional browser review showed six eligible 18S and five eligible CYC1 samples. The graph, result CSV, saved experiment and selected workbook values matched. The previous package reopened at its original revision. Python verification passed 62 tests; the headless spreadsheet recalculation check was skipped. See the [qPCR browser evidence](https://github.com/meghamsh738/qPCR-analysis-app/blob/041fdb434a5d4ad3f904cff95f81caf34e5f6092/design-review/next-qpcr-reference-sets/README.md).
+
+The launcher now describes both Planner plate formats and remembers the chosen library category across windows. [Narrow launcher review](../design-review/builds/next-qpcr-reference-sets/calculator-category-narrow.png) shows the Planning view at 768 px. Native packaging and full artifact preflight are separate checks.
 
 ## EasyLab Next calculators phase 3 (17 November 2026)
 
