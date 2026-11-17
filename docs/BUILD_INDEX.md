@@ -6,9 +6,13 @@
 
 **Source:** qPCR Analysis `041fdb434a5d4ad3f904cff95f81caf34e5f6092` on `codex/easylab-next-20261113`. The Suite pins this revision. The separate calculator checkpoint below keeps its original source pins.
 
-The same target and calibrator can be used with two separately named references. A fictional browser review showed six eligible 18S and five eligible CYC1 samples. The graph, result CSV, saved experiment and selected workbook values matched. The previous package reopened at its original revision. Python verification passed 62 tests; the headless spreadsheet recalculation check was skipped. See the [qPCR browser evidence](https://github.com/meghamsh738/qPCR-analysis-app/blob/041fdb434a5d4ad3f904cff95f81caf34e5f6092/design-review/next-qpcr-reference-sets/README.md).
+The same target and calibrator can be used with two separately named references. A fictional browser review showed six eligible 18S and five eligible CYC1 samples. The graph, result CSV, saved experiment and selected workbook values matched. The previous package reopened at its original revision. All 63 Python tests passed, including headless spreadsheet recalculation. See the [qPCR browser evidence](https://github.com/meghamsh738/qPCR-analysis-app/blob/041fdb434a5d4ad3f904cff95f81caf34e5f6092/design-review/next-qpcr-reference-sets/README.md).
 
 The launcher now describes both Planner plate formats and remembers the chosen library category across windows. [Narrow launcher review](../design-review/builds/next-qpcr-reference-sets/calculator-category-narrow.png) shows the Planning view at 768 px. Native packaging and full artifact preflight are separate checks.
+
+## Reviewed cDNA handoff
+
+The Suite pins Planner `89e094e8f3ccc3b6369e32d16960a1ce7fa29a8d`. In Samples, the researcher can open a reviewed cDNA package, check ready and withheld rows, confirm the qPCR recipe input, and apply the ready labels. A fictional browser check opened the original four-row cDNA practice package and built a plan with two distinct biological sample IDs. The renderer used the exact checked source in a temporary QA build and the API was launched from the authoritative worktree. The production build, lint and two import tests passed. [Planner review and screenshot](https://github.com/meghamsh738/qPCR-calculations-app/blob/89e094e8f3ccc3b6369e32d16960a1ce7fa29a8d/design-review/next-cdna-handoff/README.md).
 
 ## EasyLab Next calculators phase 3 (17 November 2026)
 

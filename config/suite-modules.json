@@ -39,7 +39,7 @@
         "qpcr-calculations-app-git"
       ],
       "targetDir": "apps/qpcr-planner",
-      "sourceRevision": "66b81e77f79fee0704cc11367eeae43e0a464b2b",
+      "sourceRevision": "89e094e8f3ccc3b6369e32d16960a1ce7fa29a8d",
       "repository": "https://github.com/meghamsh738/qPCR-calculations-app"
     },
     {
