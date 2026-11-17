@@ -1,8 +1,14 @@
 # EasyLab Next development checkpoint
 
-Updated: 13 November 2026.
+Updated: 17 November 2026.
 
 ## Current state
+
+The user authorized **ELISA phase 2** on 17 November. It is implemented on the same separate Next branch. The reviewed ELISA revision is `c150656432f194b842f98a1cf8f8fa154c1780f4`, pinned in `config/suite-modules.json`. The one-plate workflow now includes explicit input correction, selected blank rules, reasoned standard/well review, monotonic polynomial/4PL range checks, one-time dilution, biological-sample graphs, local presets/layouts and portable saved experiments. Below/above-range readings remain visible without final concentrations. See the phase-2 entry in [BUILD_INDEX.md](BUILD_INDEX.md) for the final verification and source commit.
+
+ELISA browser development/preview uses strict loopback **18514**. The Suite still loads ELISA as static assets. Standalone profiles, settings and downloads live under `runtime/elisa-standalone`, with a distinct Electron identity. No stable checkout, installed app or real lab data is used.
+
+### Preserved qPCR phase-1 milestone
 
 The user authorized implementation after the separate-branch milestone. qPCR Analysis phase 1 is implemented and committed on the Next module branch as `4d76175dff4ca801551a2572e8439c20cb8a0fde`; that commit has been pushed, and the Suite source pin now matches it. The guided review workflow, biological-sample calculation engine, saved experiments, graphs, basic statistics and accepted XLSX review export are implemented.
 
@@ -29,7 +35,7 @@ Baseline tag in every repository: `preserved/easylab-before-next-20261113`. The 
 ## Approved implementation sequence
 
 1. qPCR Analysis — phase 1 complete in Next commit `4d76175dff4ca801551a2572e8439c20cb8a0fde`: guided review; sample/plate identities; biological rather than technical-well weighting; the user's 8-point 4-fold standard series as a named preset; side-by-side suitable standard-curve and DeltaDeltaCq methods; explicit exclusions/range review; sample-level graphs; basic two-group/one-way tests with adjusted P values; saved experiments and reviewed XLSX output.
-2. ELISA: one-plate guided standard/blank/replicate review; prevent polynomial boundary clamping; consistent corrections/dilution; custom and legacy presets; graphs and exports.
+2. ELISA — phase 2 implemented in the pinned Next source: one-plate guided standard/blank/replicate review; prevent polynomial boundary clamping; consistent corrections/dilution; custom and legacy presets; graphs and exports.
 3. cDNA and qPCR Planner: editable named recipes, kit constraints distinct from preferences, stock/working concentration handling, pipetting feasibility, overage, 96/384-well planning and analysis handoff.
 4. Animal tools: configurable balance goals and strict constraints; seeded reproducible grouping/pairing, locks, explanatory breeding candidates with unknown genotype retained, reproducible Y-maze schedules and exports.
 5. Notebook and Suite: local-only durable notebook without Google login, safe explicit copies of cached notebooks, backups/attachments/result links, common navigation/imports/graphs/local experiment packages.
@@ -47,7 +53,7 @@ The default Next runtime root is `/Volumes/Coding Projects/Active/easylab-next/r
 | cDNA Calculator | 18511 |
 | qPCR Planner | 18512 |
 | qPCR Analysis | 18501 |
-| ELISA Analysis | bundled static page; no listener |
+| ELISA Analysis | 18514 standalone browser preview; bundled static page in Suite |
 | Animal Pairing | 18521 |
 | Breeding Pair Selector | 18522 |
 | Y-Maze Randomizer | 18523 |
@@ -55,6 +61,10 @@ The default Next runtime root is `/Volumes/Coding Projects/Active/easylab-next/r
 No native app was launched, no real user data or session was copied, and no preview server remains running. Preservation verification passed: all nine original repositories retained their recorded HEADs, branches and clean statuses; all five protected installed/configuration-file hashes matched.
 
 ## Verification and next action
+
+ELISA phase 2: **46 unit**, **8 runtime isolation** and **5 browser tests** passed; build/lint and 17 production browser checks passed. Actual image/workbook/package exports agree with the six expected fictional sample concentrations, and all three final report pages were inspected. The strict Suite source preflight passed with the new ELISA pin; the 19 Suite isolation/source/route checks also passed. See the [phase-2 build record](BUILD_INDEX.md#easylab-next-elisa-phase-2-17-november-2026).
+
+The table below preserves the qPCR phase-1 verification record.
 
 | Check | Result |
 | --- | --- |
@@ -74,4 +84,4 @@ No native app was launched, no real user data or session was copied, and no prev
 
 Module artifact sync and packaged-app checks remain unverified.
 
-Next concrete action: finalize the Suite checkpoint commit and record its source/preflight state. Suite checkpoint commit: the commit containing this checkpoint; see `git log -1 -- docs/EASYLAB_NEXT.md`. Do not merge into stable branches, install a Next package or publish a release as part of this checkpoint. The approved later phases and full acceptance examples are in Codex chat `01a1d572-e4c8-7563-a17a-23876692ed82`, “Plan EasyLab Suite improvements”.
+Next planned module phase: editable recipes and feasibility checks in cDNA Calculator and qPCR Planner, after its implementation is requested. The current ELISA checkpoint commit is the commit containing the phase-2 entry in `docs/BUILD_INDEX.md`; the ELISA module revision is pinned in `config/suite-modules.json`. Do not merge into stable branches, install a Next package or publish a release as part of this checkpoint. The approved later phases and full acceptance examples are in Codex chat `01a1d572-e4c8-7563-a17a-23876692ed82`, “Plan EasyLab Suite improvements”.

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedOn": "2026-11-13",
+  "generatedOn": "2026-11-17",
   "modules": [
     {
       "id": "labnotebook",
@@ -65,7 +65,7 @@
         "ELISA-analysis-app"
       ],
       "targetDir": "apps/elisa-analysis",
-      "sourceRevision": "78a7561794c76d4cfd2c128124b1500af173f4de",
+      "sourceRevision": "c150656432f194b842f98a1cf8f8fa154c1780f4",
       "repository": "https://github.com/meghamsh738/ELISA-analysis-app"
     },
     {

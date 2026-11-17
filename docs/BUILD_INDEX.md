@@ -1,6 +1,34 @@
 # EasyLab Suite build checkpoints
 
-> Latest development milestone: [EasyLab Next qPCR Analysis phase 1](#easylab-next-qpcr-analysis-phase-1-13-november-2026). The 0.2.1 and 0.2.0 entries below are historical installed-release records.
+> Latest development milestone: [EasyLab Next ELISA phase 2](#easylab-next-elisa-phase-2-17-november-2026). The qPCR phase-1 and stable release records below remain preserved.
+
+## EasyLab Next ELISA phase 2 (17 November 2026)
+
+**ELISA source:** `c150656432f194b842f98a1cf8f8fa154c1780f4` on `codex/easylab-next-20261113`. **Friendly version:** `next-elisa-phase-2-20261117`. **Suite checkpoint:** the commit containing this entry; use `git log -1 -- docs/BUILD_INDEX.md`. The Suite source pin matches this ELISA commit; the qPCR pin remains `4d76175dff4ca801551a2572e8439c20cb8a0fde`.
+
+**Status:** implemented and checked development source. A revisitable five-step workflow now guides reader import/mapping, standards/blanks, replicate/fit review, concentrations, and figures/export. It preserves questionable observations, requires reasons for exclusions, prevents boundary clamping, applies the selected correction and dilution once, and shows sample-level graphs. Named custom/legacy presets, reusable layouts, local autosave, undo/reset and portable experiment packages are included.
+
+| Check | Result |
+| --- | --- |
+| ELISA scientific/parser/package tests | 46 passed |
+| ELISA standalone isolation tests | 8 passed |
+| ELISA browser tests | 5 passed, including desktop-to-narrow resizing after print |
+| Production build and lint | Passed; expected lazy Plotly/ExcelJS chunk warnings |
+| Independent production browser checks | 17 passed; no console errors/warnings, external requests or failed responses |
+| Downloaded CSV/XLSX/PNG/SVG and package | Six biological sample concentrations agree; two range-check samples withheld; custom image sizes and package reopen verified |
+| Printable report | All 3 A4 landscape pages rendered and inspected, including the final white-background correction |
+| Independent code review | Two reader findings fixed and rechecked; no blocking issue remained in the scoped final checks |
+| Suite isolation/source-receipt/Notebook route tests | 19 passed |
+| Strict Suite source preflight | Passed against the updated ELISA pin |
+| ELISA built asset paths | 12 files checked; relative entry references and no symlinks |
+| Preserved original versions | Nine original HEAD/branch/status records and five protected hashes match |
+| Native Excel; full Suite artifact sync; packaged macOS/installed app; Windows | Unverified |
+
+Standalone browser previews use strict loopback **18514** and Next-only storage keys. Electron uses its distinct Next identity and `runtime/elisa-standalone`; it was not launched. Suite ELISA remains a static module. All task-owned browser/preview processes were stopped. No real lab data or existing session was copied; no merge, installation or public release was performed.
+
+[ELISA review record](https://github.com/meghamsh738/ELISA-analysis-app/blob/c150656432f194b842f98a1cf8f8fa154c1780f4/design-review/next-elisa-phase-2/README.md) · [Desktop graph](https://github.com/meghamsh738/ELISA-analysis-app/blob/c150656432f194b842f98a1cf8f8fa154c1780f4/design-review/next-elisa-phase-2/05-graph-desktop.png) · [Narrow graph](https://github.com/meghamsh738/ELISA-analysis-app/blob/c150656432f194b842f98a1cf8f8fa154c1780f4/design-review/next-elisa-phase-2/05-graph-narrow.png).
+
+Next planned implementation phase: cDNA and qPCR Planner recipes/feasibility. Full Mac packaging and installed-app checks remain separate requirements before any release claim; Windows requires its own checks.
 
 ## EasyLab Next qPCR Analysis phase 1 (13 November 2026)
 
