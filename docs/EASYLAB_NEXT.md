@@ -4,6 +4,8 @@ Updated: 17 November 2026.
 
 ## Current state
 
+**Reviewed animal workflows.** Animal Pairing, Breeding and Y-Maze use the checked revisions in `config/suite-modules.json`. Tests and the focused browser flows verified reproducibility, explicit scientific assumptions and the reviewed exports. See [the build index](BUILD_INDEX.md).
+
 **qPCR independent reference sets.** The qPCR Analysis source at `041fdb434a5d4ad3f904cff95f81caf34e5f6092` compares named reference sets against the same target assays and calibrators. A fictional run verified separate 18S and CYC1 values in results, graph data and selected workbooks. Phase-1 packages retain their original saved results. See [the module review](https://github.com/meghamsh738/qPCR-analysis-app/blob/041fdb434a5d4ad3f904cff95f81caf34e5f6092/design-review/next-qpcr-reference-sets/README.md).
 
 
@@ -93,4 +95,4 @@ The table below preserves the qPCR phase-1 verification record.
 
 Module artifact sync and packaged-app checks remain unverified.
 
-Next work: animal-tool workflows, the local Lab Notebook and bundled Suite verification. The current ELISA checkpoint commit is the commit containing the phase-2 entry in `docs/BUILD_INDEX.md`; the ELISA module revision is pinned in `config/suite-modules.json`. Do not merge into stable branches, install a Next package or publish a release as part of this checkpoint. The approved later phases and full acceptance examples are in Codex chat `01a1d572-e4c8-7563-a17a-23876692ed82`, “Plan EasyLab Suite improvements”.
+Next work: local Lab Notebook and bundled Suite verification. The current ELISA checkpoint commit is the commit containing the phase-2 entry in `docs/BUILD_INDEX.md`; the ELISA module revision is pinned in `config/suite-modules.json`. Do not merge into stable branches, install a Next package or publish a release as part of this checkpoint. The approved later phases and full acceptance examples are in Codex chat `01a1d572-e4c8-7563-a17a-23876692ed82`, “Plan EasyLab Suite improvements”.

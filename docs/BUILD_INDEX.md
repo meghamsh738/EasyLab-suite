@@ -1,6 +1,16 @@
 # EasyLab Suite build checkpoints
 
-> Latest development milestone: [Independent qPCR reference sets](#independent-qpcr-reference-sets).
+> Latest development milestone: [Reviewed animal workflows](#reviewed-animal-workflows).
+
+## Reviewed animal workflows
+
+| Tool | Changes | Checks |
+| --- | --- | --- |
+| Animal Pairing | Seeded simple and balanced groups, explicit capacities and age units, locks, together/apart rules, saved review and exact Excel export. | 14 Python checks; build, typecheck and lint; browser review of the reopened filtered cohort and checked workbook. |
+| Breeding Pair Selector | Separate inheritance assumptions, missing data and shared parents, eligible alternatives, reasons and locked-pair export. | 13 backend checks; build and lint; browser review and inspected selected-pair workbook. |
+| Y-Maze Randomizer | Named protocols, seed replay, arm locks, review/saved schedules and exact CSV and Excel downloads. | 5 Python checks; build, typecheck and lint; browser review and worksheet/CSV cell checks, including text-like identifiers. |
+
+Rendered checks used local production builds from byte-verified module source with isolated, authoritative APIs. Some repository browser runners timed out creating the browser page, so the focused workflows were exercised through the managed browser. The authoritative module commits are recorded in `config/suite-modules.json`.
 
 ## Independent qPCR reference sets
 

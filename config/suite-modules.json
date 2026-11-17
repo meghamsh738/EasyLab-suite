@@ -77,7 +77,7 @@
         "Experiment-pairing-app"
       ],
       "targetDir": "apps/animal-pairing",
-      "sourceRevision": "298666fbf9800d417ce65caba32b920d86413178",
+      "sourceRevision": "d7147b04b7843fa8dd581554de05ae7b1035366f",
       "repository": "https://github.com/meghamsh738/Experiment-pairing-app"
     },
     {
@@ -89,7 +89,7 @@
         "Mice-breeding-pair-selector"
       ],
       "targetDir": "apps/breeding",
-      "sourceRevision": "84aeb12cefbdf4ffaee349247b02759b2b99fc0c",
+      "sourceRevision": "8a3b72717a9b6f16e8a937d7420a7db84e31da70",
       "repository": "https://github.com/meghamsh738/Mice-breeding-pair-selector"
     },
     {
@@ -101,7 +101,7 @@
         "Y-maze-randomizer"
       ],
       "targetDir": "apps/ymaze",
-      "sourceRevision": "387eff618aa9e75038f0778c9a40473fc3f10d21",
+      "sourceRevision": "668949cf808b3f0f2f779c56bc6f46a560e44178",
       "repository": "https://github.com/meghamsh738/Y-maze-randomizer"
     }
   ]
