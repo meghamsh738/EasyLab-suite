@@ -1,6 +1,16 @@
 # EasyLab Suite build checkpoints
 
-> Latest development milestone: [Reviewed animal workflows](#reviewed-animal-workflows).
+> Latest development milestone: [Local Lab Notebook and Suite source integration](#local-lab-notebook-and-suite-source-integration).
+
+## Local Lab Notebook and Suite source integration
+
+**Source checkpoint:** `next-reviewed-workflows-20261117` on `codex/easylab-next-20261113`. The [module pins](../config/suite-modules.json) identify all eight checked source revisions.
+
+Lab Notebook opens a local workspace with no account requirement. Researchers can preview earlier cached notes, copy them explicitly, and see which attachments have no local file. Portable backups include copied experiment and figure bytes. The fictional browser run verified reopening offline, preserving earlier caches, restoring the exact package after its original was deleted, and making zero network requests outside loopback. Invalid attachment data is rejected before it can overwrite existing files. Notebook's build and all four targeted browser tests passed.
+
+Strict source preflight resolved all eight pins. All 19 Suite source, runtime and routing checks passed. All 12 launcher and module-switching browser checks passed in a byte-verified QA copy. The Suite renderer also built from the authoritative checkout.
+
+Full bundle sync could not finish. The external drive stalled during dependency writes. The subsequent `npm run sync:apps` attempt reached the pinned Notebook build and reported `tsc: command not found` in its incomplete on-drive Node environment. The next check is to finish installing the locked dependencies on the drive and rerun `npm run sync:apps`. Native Excel, packaged macOS and Windows remain unverified.
 
 ## Reviewed animal workflows
 
