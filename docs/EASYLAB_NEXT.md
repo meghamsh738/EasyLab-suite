@@ -4,6 +4,10 @@ Updated: 17 November 2026.
 
 ## Current state
 
+**Calculator phase 3 passed development and integration checks.** cDNA is pinned at `b7756147d96862b6a33244889c3b92b6b4531bf4` and qPCR Planner is pinned at `66b81e77f79fee0704cc11367eeae43e0a464b2b`. Both support named recipes, explicit feasibility review, saved experiments and reviewed exports. Planner supports 96/384-well layouts and per-sample template budgets. A fictional Planner export matched all 12 wells in the unchanged qPCR Analysis parser and metadata join. Strict source preflight, 19 Suite tests and preserved-checkout verification passed. See [the build index](BUILD_INDEX.md) for workflow checks and review screenshots.
+
+### Preserved ELISA phase-2 milestone
+
 The user authorized **ELISA phase 2** on 17 November. It is implemented on the same separate Next branch. The reviewed ELISA revision is `c150656432f194b842f98a1cf8f8fa154c1780f4`, pinned in `config/suite-modules.json`. The one-plate workflow now includes explicit input correction, selected blank rules, reasoned standard/well review, monotonic polynomial/4PL range checks, one-time dilution, biological-sample graphs, local presets/layouts and portable saved experiments. Below/above-range readings remain visible without final concentrations. See the phase-2 entry in [BUILD_INDEX.md](BUILD_INDEX.md) for the final verification and source commit.
 
 ELISA browser development/preview uses strict loopback **18514**. The Suite still loads ELISA as static assets. Standalone profiles, settings and downloads live under `runtime/elisa-standalone`, with a distinct Electron identity. No stable checkout, installed app or real lab data is used.
@@ -50,8 +54,8 @@ The default Next runtime root is `/Volumes/Coding Projects/Active/easylab-next/r
 | --- | ---: |
 | Suite launcher | 18578 |
 | Lab Notebook | 18530 |
-| cDNA Calculator | 18511 |
-| qPCR Planner | 18512 |
+| cDNA Calculator | API 18511; standalone browser 19511 |
+| qPCR Planner | API 18512; standalone browser 19512 |
 | qPCR Analysis | 18501 |
 | ELISA Analysis | 18514 standalone browser preview; bundled static page in Suite |
 | Animal Pairing | 18521 |
@@ -84,4 +88,4 @@ The table below preserves the qPCR phase-1 verification record.
 
 Module artifact sync and packaged-app checks remain unverified.
 
-Next planned module phase: editable recipes and feasibility checks in cDNA Calculator and qPCR Planner, after its implementation is requested. The current ELISA checkpoint commit is the commit containing the phase-2 entry in `docs/BUILD_INDEX.md`; the ELISA module revision is pinned in `config/suite-modules.json`. Do not merge into stable branches, install a Next package or publish a release as part of this checkpoint. The approved later phases and full acceptance examples are in Codex chat `01a1d572-e4c8-7563-a17a-23876692ed82`, “Plan EasyLab Suite improvements”.
+Next work: independent qPCR reference sets and animal-tool workflows, followed by local Lab Notebook and Suite completion. The current ELISA checkpoint commit is the commit containing the phase-2 entry in `docs/BUILD_INDEX.md`; the ELISA module revision is pinned in `config/suite-modules.json`. Do not merge into stable branches, install a Next package or publish a release as part of this checkpoint. The approved later phases and full acceptance examples are in Codex chat `01a1d572-e4c8-7563-a17a-23876692ed82`, “Plan EasyLab Suite improvements”.

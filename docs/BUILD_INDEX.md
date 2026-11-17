@@ -1,6 +1,38 @@
 # EasyLab Suite build checkpoints
 
-> Latest development milestone: [EasyLab Next ELISA phase 2](#easylab-next-elisa-phase-2-17-november-2026). The qPCR phase-1 and stable release records below remain preserved.
+> Latest development milestone: [EasyLab Next calculators phase 3](#easylab-next-calculators-phase-3-17-november-2026).
+
+## EasyLab Next calculators phase 3 (17 November 2026)
+
+**Sources:** cDNA `b7756147d96862b6a33244889c3b92b6b4531bf4`; qPCR Planner `66b81e77f79fee0704cc11367eeae43e0a464b2b`. **Branch:** `codex/easylab-next-20261113`. **Friendly version:** `next-calculators-phase-3-20261117`. **Suite checkpoint:** the commit containing this entry. Both source pins match these commits; qPCR Analysis and ELISA retain their phase-1/2 pins.
+
+**Status:** checked development source. Both calculators have named editable recipes, declared kit constraints, actual transfer checks, reasoned review, undo/reset, local inputs and portable experiment packages. Fixed aliquots, reaction fractions and concentration-based components are distinct. Water fills the remaining volume; overage affects preparation totals only. New experiments retain recipes but require fresh mappings and review.
+
+cDNA retains malformed and excluded samples visibly, checks available RNA and dilution transfers, and exports the same reviewed values to CSV/XLSX. qPCR Planner supports 96/384 wells, controls, technical replicates, per-sample template budgets and custom-component master mixes. Stock/working primers preserve the intended dose. Known stock shortages block final exports; unknown stock requires explicit confirmation. Saved review is restored only when recomputed results agree. The handoff CSV identifies Plate, Well and biological SampleId while leaving Cq for the instrument.
+
+| Check | Result |
+| --- | --- |
+| cDNA Python / Node runtime tests | 28 / 7 passed |
+| cDNA browser regressions | 4 passed, plus final targeted custom-recipe recheck |
+| cDNA independent browser/download review | 31 checks plus final compact-controls/title/keyboard/narrow recheck; CSV/XLSX/package values agree |
+| Planner Python / Node runtime tests | 28 / 7 passed |
+| Planner browser regressions | 22 passed |
+| Planner independent browser/download review | 73 workflow assertions plus 6 unit-label checks; actual custom mix CSV, handoff CSV and exact reviewed-package reopen passed at desktop/768 px |
+| Calculator build and lint | Both passed |
+| Planner to Analysis handoff | Actual downloaded CSV: 12 wells, 2 biological IDs, 4 assays across 2 plates; unchanged parser and production metadata-join code matched all wells and retained instrument Cq/labels |
+| Shared recipe engine | Byte-identical copies with matching hand-checkable fixtures |
+| Independent scientific/state/runtime review | Findings fixed and rechecked; no remaining blocker in the scoped final review |
+| Suite isolation/source-receipt/Notebook route tests | 19 passed |
+| Strict Suite source preflight | Passed against all eight pinned Next worktrees |
+| Built asset paths | 5 cDNA and 11 Planner files; correct titles, relative entry references, no symlinks |
+| Preserved original versions | Nine original HEAD/branch/status records and five protected hashes match; original remote branches unchanged |
+| Native Excel; full Suite artifact sync; packaged macOS/installed app; Windows | Unverified |
+
+The two frontends use strict loopback **19511 / 19512** and APIs **18511 / 18512**. Desktop/backend writes, Python environments, caches and profiles use the Next runtime; normal browser state uses the distinct local origins and Next keys. Launchers verify their own API child identity and refuse unknown active listeners. All task-owned preview/browser processes were stopped. Only fictional data was used; no merge, installation or release publication occurred.
+
+Review evidence: [cDNA](https://github.com/meghamsh738/cDNA-calculations-app/blob/b7756147d96862b6a33244889c3b92b6b4531bf4/design-review/next-calculators-phase-3/README.md) and [qPCR Planner](https://github.com/meghamsh738/qPCR-calculations-app/blob/66b81e77f79fee0704cc11367eeae43e0a464b2b/design-review/next-calculators-phase-3/README.md). The current handoff and exact Suite hash are in the task's `outputs/EasyLab_Next/Current/development_setup.md`.
+
+Next planned implementation phase: Animal tools, then local Notebook and Suite completion. Mac packaged checks remain required before any release claim; Windows needs its own checks.
 
 ## EasyLab Next ELISA phase 2 (17 November 2026)
 

@@ -25,7 +25,7 @@
         "cdna-calculations-app"
       ],
       "targetDir": "apps/cdna",
-      "sourceRevision": "9b01837c5f9e8974c544b17057c57b0d1be60719",
+      "sourceRevision": "b7756147d96862b6a33244889c3b92b6b4531bf4",
       "repository": "https://github.com/meghamsh738/cDNA-calculations-app"
     },
     {
@@ -39,7 +39,7 @@
         "qpcr-calculations-app-git"
       ],
       "targetDir": "apps/qpcr-planner",
-      "sourceRevision": "bac2fa635363fcfa8e03bf69bc3890707b14f92d",
+      "sourceRevision": "66b81e77f79fee0704cc11367eeae43e0a464b2b",
       "repository": "https://github.com/meghamsh738/qPCR-calculations-app"
     },
     {
