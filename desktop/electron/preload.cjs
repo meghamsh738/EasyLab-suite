@@ -16,6 +16,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openModuleInSuite: (target) => ipcRenderer.invoke('open-module-in-suite', target),
   returnToSuite: () => ipcRenderer.invoke('return-to-suite'),
   openNotebookInBrowser: () => ipcRenderer.invoke('open-notebook-in-browser'),
+  saveGelProject: (fileName, contents) => ipcRenderer.invoke('save-gel-project', fileName, contents),
   prewarmModule: (target) => ipcRenderer.invoke('prewarm-module', target),
   prepareModuleLaunch: (target) => ipcRenderer.invoke('prepare-module-launch', target),
   getSuiteInfo: () => ipcRenderer.invoke('get-suite-info'),

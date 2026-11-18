@@ -22,7 +22,8 @@ if (!(Test-Path $RequirementsFile)) {
 }
 
 if ((Test-Path $RuntimePythonDir) -and !$Force) {
-  $existing = Get-ChildItem -Path $RuntimePythonDir -Force -ErrorAction SilentlyContinue
+  $existing = @(Get-ChildItem -Path $RuntimePythonDir -Force -ErrorAction SilentlyContinue |
+    Where-Object { $_.Name -ne ".gitkeep" })
   if ($existing.Count -gt 0) {
     throw "Runtime folder already contains files. Re-run with -Force to rebuild: $RuntimePythonDir"
   }
@@ -102,16 +103,19 @@ if (!(Test-Path $pythonExe)) {
 }
 
 & $pythonExe $getPipPath | Out-Host
+if ($LASTEXITCODE -ne 0) { throw "Could not bootstrap pip." }
 Remove-Item -Force $getPipPath
 
-Write-Host "Installing suite dependencies into Lib\\site-packages..." -ForegroundColor Cyan
-$sitePackages = Join-Path $RuntimePythonDir "Lib\\site-packages"
+Write-Host "Installing suite dependencies into Lib\site-packages..." -ForegroundColor Cyan
+$sitePackages = Join-Path $RuntimePythonDir "Lib\site-packages"
 New-Item -ItemType Directory -Force -Path $sitePackages | Out-Null
 
 & $pythonExe -m pip install --no-warn-script-location -r $RequirementsFile --target $sitePackages | Out-Host
+if ($LASTEXITCODE -ne 0) { throw "Could not install the Suite Python dependencies." }
 
 Write-Host "Smoke import check..." -ForegroundColor Cyan
-& $pythonExe -c "import fastapi, uvicorn, streamlit, pandas, numpy, openpyxl, matplotlib; print('OK: python runtime ready')" | Out-Host
+& $pythonExe -c "import fastapi, uvicorn, streamlit, pandas, numpy, openpyxl, matplotlib, multipart, plotly, scipy, xlsxwriter; print('OK: python runtime ready')" | Out-Host
+if ($LASTEXITCODE -ne 0) { throw "The bundled Python runtime failed its import check." }
 
 Write-Host "Done." -ForegroundColor Green
 

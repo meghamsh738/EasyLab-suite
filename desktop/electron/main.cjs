@@ -38,6 +38,8 @@ const hasAppSwitch = (name) => {
 const isWhatsappIntakeMode = hasAppSwitch('labnote-whatsapp-intake')
 const isTelegramIntakeMode = hasAppSwitch('labnote-telegram-intake')
 const rootDir = path.join(__dirname, '..', '..')
+const suiteWebDist = path.join(rootDir, '.suite-dist', 'web', 'index.html')
+const suiteHomeUrl = isDev ? `http://127.0.0.1:${SUITE_DEV_PORT}/` : pathToFileURL(suiteWebDist).href
 const runtimeLayout = resolveRuntimeLayout({
   suiteRoot: rootDir,
   runtimeRootOverride: process.env.EASYLAB_RUNTIME_ROOT,
@@ -2139,6 +2141,19 @@ const createSuiteWindow = () => {
     },
   })
 
+  win.webContents.on('will-prevent-unload', (event) => {
+    if (win.webContents.getURL().split('#', 1)[0] !== suiteHomeUrl) return
+    const choice = dialog.showMessageBoxSync(win, {
+      type: 'warning',
+      message: 'Save your gel project before leaving?',
+      detail: 'Choose Keep editing to return to the project and save it.',
+      buttons: ['Keep editing', 'Discard changes'],
+      defaultId: 0,
+      cancelId: 0,
+    })
+    if (choice === 1) event.preventDefault()
+  })
+
   loadSuiteHome(win).catch(err => console.error('Suite library could not load', err))
 
   return win
@@ -2149,13 +2164,8 @@ const loadSuiteHome = async (win) => {
   detachModuleShell(win)
   win.setTitle(app.getName())
   win.webContents.setZoomFactor(1)
-  if (isDev) {
-    const devUrl = `http://127.0.0.1:${SUITE_DEV_PORT}`
-    return win.loadURL(devUrl)
-  } else {
-    const webDist = path.join(rootDir, '.suite-dist', 'web', 'index.html')
-    return win.loadFile(webDist)
-  }
+  if (isDev) return win.loadURL(suiteHomeUrl)
+  return win.loadFile(suiteWebDist)
 }
 
 const appendModuleQuery = (url, moduleId) => {
@@ -2391,6 +2401,36 @@ ipcMain.handle('open-notebook-in-browser', async (event) => {
   })
   await shell.openExternal(url)
   return url
+})
+
+ipcMain.handle('save-gel-project', async (event, fileName, contents) => {
+  const frame = event.senderFrame
+  const win = BrowserWindow.fromWebContents(event.sender)
+  if (!win || !frame || frame !== event.sender.mainFrame || frame.url.split('#', 1)[0] !== suiteHomeUrl) {
+    throw new Error('Open Gel Labeler from the EasyLab tool library to save a project.')
+  }
+  if (!(contents instanceof ArrayBuffer) || contents.byteLength === 0 || contents.byteLength > 30 * 1024 * 1024) {
+    throw new Error('Choose a gel project of at most 30 MB.')
+  }
+  const suggestedName = typeof fileName === 'string' && /^[a-z0-9_. -]{1,120}\.gel\.json$/i.test(fileName)
+    ? fileName
+    : 'gel-image.gel.json'
+  const result = await dialog.showSaveDialog(win, {
+    title: 'Save editable gel project',
+    defaultPath: path.join(app.getPath('downloads'), suggestedName),
+    filters: [{ name: 'Gel project', extensions: ['json'] }],
+  })
+  if (result.canceled || !result.filePath) return false
+
+  const stagingDir = await fs.promises.mkdtemp(path.join(path.dirname(result.filePath), '.easylab-save-'))
+  const temporaryFile = path.join(stagingDir, 'project.json')
+  try {
+    await fs.promises.writeFile(temporaryFile, Buffer.from(contents), { flag: 'wx', mode: 0o600 })
+    await fs.promises.rename(temporaryFile, result.filePath)
+    return true
+  } finally {
+    await fs.promises.rm(stagingDir, { recursive: true, force: true }).catch(() => {})
+  }
 })
 
 ipcMain.handle('select-directory', async (_event, options = {}) => {

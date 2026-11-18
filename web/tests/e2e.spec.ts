@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-const modules = ['labnotebook', 'cdna', 'qpcr-planner', 'qpcr-analysis', 'elisa-analysis', 'animal-pairing', 'breeding', 'ymaze']
+const modules = ['labnotebook', 'cdna', 'qpcr-planner', 'qpcr-analysis', 'elisa-analysis', 'animal-pairing', 'breeding', 'ymaze', 'gel-labeler', 'lab-inventory']
 
 test('all tools render without overflow or runtime errors', async ({ page }) => {
   const errors: string[] = []
@@ -27,7 +27,7 @@ test('search and category filters combine, persist and reset from an empty resul
   await page.getByRole('searchbox').fill('missing tool')
   await expect(page.getByTestId('suite-empty')).toBeVisible()
   await page.getByRole('button', { name: 'Show all tools' }).click()
-  await expect(page.locator('.module-row')).toHaveCount(8)
+  await expect(page.locator('.module-row')).toHaveCount(10)
   await expect(page.getByRole('searchbox')).toBeFocused()
   await page.getByRole('searchbox').fill('Plan reactions')
   await expect(page.getByTestId('module-card-cdna')).toBeVisible()
@@ -89,4 +89,19 @@ test('mobile library keeps navigation, launch actions and modal within the viewp
   expect(await page.getByRole('dialog').evaluate(el => el.getBoundingClientRect().right <= innerWidth)).toBe(true)
   await page.getByRole('button', { name: 'Got it' }).click()
   await expect(page.getByTestId('module-launch-ymaze')).toBeFocused()
+})
+
+
+test('both built-in tools open from the library and return to the initiating button', async ({ page }) => {
+  const errors: string[] = []
+  page.on('pageerror', error => errors.push(error.message))
+  await page.goto('/')
+  for (const name of ['Gel Labeler', 'Lab Inventory']) {
+    const launch = page.getByRole('button', { name: `Open ${name}`, exact: true })
+    await launch.click()
+    await expect(page.getByRole('heading', { name, exact: true })).toBeVisible()
+    await page.getByRole('button', { name: /back to tools/i }).click()
+    await expect(launch).toBeFocused()
+  }
+  expect(errors).toEqual([])
 })

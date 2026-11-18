@@ -57,7 +57,7 @@ Audience: user and similar-lab researchers. Keep current architecture/local proc
 
 ## Runtime isolation
 
-The default Next runtime root is `/Volumes/Coding Projects/Active/easylab-next/runtime`. The qPCR standalone launcher uses strict loopback port 18501 and its own data, settings and exports under this root; it refuses an existing listener. Suite runtime paths separate Electron `userData` and `sessionData`, module data/settings/attachments/exports, Python environments and caches. The Suite package identity is `Easylab Suite Next (Dev)`, version `0.3.0-dev.1`; it has not been packaged or installed.
+The default Next runtime root is `/Volumes/Coding Projects/Active/easylab-next/runtime`. The qPCR standalone launcher uses strict loopback port 18501 and its own data, settings and exports under this root; it refuses an existing listener. Suite runtime paths separate Electron `userData` and `sessionData`, module data/settings/attachments/exports, Python environments and caches. The Suite package identity is `Easylab Suite Next (Dev)`, version `0.3.0-dev.1`. Test artifacts are available for Apple silicon macOS and x64 Windows. The current test status is in the [build index](BUILD_INDEX.md#gel-labeler-lab-inventory-and-desktop-builds).
 
 | App | Strict loopback port |
 | --- | ---: |
@@ -95,6 +95,6 @@ The table below preserves the qPCR phase-1 verification record.
 | Native Excel; packaged macOS/installed app; Windows | Not checked |
 | Next package and installation | Not built or installed |
 
-Module artifact sync and packaged-app checks remain unverified.
+The latest Suite build synced and verified all eight module artifacts from their pinned Next source revisions. Gel Labeler and Lab Inventory are built into the Suite renderer and were checked in the browser. The desktop packages passed file-content checks. Native macOS and Excel checks still need a safe time to open the apps, and Windows execution needs a Windows host.
 
-Next verification: finish the on-drive dependency setup, run the full Suite bundle sync, and check the native platforms. The current ELISA checkpoint commit is the commit containing the phase-2 entry in `docs/BUILD_INDEX.md`; the ELISA module revision is pinned in `config/suite-modules.json`. Do not merge into stable branches, install a Next package or publish a release as part of this checkpoint. The approved later phases and full acceptance examples are in Codex chat `01a1d572-e4c8-7563-a17a-23876692ed82`, “Plan EasyLab Suite improvements”.
+The approved acceptance examples are in Codex chat `01a1d572-e4c8-7563-a17a-23876692ed82`, “Plan EasyLab Suite improvements”.

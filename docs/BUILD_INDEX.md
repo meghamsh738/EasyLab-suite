@@ -1,6 +1,25 @@
 # EasyLab Suite build checkpoints
 
-> Latest development milestone: [Local Lab Notebook and Suite source integration](#local-lab-notebook-and-suite-source-integration).
+> Latest development milestone: [Gel Labeler, Lab Inventory and desktop builds](#gel-labeler-lab-inventory-and-desktop-builds).
+
+## Gel Labeler, Lab Inventory and desktop builds
+
+**18 November 2026 · EasyLab Next 0.3.0-dev.1 · `codex/easylab-next-20261113`**
+
+- **Gel Labeler** is under **Analysis**. Open a PNG, JPEG or WebP image, place lane and band labels, and add a band size or note. Move labels by dragging or with the arrow keys. Save the editable project with its original image or download a labeled PNG at the original dimensions.
+- **Lab Inventory** is under **Supplies**. Track quantities, locations, lots, low stock and expiry dates. Record stock received or used, archive old items, and check recent changes. Inventory is saved in this app on this device. Download a JSON backup to transfer or restore it. CSV is available for spreadsheet use.
+
+Dependency writes to the removable drive repeatedly stalled. Locked dependencies were installed in local copies of the eight pinned Next module revisions. The normal `npm run sync:apps` and strict artifact preflight completed there, with a source-and-file receipt for every module. The two built-in tools ship in the Suite renderer.
+
+| Check | Result |
+| --- | --- |
+| Browser workflows | 15 passed, including editable gel save/reopen, labeled PNG, inventory backup/restore and protection against stale edits from a second window |
+| Suite sources, runtime and routing | 19 passed. Renderer build and lint passed |
+| Layout | Both tools inspected at widths of 1440, 760 and 390 px |
+| Shared Python runtime | Required imports available. All 63 qPCR Analysis tests passed from the staged bundle with the shared dependencies, including workbook recalculation |
+| Desktop artifacts | Apple silicon macOS test app and x64 Windows test installer produced. Both contain the expected renderer and all eight pinned module bundles. The local Mac signature passed verification |
+| Windows Python | x64 embedded Python and required dependency files present in the test build. The Windows runtime script now includes qPCR plotting, statistics and workbook-export packages and stops on install/import failure |
+| Native checks pending | Launch and exercise the Mac test app and open the fictional workbooks in Excel at a safe time. Run the Windows build and its Python-backed tools on a Windows host |
 
 ## Local Lab Notebook and Suite source integration
 

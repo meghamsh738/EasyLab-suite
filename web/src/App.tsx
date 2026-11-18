@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import labNotebookIcon from './assets/module-icons/labnotebook.svg'
 import cdnaIcon from './assets/module-icons/cdna.svg'
@@ -8,6 +8,11 @@ import elisaIcon from './assets/module-icons/elisa-analysis.svg'
 import animalPairingIcon from './assets/module-icons/animal-pairing.svg'
 import breedingIcon from './assets/module-icons/breeding.svg'
 import ymazeIcon from './assets/module-icons/ymaze.svg'
+import gelIcon from './assets/module-icons/gel.svg'
+import inventoryIcon from './assets/module-icons/inventory.svg'
+
+const GelLabeler = lazy(() => import('./tools/gel/GelLabeler'))
+const LabInventory = lazy(() => import('./tools/inventory/LabInventory'))
 
 type ModuleId =
   | 'labnotebook'
@@ -35,10 +40,12 @@ type ElectronAPI = {
   setZoomFactor?: (value: number) => Promise<number>
 }
 
-type ModuleGroup = 'Notebook' | 'Planning' | 'Analysis' | 'Colony' | 'Behaviour'
+type BuiltInToolId = 'gel-labeler' | 'lab-inventory'
+type ToolId = ModuleId | BuiltInToolId
+type ModuleGroup = 'Notebook' | 'Planning' | 'Analysis' | 'Colony' | 'Behaviour' | 'Supplies'
 
-type ModuleDefinition = {
-  id: ModuleId
+type ModuleDefinition<Id extends ToolId = ModuleId> = {
+  id: Id
   name: string
   group: ModuleGroup
   summary: string
@@ -154,8 +161,37 @@ const MODULES: ModuleDefinition[] = [
   },
 ]
 
-const GROUPS: Array<'All' | ModuleGroup> = ['All', 'Notebook', 'Planning', 'Analysis', 'Colony', 'Behaviour']
-const SUMMARIES: Record<ModuleId, string> = {
+const BUILT_IN_TOOLS: ModuleDefinition<BuiltInToolId>[] = [
+  {
+    id: 'gel-labeler',
+    name: 'Gel Labeler',
+    group: 'Analysis',
+    summary: 'Add lane and band labels to gel and blot images.',
+    workflow: 'Annotate images',
+    inputs: 'Gel or blot photo',
+    outputs: 'Labeled PNG, editable project',
+    accent: '#6950a1',
+    icon: gelIcon,
+    tags: ['Gels', 'Blots', 'Lanes', 'Annotations'],
+  },
+  {
+    id: 'lab-inventory',
+    name: 'Lab Inventory',
+    group: 'Supplies',
+    summary: 'Track lab stock, locations, lots and expiration dates.',
+    workflow: 'Record stock movements',
+    inputs: 'Reagents and supplies',
+    outputs: 'Stock list and backup',
+    accent: '#976016',
+    icon: inventoryIcon,
+    tags: ['Reagents', 'Stock', 'Restock', 'Freezer'],
+  },
+]
+const TOOL_LIBRARY = [...MODULES, ...BUILT_IN_TOOLS]
+const isBuiltInTool = (id: ToolId): id is BuiltInToolId => id === 'gel-labeler' || id === 'lab-inventory'
+
+const GROUPS: Array<'All' | ModuleGroup> = ['All', 'Notebook', 'Planning', 'Analysis', 'Colony', 'Behaviour', 'Supplies']
+const SUMMARIES: Record<ToolId, string> = {
   labnotebook: 'Notes, attachments, and experiment records.',
   cdna: 'RNA input, dilution and reaction recipes.',
   'qpcr-planner': '96- and 384-well layouts and master mixes.',
@@ -164,6 +200,8 @@ const SUMMARIES: Record<ModuleId, string> = {
   'animal-pairing': 'Balanced cohorts from your colony data.',
   breeding: 'Pair selection for target genotypes.',
   ymaze: 'Balanced schedules and arm assignments.',
+  'gel-labeler': 'Lane and band labels for gel and blot images.',
+  'lab-inventory': 'Reagent and supply stock, lots, and locations.',
 }
 const VIEW_KEY = 'easylab.suite.library-view'
 const CATEGORY_KEY = 'easylab.next.library-category'
@@ -210,6 +248,8 @@ function App() {
   const [errorMessage, setErrorMessage] = useState('')
   const [failedModule, setFailedModule] = useState<ModuleId | null>(null)
   const [webNotice, setWebNotice] = useState<ModuleId | null>(null)
+  const [builtInTool, setBuiltInTool] = useState<BuiltInToolId | null>(null)
+  const returnFocus = useRef<BuiltInToolId | null>(null)
   const [{ query, activeGroup }, setView] = useState<LibraryView>(readView)
   const [launchingModule, setLaunchingModule] = useState<ModuleId | null>(null)
   const searchRef = useRef<HTMLInputElement>(null)
@@ -233,23 +273,34 @@ function App() {
   }, [query, activeGroup])
   useEffect(() => {
     const focusSearch = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k' && !webNotice) {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k' && !webNotice && !builtInTool) {
         event.preventDefault()
         searchRef.current?.focus()
       }
     }
     window.addEventListener('keydown', focusSearch)
     return () => window.removeEventListener('keydown', focusSearch)
-  }, [webNotice])
+  }, [webNotice, builtInTool])
+
+  useEffect(() => {
+    if (builtInTool || !returnFocus.current) return
+    document.querySelector<HTMLButtonElement>(`[data-testid="module-launch-${returnFocus.current}"]`)?.focus()
+    returnFocus.current = null
+  }, [builtInTool])
 
   const filteredModules = useMemo(() => {
     const term = query.trim().toLowerCase()
-    return MODULES.filter(module => (activeGroup === 'All' || module.group === activeGroup) &&
+    return TOOL_LIBRARY.filter(module => (activeGroup === 'All' || module.group === activeGroup) &&
       [module.name, module.group, module.summary, SUMMARIES[module.id], module.workflow, module.inputs, module.outputs, ...module.tags].join(' ').toLowerCase().includes(term))
   }, [activeGroup, query])
 
-  const handleLaunch = async (moduleId: ModuleId) => {
+  const handleLaunch = async (moduleId: ToolId) => {
     if (launchingRef.current) return
+    if (isBuiltInTool(moduleId)) {
+      returnFocus.current = moduleId
+      setBuiltInTool(moduleId)
+      return
+    }
     if (!electron) { setWebNotice(moduleId); return }
     launchingRef.current = true
     setLaunchingModule(moduleId)
@@ -266,12 +317,23 @@ function App() {
       setLaunchingModule(null)
     }
   }
-  const handlePrewarm = (moduleId: ModuleId) => {
-    if (!electron?.prewarmModule || launchingRef.current) return
+  const handlePrewarm = (moduleId: ToolId) => {
+    if (isBuiltInTool(moduleId) || !electron?.prewarmModule || launchingRef.current) return
     void electron.prewarmModule(moduleId).catch(() => { /* Opening the tool reports startup failures. */ })
   }
   const activeNotice = MODULES.find(module => module.id === webNotice)
   const resetView = () => { setView({ query: '', activeGroup: 'All' }); searchRef.current?.focus() }
+
+  if (builtInTool) {
+    const Tool = builtInTool === 'gel-labeler' ? GelLabeler : LabInventory
+    return (
+      <div className="built-in-tool-workspace">
+        <Suspense fallback={<p className="launch-status" role="status">Opening tool…</p>}>
+          <Tool onBack={() => setBuiltInTool(null)} />
+        </Suspense>
+      </div>
+    )
+  }
 
   return (
     <div className="suite" data-testid="suite-root">
@@ -284,7 +346,7 @@ function App() {
             <button key={group} type="button" aria-pressed={activeGroup === group}
               onClick={() => setView(view => ({ ...view, activeGroup: group }))}>
               <span>{group === 'All' ? 'All tools' : group}</span>
-              <span className="nav-count">{group === 'All' ? MODULES.length : MODULES.filter(module => module.group === group).length}</span>
+              <span className="nav-count">{group === 'All' ? TOOL_LIBRARY.length : TOOL_LIBRARY.filter(module => module.group === group).length}</span>
             </button>
           ))}
         </nav>
